@@ -169,6 +169,10 @@ AculabCloudCall object functions
 
 Gets the callId used for the call. For outgoing calls this may return `undefined` until the onConnecting() callback is being called. For incoming calls it is always available.
 
+### string callUuid()
+
+Gets the callUuid used for the call.
+
 ### void mute(mic, outputAudio, camera, outputVideo)
 
 `mic`, `outputAudio`, `camera` and `outputVideo` are boolean. If `mic` is true, then the microphone (sent audio) is muted. If `outputAudio` is true the received audio is muted. If `camera` is true, then the video stream being sent has every frame filled entirely with black pixels. If `outputVideo` is true, then the video stream being received has every frame filled entirely with black pixels. If `camera` or `outputVideo` are undefined, then the value is replaced by `mic` and `outputAudio` respectively.
