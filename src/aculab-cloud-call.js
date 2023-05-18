@@ -15,6 +15,7 @@ export class AculabCloudCall {
         this._ice_connected = false;
         this._termination_reason = '';
         this._sdh_options = undefined;
+        this._callUuid = uuidV4();
         
         /*
          * In order to deal with the fact that react-native-webrtc implemented muted video by stopping the stream
@@ -35,6 +36,10 @@ export class AculabCloudCall {
         this.onConnected = null;
         this.onDisconnect = null;
         
+    }
+
+    get callUuid() {
+        return this._callUuid;
     }
 
     // add setters for backwards compatibility
@@ -129,7 +134,6 @@ export class AculabCloudCall {
     set session(sess) {
         this._session = sess;
         this._callId = sess.request.callId;
-        this._callUuid = uuidV4();
         this._session.delegate = {
         onBye: (bye) => {
             // extract reason from BYE message
