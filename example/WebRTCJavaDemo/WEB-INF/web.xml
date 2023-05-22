@@ -1,0 +1,22 @@
+<web-app>
+    <context-param>
+		<param-name>CLOUD_REGION</param-name>
+        <param-value>1-2-0</param-value>
+    </context-param>
+    <context-param>
+		<param-name>CLOUD_USERNAME</param-name>
+        <param-value></param-value>
+    </context-param>
+    <context-param>
+        <param-name>CLOUD_API_ACCESS_KEY</param-name>
+        <param-value></param-value>
+    </context-param>
+    <context-param>
+        <param-name>CLOUD_WEBRTC_ACCESS_KEY</param-name>
+        <param-value></param-value>
+    </context-param>
+    <context-param>
+        <param-name>CLOUD_WEBRTC_TOKEN_TTL</param-name>
+        <param-value>600</param-value>
+    </context-param>
+</web-app>
