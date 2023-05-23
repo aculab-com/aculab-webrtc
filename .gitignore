@@ -108,3 +108,5 @@ interface.html
 
 # apple
 .DS_Store
+
+.idea
