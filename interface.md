@@ -167,11 +167,7 @@ AculabCloudCall object functions
 
 ### string callId()
 
-Gets the callId used for the call. For outgoing calls this may return `undefined` until the onConnecting() callback is being called. For incoming calls it is always available.
-
-### string callUuid()
-
-Gets the callUuid used for the call.
+Gets the callId used for the call. For outgoing calls this may return `undefined` until the onConnecting() callback is being called. For incoming calls it is always available. This value is exchanged with the remote party and will be the same at each end of the call.
 
 ### void mute(mic, outputAudio, camera, outputVideo)
 
@@ -186,6 +182,14 @@ This throws a string exception if there is an invalid digit in the string. There
 ### void disconnect()
 
 Disconnects any existing call. This can be called at any time.
+
+AculabCloudCall data properties
+---------------------------------
+
+### callUuid *(get only)*
+
+A string representation of a locally assigned version 4 UUID. This is assigned when the call object is created and does not change.
+
 
 AculabCloudCall callback properties
 -----------------------------------
