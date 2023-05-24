@@ -2,7 +2,7 @@
 
 REM Define the source and destination directories
 set "SOURCE_DIR=./webrtc-v3-webapp-demo/serving_static/static"
-set "DEST_DIR=./WebRTCJavaDemo"
+set "DEST_DIR=./webrtc-tomcat-demo/WebRTCJavaDemo"
 
 REM Check if the source directory exists
 if not exist "%SOURCE_DIR%" (
@@ -15,15 +15,6 @@ if not exist "%DEST_DIR%" (
   echo Destination directory "%DEST_DIR%" does not exist.
   exit /b 1
 )
-
-REM Copy the necessary directories from the source directory to the destination directory
-echo Copying demo files to temp folder...
-xcopy /E /I "%SOURCE_DIR%\images" "%DEST_DIR%\images"
-xcopy /E /I "%SOURCE_DIR%\js" "%DEST_DIR%\js"
-xcopy /E /I "%SOURCE_DIR%\sounds" "%DEST_DIR%\sounds"
-
-echo Directories copied successfully from "%SOURCE_DIR%" to "%DEST_DIR%".
-
 
 REM Check if CATALINA_HOME environment variable exists
 set "setting_tomcat_dir=false"
@@ -49,6 +40,20 @@ if not exist "%TOMCAT_DIR%" (
   echo Tomcat directory "%TOMCAT_DIR%" does not exist.
   exit /b 1
 )
+
+REM Run Maven to build .class files
+echo Running Maven to build .class files...
+cd webrtc-tomcat-demo
+call .\mvnw.cmd clean compile
+cd ..
+
+REM Copy the necessary directories from the source directory to the destination directory
+echo Copying demo files to temp folder...
+xcopy /E /I "%SOURCE_DIR%\images" "%DEST_DIR%\images"
+xcopy /E /I "%SOURCE_DIR%\js" "%DEST_DIR%\js"
+xcopy /E /I "%SOURCE_DIR%\sounds" "%DEST_DIR%\sounds"
+
+echo Directories copied successfully from "%SOURCE_DIR%" to "%DEST_DIR%".
 
 REM Copy the contents of DEST_DIR to the webapps sub-directory of Tomcat
 xcopy /E /I "%DEST_DIR%" "%TOMCAT_DIR%\webapps\WebRTCJavaDemo"

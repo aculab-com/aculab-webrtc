@@ -2,7 +2,7 @@
 
 # Define the source and destination directories
 SOURCE_DIR="./webrtc-v3-webapp-demo/serving_static/static"
-DEST_DIR="./WebRTCJavaDemo"
+DEST_DIR="./webrtc-tomcat-demo/WebRTCJavaDemo"
 
 # Check if the source directory exists
 if [ ! -d "$SOURCE_DIR" ]; then
@@ -16,12 +16,6 @@ if [ ! -d "$DEST_DIR" ]; then
   exit 1
 fi
 
-# Copy the necessary directories from the source directory to the destination directory
-cp -R "$SOURCE_DIR/images" "$DEST_DIR/images"
-cp -R "$SOURCE_DIR/js" "$DEST_DIR/js"
-cp -R "$SOURCE_DIR/sounds" "$DEST_DIR/sounds"
-
-echo "Directories copied successfully from '$SOURCE_DIR' to '$DEST_DIR'."
 
 # Check if CATALINA_HOME environment variable exists
 setting_tomcat_dir=false
@@ -34,7 +28,7 @@ else
   if [[ "$confirm" != [Yy]* ]]; then
     TOMCAT_DIR="$CATALINA_HOME"
   else
-    settings_tomcat_dir=true
+    setting_tomcat_dir=true
   fi
 fi
 
@@ -47,6 +41,21 @@ if [ ! -d "$TOMCAT_DIR" ]; then
   echo "Tomcat directory '$TOMCAT_DIR' does not exist."
   exit 1
 fi
+
+
+# Run Maven to build .class files
+echo "Running Maven to build .class files..."
+pushd "WebRTCJavaDemo" || exit
+./mvnw clean compile
+popd || exit
+
+# Copy the necessary directories from the source directory to the destination directory
+cp -R "$SOURCE_DIR/images" "$DEST_DIR/images"
+cp -R "$SOURCE_DIR/js" "$DEST_DIR/js"
+cp -R "$SOURCE_DIR/sounds" "$DEST_DIR/sounds"
+
+echo
+echo "Directories copied successfully from '$SOURCE_DIR' to '$DEST_DIR'."
 
 # Copy the contents of DEST_DIR to the webapps sub-directory of Tomcat
 cp -R "$DEST_DIR" "$TOMCAT_DIR/webapps/WebRTCJavaDemo"
