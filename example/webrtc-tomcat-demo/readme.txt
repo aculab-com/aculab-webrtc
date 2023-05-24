@@ -8,7 +8,7 @@ This demo is intended to be used with Apache Tomcat has been tested under Tomcat
 
 
 SETUP:
-- There is are bash and batch install scripts in the directory above this one. Running them will compile the Java code, copy relevant resources into the ./WebRTCJavaDemo folder, and copy ./WebRTCJavaDemo to the webapps directory of your Tomcat installation.
+- There are bash and batch install scripts in the directory above this one. Running them will compile the Java code, copy relevant resources into the ./WebRTCJavaDemo folder, and copy ./WebRTCJavaDemo to the webapps directory of your Tomcat installation.
 
 - Set your cloud region (e.g. 1-2-0), cloud account username, API access key and WebRTC access key (obtained from the cloud console) in ./WebRTCJavaDemo/WEB-INF/web.xml.
 
