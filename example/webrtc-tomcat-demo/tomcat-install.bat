@@ -1,8 +1,8 @@
 @echo off
 
 REM Define the source and destination directories
-set "SOURCE_DIR=./webrtc-v3-webapp-demo/serving_static/static"
-set "DEST_DIR=./webrtc-tomcat-demo/WebRTCJavaDemo"
+set "SOURCE_DIR=../webrtc-v3-webapp-demo/serving_static/static"
+set "DEST_DIR=./WebRTCJavaDemo"
 
 REM Check if the source directory exists
 if not exist "%SOURCE_DIR%" (
@@ -43,9 +43,7 @@ if not exist "%TOMCAT_DIR%" (
 
 REM Run Maven to build .class files
 echo Running Maven to build .class files...
-cd webrtc-tomcat-demo
 call .\mvnw.cmd clean compile
-cd ..
 
 REM Copy the necessary directories from the source directory to the destination directory
 echo Copying demo files to temp folder...

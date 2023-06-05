@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Define the source and destination directories
-SOURCE_DIR="./webrtc-v3-webapp-demo/serving_static/static"
-DEST_DIR="./webrtc-tomcat-demo/WebRTCJavaDemo"
+SOURCE_DIR="../webrtc-v3-webapp-demo/serving_static/static"
+DEST_DIR="./WebRTCJavaDemo"
 
 # Check if the source directory exists
 if [ ! -d "$SOURCE_DIR" ]; then
@@ -45,9 +45,7 @@ fi
 
 # Run Maven to build .class files
 echo "Running Maven to build .class files..."
-pushd "WebRTCJavaDemo" || exit
 ./mvnw clean compile
-popd || exit
 
 # Copy the necessary directories from the source directory to the destination directory
 cp -R "$SOURCE_DIR/images" "$DEST_DIR/images"
