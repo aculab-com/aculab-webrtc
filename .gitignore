@@ -108,3 +108,9 @@ interface.html
 
 # apple
 .DS_Store
+
+# jetbrains folder
+.idea
+
+# maven build folder
+/example/webrtc-tomcat-demo/target/
