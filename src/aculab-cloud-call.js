@@ -1,21 +1,23 @@
 import { SessionState } from "sip.js";
+import { MediaEventSessionDescriptionHandler } from "./media-event-session-description-handler.js";
 import { v4 as uuidV4 } from 'uuid';
 
 export class AculabCloudCall {
     /**
      * @param {AculabCloudClient} client
      */
-    constructor(client) {
+    constructor(client, reinvite_possible) {
         this.client = client;
         this._session = null;
         this._connected = false;
         this._notified_connected = false;
-        this._remote_stream = null;
-        this._notified_remote_stream = null;
+        this._remote_streams = null;
+        this._notified_remote_streams = [];
         this._ice_connected = false;
         this._termination_reason = '';
         this._sdh_options = undefined;
         this._callUuid = uuidV4();
+        this._allowed_reinvite = reinvite_possible;
         
         /*
          * In order to deal with the fact that react-native-webrtc implemented muted video by stopping the stream
@@ -33,6 +35,10 @@ export class AculabCloudCall {
         
         this.onConnecting = null;
         this.onMedia = null;
+        this.onMediaRemove = null;
+        this.onGotMedia = null;
+        this.onLocalMedia = null;
+        this.onLocalMediaRemove = null;
         this.onConnected = null;
         this.onDisconnect = null;
         
@@ -197,54 +203,74 @@ export class AculabCloudCall {
             output_video = output_audio;
         }
        
-        // for output, mute/unmute this._remote_stream's track
-        if (this._remote_stream) {
-            if (this._remote_stream.getTracks)
-            {
-                this._remote_stream.getTracks().forEach((t) => {
-                    if (t.kind == "audio") {
-                        t.enabled = !output_audio;
-                    } else if (t.kind == "video") {
-                        t.enabled = !output_video;
-                    }
-                });
-            }
+        if (this._remote_streams) {
+            this._remote_streams.forEach((stream) => {
+                this.muteRemoteStream(stream, output_audio, output_video);
+            });
         }
-        // for mic, need to get track from session description handler
-        if (this._session && this._session.sessionDescriptionHandler && this._session.sessionDescriptionHandler.peerConnection){
-            var pc = this._session.sessionDescriptionHandler.peerConnection;
-            if (pc.getSenders)
-            {
+
+        this._session.sessionDescriptionHandler.localMediaStreams.forEach((stream) => {
+            this.muteLocalStream(stream, mic, camera);
+	});
+    }
+
+    muteStream(stream, mic, output_audio, camera, output_video)  {
+        this.client.console_log('AculabCloudCall muteStream(mic=' + mic + ', output_audio=' + output_audio + ', camera=' + camera + ', output_video=' + output_video +')');
+        if (this._session.sessionDescriptionHandler.getInternalStreamId(stream)) {
+            this.muteLocalStream(stream, mic, camera);
+        } else {
+            this.muteRemoteStream(stream, output_audio, output_video);
+        }
+    }
+
+    muteLocalStream(stream, mic, camera) {
+        this.client.console_log('AculabCloudCall muteLocalStream(mic=' + mic + ',  camera=' + camera);
+        var internal_stream_id = null;
+        if (this._session && this._session.sessionDescriptionHandler) {
+            internal_stream_id = this._session.sessionDescriptionHandler.getInternalStreamId(stream);
+	}
+        if (internal_stream_id) {
+            if (this._session && this._session.sessionDescriptionHandler && this._session.sessionDescriptionHandler.peerConnection){
+                var internal_stream = this._session.sessionDescriptionHandler.getLocalMediaStreamById(internal_stream_id);
+                var pc = this._session.sessionDescriptionHandler.peerConnection;
                 pc.getSenders().forEach(sender => {
-                    if (sender.track) {
-                        if (sender.track.kind == "audio") {
-                            sender.track.enabled = !mic;
-                        } else if (sender.track.kind == "video") {
-                            sender.track.enabled = !camera;
-                            var stream = this._session.sessionDescriptionHandler.localMediaStream;
-                            if (sender.track.enabled) {
-                                this._onLocalVideoUnmute({'call': this, 'stream': stream, 'track': sender.track});
-                            } else {
-                                this._onLocalVideoMute({'call': this, 'stream': stream, 'track': sender.track});
+                    if (sender.track.id) {
+                        let internal_track = internal_stream.getTrackById(sender.track.id);
+                        if (sender.track && internal_track) {
+                            if (sender.track.kind == "audio") {
+                                sender.track.enabled = !mic;
+                                internal_track.enabled = !mic;
+                            } else if (sender.track.kind == "video") {
+                                sender.track.enabled = !camera;
+                                internal_track.enabled = !camera;
+                                if (sender.track.enabled) {
+                                    this._onLocalVideoUnmute({'call': this, 'stream': internal_stream, 'track': sender.track});
+                                } else {
+                                    this._onLocalVideoMute({'call': this, 'stream': internal_stream, 'track': sender.track});
+                                }
                             }
                         }
                     }
                 });
-            } else {
-                pc.getLocalStreams().forEach(stream => {
-                    stream.getAudioTracks().forEach(track => {
-                        track.enabled = !mic;
-                    });
-                    stream.getVideoTracks().forEach(track => {
-                        track.enabled = !camera;
-                        if (track.enabled) {
-                            this._onLocalVideoUnmute({'call': this, 'stream': stream, 'track': track});
-                        } else {
-                            this._onLocalVideoMute({'call': this, 'stream': stream, 'track': track});
+            }
+        }
+    }
+
+    muteRemoteStream(stream, output_audio, output_video) {
+        this.client.console_log('AculabCloudCall muteRemoteStream(output_audio=' + output_audio + ',  output_video=' + output_video);
+        if (this._remote_streams) {
+            this._remote_streams.forEach((rstream) => {
+                if (rstream.id === stream.id) {
+                    rstream.getTracks().forEach((t) => {
+                        if (t.kind == "audio") {
+                            t.enabled = !output_audio;
+                        } else if (t.kind == "video") {
+                            t.enabled = !output_video;
                         }
                     });
-                });
-            }
+                    return;
+                }
+            });
         }
     }
     
@@ -256,10 +282,12 @@ export class AculabCloudCall {
         this._session = null;
         var cause = this._termination_reason || "NORMAL";
         this.client.console_log('term: ' + cause);
-        this._remote_stream = null;
-        if (this._sdh_options && this._sdh_options.localStream && this._sdh_options.localStream.getTracks) {
-            this._sdh_options.localStream.getTracks().forEach((track) => {
-                track.stop();
+        this._remote_streams = null;
+        if (this._sdh_options && this._sdh_options.localStream) {
+            this._sdh_options.localStreams.forEach((stream) => {
+                stream.forEach((track) => {
+                    track.stop();
+                });
             });
         }
         if (this.client._removeCall(this)) { // was removed, so call user callback
@@ -273,14 +301,45 @@ export class AculabCloudCall {
             }
         }
     }
+    _check_notify_remove_media() {
+        for (let i = this._notified_remote_streams.length - 1; i > 0; i--) {
+            let found = false;
+            this._remote_streams.forEach((stream) => {
+                if (this._notified_remote_streams[i].id == stream.id) {
+                    found = true;
+                }
+            });
+            if (!found) {
+                this.client.console_log('AculabCloudCall calling onMediaRemove');
+                try {
+                    this.onMediaRemove({'call': this, 'stream': this._notified_remote_streams[i]});
+                }
+                catch(e) {
+                    this.client.console_error('AculabCloudCall onMediaRemove caused exception: ' + e.message);
+                }
+                this._notified_remote_streams.splice(i, 1);
+            }
+        }
+    }
     _check_notify_media() {
-        if (this._remote_stream != this._notified_remote_stream && this._ice_connected) {
-            this._notified_remote_stream = this._remote_stream;
+        this._remote_streams.forEach((stream) => {
+            this._check_notify_stream(stream);
+        });
+    }
+    _check_notify_stream(stream) {
+        let already_notified = false;
+        this._notified_remote_streams.forEach((ns) => {
+            if (ns.id == stream.id) {
+                already_notified = true;
+            }
+        });
+        if (!already_notified && this._ice_connected) {
+            this._notified_remote_streams.push(stream);
             try {
                 //Need to do some setup of mute callbacks for remote stream
-                if (this._remote_stream) {
+                if (stream) {
                     var this_call = this;
-                    var this_stream = this._remote_stream;
+                    var this_stream = stream;
                     this_stream.getVideoTracks().forEach(track => {;
                         track.onunmute = (ev) => {
                             this_call._onRemoteVideoUnmute({'call': this_call, 'stream': this_stream, 'track': track});
@@ -296,7 +355,7 @@ export class AculabCloudCall {
             }
             this.client.console_log('AculabCloudCall calling onMedia');
             try {
-                this.onMedia({'call': this, 'stream': this._notified_remote_stream});
+                this.onMedia({'call': this, 'stream': stream});
             }
             catch(e) {
                 this.client.console_error('AculabCloudCall onMedia caused exception: ' + e.message);
@@ -331,21 +390,46 @@ export class AculabCloudCall {
     }
     _add_media_handlers(sdh) {
         this.client.console_log('AculabCloudCall adding media event handlers');
-        
+
         sdh.onUserMedia = (stream) => {
-            if (this.onConnecting) {
+            let notified = false;
+            if (this.onConnecting || this.onLocalMedia) {
                 this.client.console_log('AculabCloudCall calling onConnecting');
                 try {
                     
-                    this.onConnecting({'call': this, "stream": stream});
+                    if (this.onLocalMedia) {
+                        this.onLocalMedia({'call': this, "stream": stream});
+                    } else {
+                        // Legacy callback, from when we supported only
+                        // one stream
+                        this.onConnecting({'call': this, "stream": stream});
+                    }
+                    notified = true;
                 }
                 catch(e) {
                     this.client.console_error('AculabCloudCall onConnecting caused exception:' + e.message);
                 }
             }
+            return notified;
+        }
+
+        sdh.onUserMediaRemove = (stream) => {
+            let notified = false;
+            if (this.onLocalMediaRemove) {
+                this.client.console_log('AculabCloudCall calling onUserMediaRemoved');
+                try {
+                    this.onLocalMediaRemove({'call': this, "stream": stream});
+                    notified = true;
+                }
+                catch(e) {
+                    this.client.console_error('AculabCloudCall onUserMediaRemoved caused exception:' + e.message);
+                }
+            }
+            return notified;
         }
         
         sdh.onUserMediaFailed = (err) => {
+            console.log("mjw... onUserMediaFailed ", err);
             this.client.console_error('AculabCloudCall getUserMedia failed - ' + err);
             // store error, so we can report correct reason in onDisconnect callback
             if (this._termination_reason == '') {
@@ -356,19 +440,28 @@ export class AculabCloudCall {
         sdh.peerConnectionDelegate = {
         ontrack: (ev) => {
             
+            ev.streams[0].onremovetrack = ({track}) => {
+                sdh.removeRemoteMediaTrack(track);
+                if (!ev.streams[0].getTracks().length) {
+                }
+                this._remote_streams = sdh.remoteMediaStreams;
+                this._check_notify_remove_media();
+            };
+
             if (ev.track) {
-                this._remote_stream = sdh.remoteMediaStream;
+                sdh.addRemoteMediaStream(ev.streams[0], ev.track);
+                this._remote_streams = sdh.remoteMediaStreams;
                 this._check_notify_media();
             }
         },
         onaddstream: (ev) => {
             
-            this._remote_stream = sdh.remoteMediaStream;
+            this._remote_streams = sdh.remoteMediaStreams;
             this._check_notify_media();
             
         },
         oniceconnectionstatechange: () => {
-            this._remote_stream = sdh.remoteMediaStream;
+            this._remote_streams = sdh.remoteMediaStreams;
             
             var icestate = sdh.peerConnection.iceConnectionState;
             if (icestate == 'connected' || icestate == 'completed') {
@@ -443,5 +536,96 @@ export class AculabCloudCall {
                 resolve("No peer connection");
             }
         });
+    }
+    addStream(stream) {
+        if (!this._allowed_reinvite) {
+            throw 'addStream not available';
+        }
+        this.client.console_log('AculabCloudOutgoingCall addStream :' + this._session);
+        if (this._session && !this._disconnect_called) {
+            try {
+                let options = this._sdh_options;
+                let internal_stream_id = this._session.sessionDescriptionHandler.userToInternalLocalStreamIds.get(stream.id);
+                let need_adding = false;
+                if (!internal_stream_id) {
+                    let found = false;
+                    options.localStreams.forEach((lstream) => {
+                        if (lstream.id == stream.id) {
+                            found = true;
+                        }
+                    });
+                    if (!found) {
+                        need_adding = true;
+                    }
+                }
+                if (need_adding) {
+                    options.localStreams.push(stream);
+                    this.reinvite(options);
+                } else {
+                    throw "Stream already exists";
+                }
+            }
+            catch(e) {
+                this.client.console_error('AculabCloudCall: Exception Adding stream: ' + e.message);
+                throw 'Add stream error';
+            }
+        } else {
+            throw 'Not connected error';
+        }
+    }
+
+    removeStream(stream) {
+        if (!this._allowed_reinvite) {
+            throw 'removeStream not available';
+        }
+        this.client.console_log('AculabCloudOutgoingCall removeStream :' + this._session);
+        if (this._session && !this._disconnect_called) {
+            try {
+                let options = this._sdh_options;
+                let stream_id = this._session.sessionDescriptionHandler.getUserStreamId(stream);
+                if (stream_id) {
+                    options.localStreams = options.localStreams.filter(item => item.id !== stream_id);
+                    this.reinvite(options);
+                } else {
+                    throw "Stream does not exist";
+                }
+            }
+            catch(e) {
+                this.client.console_error('AculabCloudCall: Exception Removing stream: ' + e.message);
+                throw 'Remove stream error';
+            }
+        } else {
+            throw 'Not connected error';
+        }
+    }
+
+    reinvite(options) {
+        if (!this._allowed_reinvite) {
+            throw 'Reinvite not available';
+        }
+        if (options.localStreams === undefined || options.localStreams.length == 0) {
+            throw 'At least one MediaStream needed in options.localStreams';
+        }
+        this.client.console_log('AculabCloudOutgoingCall reinvite :' + this._session);
+        if (this._session && !this._disconnect_called) {
+            try {
+                this._sdh_options = MediaEventSessionDescriptionHandler.fixup_options(options);
+                let opts = {
+                };
+                this._sdh_options.reinvite = true;
+                console.log(this._sdh_options);
+                opts.sessionDescriptionHandlerOptions = this._sdh_options;
+                opts.sessionDescriptionHandlerOptionsReInvite = this._sdh_options;
+                this.client.console_log('AculabCloudCall: new constraints: ' + opts);
+                this.client.console_error(opts);
+                this._session.invite(opts);
+            }
+            catch(e) {
+                this.client.console_error('AculabCloudCall: Exception changing constraints: ' + e.message);
+                throw 'Reinvite error';
+            }
+        } else {
+            throw 'Reinvite error';
+        }
     }
 }

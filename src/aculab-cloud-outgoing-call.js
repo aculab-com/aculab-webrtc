@@ -4,8 +4,8 @@ import { MediaEventSessionDescriptionHandler } from "./media-event-session-descr
 import { SessionState } from "sip.js";
 
 export class AculabCloudOutgoingCall extends AculabCloudCall {
-	constructor(client, uri, inviter_options, options) {
-		super(client);
+	constructor(client, uri, inviter_options, options, reinvite_possible) {
+		super(client, reinvite_possible);
 		this._uri = uri;
 		this._inviter_options = inviter_options;
 		this._sdh_options = MediaEventSessionDescriptionHandler.fixup_options(options);
