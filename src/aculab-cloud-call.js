@@ -209,7 +209,7 @@ export class AculabCloudCall {
             });
         }
 
-        this._session.sessionDescriptionHandler.localMediaStreams.forEach((stream) => {
+        this._session.sessionDescriptionHandler.acuLocalMediaStreams.forEach((stream) => {
             this.muteLocalStream(stream, mic, camera);
 	});
     }
@@ -429,7 +429,6 @@ export class AculabCloudCall {
         }
         
         sdh.onUserMediaFailed = (err) => {
-            console.log("mjw... onUserMediaFailed ", err);
             this.client.console_error('AculabCloudCall getUserMedia failed - ' + err);
             // store error, so we can report correct reason in onDisconnect callback
             if (this._termination_reason == '') {
@@ -459,6 +458,9 @@ export class AculabCloudCall {
             this._remote_streams = sdh.remoteMediaStreams;
             this._check_notify_media();
             
+        },
+        onicecandidateerror: (ev) => {
+            console.log("Ice candidate error ", ev);
         },
         oniceconnectionstatechange: () => {
             this._remote_streams = sdh.remoteMediaStreams;
@@ -610,14 +612,15 @@ export class AculabCloudCall {
         if (this._session && !this._disconnect_called) {
             try {
                 this._sdh_options = MediaEventSessionDescriptionHandler.fixup_options(options);
-                let opts = {
-                };
+//                let opts = {
+//                };
+                let opts = this._sdh_options;
                 this._sdh_options.reinvite = true;
+                this._sdh_options.iceRestart = true;
                 console.log(this._sdh_options);
                 opts.sessionDescriptionHandlerOptions = this._sdh_options;
                 opts.sessionDescriptionHandlerOptionsReInvite = this._sdh_options;
                 this.client.console_log('AculabCloudCall: new constraints: ' + opts);
-                this.client.console_error(opts);
                 this._session.invite(opts);
             }
             catch(e) {
