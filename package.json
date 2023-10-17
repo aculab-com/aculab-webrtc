@@ -1,5 +1,5 @@
 {
-  "name": "aculab-webrtc",
+  "name": "@aculab-com/aculab-webrtc",
   "version": "3.3.1",
   "main": "src/index.js",
   "type": "module",
@@ -13,6 +13,10 @@
     "marked": "^4.0.12",
     "webpack": "^5.70.0",
     "webpack-cli": "^4.9.2"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
   },
   "scripts": {
     "build-package": "mkdir -p dist; cd dist; npm pack ..",
