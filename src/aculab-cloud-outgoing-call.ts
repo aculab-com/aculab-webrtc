@@ -1,15 +1,23 @@
 import { CallInviter } from "./call-inviter.js";
 import { AculabCloudCall } from "./aculab-cloud-call.js";
 import { MediaEventSessionDescriptionHandler } from "./media-event-session-description-handler.js";
-import { SessionState } from "sip.js";
+import { SessionState, URI } from "sip.js";
+import { AculabCloudClient } from "./aculab-cloud-client.js";
+import { CallOptions } from "./types.js";
+import { IncomingResponse } from "sip.js/lib/core/index.js";
 
 export class AculabCloudOutgoingCall extends AculabCloudCall {
-	constructor(client, uri, inviter_options, options, reinvite_possible) {
+	_uri: URI;
+	invite_pending: boolean;
+	_inviter_options: object;
+
+	constructor(client: AculabCloudClient, uri: URI, inviter_options: object, options: CallOptions | undefined, reinvite_possible: boolean) {
 		super(client, reinvite_possible);
 		this._uri = uri;
+		this.invite_pending = false;
 		this._inviter_options = inviter_options;
 		this._sdh_options = MediaEventSessionDescriptionHandler.fixup_options(options);
-		this._disconnect_called = false;
+
 		if (this.client._isReady()) {
 			this._doinvite();
 		} else {
@@ -17,9 +25,9 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
 			// should we queue a timeout that results on _onterminate getting called
 		}
 	}
-	_set_termination_reason_from_response(response) {
+	_set_termination_reason_from_response(response: IncomingResponse) {
 		// get termination reason from response
-		if (this._termination_reason == '') {
+		if (this._termination_reason == '' && response.message.statusCode) {
 			this._termination_reason = this._get_reason_from_sip_code(response.message.statusCode.toString());
 			this.client.console_log(`setting termination reason - reject - ${this._termination_reason}`);
 		}
@@ -32,26 +40,27 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
 	_doinvite() {
 		this.client.console_log('AculabCloudOutgoingCall: invite to "' + this._uri + '"')
 		this.session = new CallInviter(this, this.client._ua, this._uri, this._inviter_options);
-		let opts = { 
+		const opts = { 
 			requestDelegate: {
-				onProgress: (response) => {
+				onProgress: (response: any) => {
 					this._progress(response);
 				}
-			}
+			},
+			sessionDescriptionHandlerOptions: this._sdh_options
 		};
-		opts.sessionDescriptionHandlerOptions = this._sdh_options;
-		this._session.invite(opts);
+		// opts.sessionDescriptionHandlerOptions = this._sdh_options;
+		this._session?.invite(opts);
 		this.invite_pending = false;
 	}
-	_progress(response) {
+	_progress(response: IncomingResponse) {
 		if (response.message && response.message.statusCode == 180) {
 			if (this.onRinging) {
 				this.client.console_log('AculabCloudOutgoingCall calling onRinging');
 				try {
 					this.onRinging({'call': this});
 				}
-				catch(e) {
-					this.client.console_error('AculabCloudOutgoingCall onRinging caused exception:' + e.message);
+				catch(err: any) {
+					this.client.console_error('AculabCloudOutgoingCall onRinging caused exception:' + err.message);
 				}
 			}
 		}
@@ -61,7 +70,7 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
 		if (this.invite_pending) {
 			this.invite_pending = false;
 			this._termination_reason = 'NOANSWER'
-			this.client.console_log(`setting termination reason - disconnect(nocall) - ${this._termination_reason}`);
+			this.client.console_log(`setting termination reason - disconnect(noCall) - ${this._termination_reason}`);
 			this._onterminated();
 		}
 		if (this._session && !this._disconnect_called) {
@@ -73,7 +82,7 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
 					this._termination_reason = 'NOANSWER';
 					this.client.console_log(`setting termination reason - disconnect - ${this._termination_reason}`);
 				}
-				this._session.cancel();
+				(this._session as CallInviter).cancel();
 			}
 		}
 	}

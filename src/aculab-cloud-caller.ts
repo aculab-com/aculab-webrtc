@@ -1,12 +1,15 @@
 "use strict";
 
-import { AculabCloudClient } from "./aculab-cloud-client.js";
+// import { AculabCloudCall } from "./aculab-cloud-call";
+import { AculabCloudClient } from "./aculab-cloud-client";
+import { AculabCloudOutgoingServiceCall } from "./aculab-cloud-outgoing-service-call";
+import { DisconnectedCallObj, MediaCallObj } from "./types";
 
 // NB this is the old v1 api, implemented using the new api
-export function AculabCloudCaller() {
-	var that = this;
-	var acc = null;
-	var oc = null;
+export function AculabCloudCaller(this: any) {
+	let that = this;
+	let acc: AculabCloudClient | null = null;
+	let oc: AculabCloudOutgoingServiceCall | null = null;
 
 	this.logLevel = 6;
 	this.iceServers = null;
@@ -21,7 +24,7 @@ export function AculabCloudCaller() {
 	this.onRegistered = null;
 	this.onUnregistered = null;
 	this.onRegisterFail = null;
-	this.makeCall = function(a_targetcloudid, a_targetservice, a_callerid) {
+	this.makeCall = function(a_targetcloudid: string, a_targetservice: string, a_callerid: string) {
 		acc = new AculabCloudClient(a_targetcloudid, 'acc2', a_callerid, that.logLevel);
 		oc = acc.makeOutgoing(a_targetservice);
 		// plumb up callbacks
@@ -35,7 +38,7 @@ export function AculabCloudCaller() {
 				that.onRinging();
 			}
 		};
-		oc.onMedia = function(obj) {
+		oc.onMedia = function(obj: MediaCallObj) {
 			if (that.onMedia) {
 				that.onMedia(obj);
 			}
@@ -45,7 +48,7 @@ export function AculabCloudCaller() {
 				that.onConnected();
 			}
 		};
-		oc.onDisconnect = function(obj) {
+		oc.onDisconnect = function(obj: DisconnectedCallObj) {
 			oc = null;
 			acc = null;
 			if (that.onDisconnect) {
@@ -57,9 +60,9 @@ export function AculabCloudCaller() {
 	this.isSupported = function() {
 		return AculabCloudClient.isSupported();
 	}
-	this.sendDtmf = function(indtmf) {
+	this.sendDtmf = function(dtmf: string) {
 		if (oc) {
-			oc.sendDtmf(indtmf);
+			oc.sendDtmf(dtmf);
 		} else {
 			throw 'DTMF send error - no call';
 		}
@@ -71,14 +74,14 @@ export function AculabCloudCaller() {
 		}
 	}
 	
-	this.attachMediaStreamToElement = function(element, stream) {
+	this.attachMediaStreamToElement = function(element: HTMLMediaElement, stream: MediaStream) {
 		if (typeof element.srcObject !== 'undefined') {
 			element.srcObject = stream;
 		} else {
 			console.error('srcObject not found');
 		}
 	}
-	this.detachMediaStreamFromElement = function(element) {
+	this.detachMediaStreamFromElement = function(element: HTMLMediaElement) {
 		if (typeof element.srcObject !== 'undefined') {
 			element.srcObject = null;
 		} else {

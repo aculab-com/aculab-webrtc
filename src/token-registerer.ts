@@ -1,21 +1,45 @@
-import { Grammar, URI, equivalentURI } from "sip.js";
+import { Grammar, RegistererOptions, RegistererRegisterOptions, RegistererUnregisterOptions, URI, UserAgent, equivalentURI } from "sip.js";
 import { EmitterImpl } from "sip.js";
 import { RequestPendingError } from "sip.js";
 import { RegistererState } from "sip.js";
+import { Cause, StateEventEmitter } from "./types";
+import { Logger, OutgoingRequestMessage } from "sip.js/lib/core";
+
+const DEFAULT_EXPIRE_TIME = 600;
+
 /**
  * A registerer registers a contact for an address of record (outgoing REGISTER).
  * @public
  */
 export class TokenRegisterer {
+    change_pending: boolean;
+    force_notify: boolean;
+    user_token: string;
+    disposed: boolean;
+    _contacts: string[];
+    _retryAfter: number | undefined;
+    _state: RegistererState;
+    _waiting: boolean;
+    _stateEventEmitter: EmitterImpl<StateEventEmitter>;
+    _waitingEventEmitter: EmitterImpl<boolean>;
+    userAgent: UserAgent;
+    options: RegistererOptions;
+    request: OutgoingRequestMessage;
+    expires: number | undefined;
+    logger: Logger;
+    id: string;
+    registrationTimer: NodeJS.Timeout | undefined;
+    registrationExpiredTimer: NodeJS.Timeout | undefined;
+
     /**
      * Constructs a new instance of the `Registerer` class.
-     * @param userAgent - User agent. See {@link UserAgent} for details.
-     * @param options - Options bucket. See {@link RegistererOptions} for details.
+     * @param userAgent - User agent.
+     * @param options - Options bucket.
      */
-    constructor(userAgent, options = {}) {
+    constructor(userAgent: UserAgent, options: RegistererOptions = {}) {
         this.change_pending = false;
         this.force_notify = false;
-        this.user_token = undefined;
+        this.user_token = '';
 
         this.disposed = false;
         /** The contacts returned from the most recent accepted REGISTER request. */
@@ -66,7 +90,7 @@ export class TokenRegisterer {
         // Build the request
         this.request = userAgent.userAgentCore.makeOutgoingRequestMessage("REGISTER", registrar, fromURI, toURI, params, extraHeaders, undefined);
         // Registration expires
-        this.expires = this.options.expires || TokenRegisterer.defaultExpires;
+        this.expires = this.options.expires || DEFAULT_EXPIRE_TIME;
         if (this.expires < 0) {
             throw new Error("Invalid expires.");
         }
@@ -75,7 +99,7 @@ export class TokenRegisterer {
         if (this.options.logConfiguration) {
             this.logger.log("Configuration:");
             Object.keys(this.options).forEach((key) => {
-                const value = this.options[key];
+                const value = this.options[key as keyof RegistererOptions];
                 switch (key) {
                     case "registrar":
                         this.logger.log("· " + key + ": " + value);
@@ -88,12 +112,13 @@ export class TokenRegisterer {
         // Identifier
         this.id = this.request.callId + this.request.from.parameters.tag;
         // Add to the user agent's session collection.
+        // @ts-ignore TokenRegisterer is not Registerer
         this.userAgent._registerers[this.id] = this;
     }
     /** Default registerer options. */
     static defaultOptions() {
         return {
-            expires: TokenRegisterer.defaultExpires,
+            expires: DEFAULT_EXPIRE_TIME,
             extraContactHeaderParams: [],
             extraHeaders: [],
             logConfiguration: true,
@@ -118,12 +143,13 @@ export class TokenRegisterer {
      * https://github.com/Microsoft/TypeScript/issues/13195
      * @param options - Options to reduce
      */
-    static stripUndefinedProperties(options) {
-        return Object.keys(options).reduce((object, key) => {
-            if (options[key] !== undefined) {
-                object[key] = options[key];
+    static stripUndefinedProperties(options: RegistererOptions) {
+        return Object.keys(options).reduce((obj, key) => {
+            if (options[key as keyof RegistererOptions] !== undefined) {
+                // @ts-ignore: Type 'undefined' is not assignable to type 'never'.
+                obj[key as keyof typeof obj] = options[key as keyof RegistererOptions];
             }
-            return object;
+            return obj;
         }, {});
     }
     /** The registered contacts. */
@@ -184,7 +210,7 @@ export class TokenRegisterer {
         // Remove from the user agent's registerer collection
         delete this.userAgent._registerers[this.id];
         // If registered, unregisters and resolves after final response received.
-        return new Promise((resolve) => {
+        return new Promise<void>((resolve) => {
             const doClose = () => {
                 // If we are registered, unregister and resolve after our state changes
                 if (!this.waiting && this._state === RegistererState.Registered) {
@@ -211,7 +237,7 @@ export class TokenRegisterer {
             }
         });
     }
-    setToken(token) {
+    setToken(token: string) {
         this.user_token = token;
         this.change_pending = true;
         if (!this.waiting) {
@@ -237,7 +263,7 @@ export class TokenRegisterer {
      * If successful, sends re-REGISTER requests prior to registration expiration until `unsubscribe()` is called.
      * Rejects with `RequestPendingError` if a REGISTER request is already in progress.
      */
-    register(options = {}) {
+    register(options?: RegistererRegisterOptions) {
         if (this.state === RegistererState.Terminated) {
             this.stateError();
             throw new Error("Registerer terminated. Unable to register.");
@@ -257,12 +283,15 @@ export class TokenRegisterer {
             return Promise.reject(error);
         }
         // Options
-        if (options.requestOptions) {
+        if (options?.requestOptions) {
             this.options = Object.assign(Object.assign({}, this.options), options.requestOptions);
         }
         // Extra headers
         const extraHeaders = (this.options.extraHeaders || []).slice();
-        extraHeaders.push("Contact: " + this.generateContactHeader(this.expires));
+        
+        if (this.expires) {
+            extraHeaders.push("Contact: " + this.generateContactHeader(this.expires));
+        }
         // this is UA.C.ALLOWED_METHODS, removed to get around circular dependency
         extraHeaders.push("Allow: " + ["ACK", "CANCEL", "INVITE", "MESSAGE", "BYE", "OPTIONS", "INFO", "NOTIFY", "REFER"].toString());
         // Call-ID: All registrations from a UAC SHOULD use the same Call-ID
@@ -321,7 +350,7 @@ export class TokenRegisterer {
                         }
                     }
                     else {
-                        // otherwise use comparision rules in Section 19.1.4
+                        // otherwise use comparison rules in Section 19.1.4
                         if (equivalentURI(contact.uri, this.userAgent.contact.uri)) {
                             expires = Number(contact.getParam("expires"));
                             break;
@@ -357,20 +386,20 @@ export class TokenRegisterer {
                     }
                 }
                 this.registered(expires);
-                if (options.requestDelegate && options.requestDelegate.onAccept) {
+                if (options?.requestDelegate?.onAccept) {
                     options.requestDelegate.onAccept(response);
                 }
                 this.waitingToggle(false);
             },
             onProgress: (response) => {
-                if (options.requestDelegate && options.requestDelegate.onProgress) {
+                if (options?.requestDelegate?.onProgress) {
                     options.requestDelegate.onProgress(response);
                 }
             },
             onRedirect: (response) => {
                 this.logger.error("Redirect received. Not supported.");
                 this.unregistered('FAILED');
-                if (options.requestDelegate && options.requestDelegate.onRedirect) {
+                if (options?.requestDelegate?.onRedirect) {
                     options.requestDelegate.onRedirect(response);
                 }
                 this.waitingToggle(false);
@@ -422,33 +451,34 @@ export class TokenRegisterer {
                 // Set for the state change (if any) and the delegate callback (if any)
                 this._retryAfter = isNaN(retryAfterDuration) ? undefined : retryAfterDuration;
                 var authenticate_header = response.message.getHeader('WWW-Authenticate');
-                var cause = 'FAILED';
+                var cause: Cause = 'FAILED';
                 if (authenticate_header && authenticate_header.indexOf('error="invalid_token"') != -1) {
                     cause = 'INVALIDTOKEN';
                 } else if (response.message.statusCode == 503) {
                     cause = 'DISCONNECTED';
                 }
                 this.unregistered(cause);
-                if (options.requestDelegate && options.requestDelegate.onReject) {
+                if (options?.requestDelegate?.onReject) {
                     options.requestDelegate.onReject(response);
                 }
                 this._retryAfter = undefined;
                 this.waitingToggle(false);
             },
             onTrying: (response) => {
-                if (options.requestDelegate && options.requestDelegate.onTrying) {
+                if (options?.requestDelegate?.onTrying) {
                     options.requestDelegate.onTrying(response);
                 }
             }
         });
         return Promise.resolve(outgoingRegisterRequest);
     }
+
     /**
      * Sends the REGISTER request with expires equal to zero.
      * @remarks
      * Rejects with `RequestPendingError` if a REGISTER request is already in progress.
      */
-    unregister(options = {}) {
+    unregister(options?: RegistererUnregisterOptions) {
         if (this.state === RegistererState.Terminated) {
             this.stateError();
             throw new Error("Registerer terminated. Unable to register.");
@@ -470,11 +500,11 @@ export class TokenRegisterer {
             const error = new RequestPendingError("REGISTER request already in progress, waiting for final response");
             return Promise.reject(error);
         }
-        if (this._state !== RegistererState.Registered && !options.all) {
+        if (this._state !== RegistererState.Registered && !options?.all) {
             this.logger.warn("Not currently registered, but sending an unregister anyway.");
         }
         // Extra headers
-        const extraHeaders = ((options.requestOptions && options.requestOptions.extraHeaders) || []).slice();
+        const extraHeaders = ((options?.requestOptions?.extraHeaders) || []).slice();
         this.request.extraHeaders = extraHeaders;
         // Registrations are soft state and expire unless refreshed, but can
         // also be explicitly removed.  A client can attempt to influence the
@@ -488,7 +518,7 @@ export class TokenRegisterer {
         // all registrations, but it MUST NOT be used unless the Expires header
         // field is present with a value of "0".
         // https://tools.ietf.org/html/rfc3261#section-10.2.2
-        if (options.all) {
+        if (options?.all) {
             extraHeaders.push("Contact: *");
             extraHeaders.push("Expires: 0");
         }
@@ -516,20 +546,20 @@ export class TokenRegisterer {
             onAccept: (response) => {
                 this._contacts = response.message.getHeaders("contact"); // Update contacts
                 this.unregistered('NORMAL');
-                if (options.requestDelegate && options.requestDelegate.onAccept) {
+                if (options?.requestDelegate?.onAccept) {
                     options.requestDelegate.onAccept(response);
                 }
                 this.waitingToggle(false);
             },
             onProgress: (response) => {
-                if (options.requestDelegate && options.requestDelegate.onProgress) {
+                if (options?.requestDelegate?.onProgress) {
                     options.requestDelegate.onProgress(response);
                 }
             },
             onRedirect: (response) => {
                 this.logger.error("Unregister redirected. Not currently supported.");
                 this.unregistered('FAILED');
-                if (options.requestDelegate && options.requestDelegate.onRedirect) {
+                if (options?.requestDelegate?.onRedirect) {
                     options.requestDelegate.onRedirect(response);
                 }
                 this.waitingToggle(false);
@@ -537,13 +567,13 @@ export class TokenRegisterer {
             onReject: (response) => {
                 this.logger.error(`Unregister rejected with status code ${response.message.statusCode}`);
                 this.unregistered('FAILED');
-                if (options.requestDelegate && options.requestDelegate.onReject) {
+                if (options?.requestDelegate?.onReject) {
                     options.requestDelegate.onReject(response);
                 }
                 this.waitingToggle(false);
             },
             onTrying: (response) => {
-                if (options.requestDelegate && options.requestDelegate.onTrying) {
+                if (options?.requestDelegate?.onTrying) {
                     options.requestDelegate.onTrying(response);
                 }
             }
@@ -566,7 +596,7 @@ export class TokenRegisterer {
     /**
      * Generate Contact Header
      */
-    generateContactHeader(expires) {
+    generateContactHeader(expires: number) {
         let contact = this.userAgent.contact.toString();
         if (this.options.regId && this.options.instanceId) {
             contact += ";reg-id=" + this.options.regId;
@@ -583,7 +613,7 @@ export class TokenRegisterer {
     /**
      * Helper function, called when registered.
      */
-    registered(expires) {
+    registered(expires: number) {
         this.clearTimers();
         // Re-Register before the expiration interval has elapsed.
         // For that, decrease the expires value. ie: 3 seconds
@@ -601,7 +631,7 @@ export class TokenRegisterer {
     /**
      * Helper function, called when unregistered.
      */
-    unregistered(reason) {
+    unregistered(reason: Cause) {
         this.clearTimers();
         this.stateTransition(RegistererState.Unregistered, reason);
     }
@@ -617,7 +647,7 @@ export class TokenRegisterer {
     /**
      * Transition registration state.
      */
-    stateTransition(newState, reason) {
+    stateTransition(newState: RegistererState, reason?: Cause) {
         const invalidTransition = () => {
             throw new Error(`Invalid state transition from ${this._state} to ${newState}`);
         };
@@ -657,7 +687,7 @@ export class TokenRegisterer {
         this.logger.log(`Registration transitioned to state ${this._state}`);
         if (notify) {
             this.force_notify = false;
-            this._stateEventEmitter.emit({'state': this._state, 'cause': reason, 'retry': retry});
+            this._stateEventEmitter.emit({state: this._state, cause: reason, retry: retry});
         }
         // Dispose
         if (newState === RegistererState.Terminated) {
@@ -675,7 +705,7 @@ export class TokenRegisterer {
     /**
      * Toggle waiting.
      */
-    waitingToggle(waiting) {
+    waitingToggle(waiting: boolean) {
         if (this._waiting === waiting) {
             throw new Error(`Invalid waiting transition from ${this._waiting} to ${waiting}`);
         }
@@ -703,8 +733,8 @@ export class TokenRegisterer {
         const reason = this.state === RegistererState.Terminated ? "is in 'Terminated' state" : "has been disposed";
         let message = `An attempt was made to send a REGISTER request when the Registerer ${reason}.`;
         message += " The Registerer transitions to 'Terminated' when Registerer.dispose() is called.";
-        message += " Perhaps you called UserAgent.stop() which dipsoses of all Registerers?";
+        message += " Perhaps you called UserAgent.stop() which disposes of all Registerers?";
         this.logger.error(message);
     }
 }
-TokenRegisterer.defaultExpires = 600;
+// TokenRegisterer.defaultExpires = 600;

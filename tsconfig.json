@@ -1,8 +1,14 @@
 {
   "compilerOptions": {
-    "outDir": "./built",
+    "module": "commonjs",
+    "outDir": "./lib",
     "allowJs": true,
-    "target": "es5"
+    "target": "ES2022",
+    "moduleResolution":"node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
   },
-  "include": ["./src/**/*"]
+  "include": ["./src/**/*"],
 }
