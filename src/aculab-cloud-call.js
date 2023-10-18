@@ -247,7 +247,40 @@ export class AculabCloudCall {
             }
         }
     }
-    
+
+    isMuted() {
+        /**
+         * @return {Object} - {"mic": true/false, "output_audio": true/false, "camera": true/false, "output_video": true/false}
+         * */
+        var ret = {"mic": true, "output_audio": true, "camera": true, "output_video": true};
+
+        // check output
+        if (this._remote_stream) {
+            this._remote_stream.getTracks().forEach((t) => {
+                if (t.kind == "audio") {
+                    ret["output_audio"] = !t.enabled;
+                } else if (t.kind == "video") {
+                    ret["output_video"] = !t.enabled;
+                }
+            });
+        }
+
+        // check mic and camera
+        if (this._session && this._session.sessionDescriptionHandler && this._session.sessionDescriptionHandler.peerConnection) {
+            var pc = this._session.sessionDescriptionHandler.peerConnection;
+            pc.getSenders().forEach(function (sender) {
+                if (sender.track) {
+                    if (sender.track.kind == "audio") {
+                        ret["mic"] = !sender.track.enabled;
+                    } else if (sender.track.kind == "video") {
+                        ret["camera"] = !sender.track.enabled;
+                    }
+                }
+            });
+        }
+        return ret;
+    }
+ 
     _onclientready() {
         // nothing to do in base class
     }
