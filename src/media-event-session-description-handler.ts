@@ -15,8 +15,9 @@ import {
 export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionHandler {
   options: CallOptions;
   usingOptionsLocalStream: boolean;
-  localMediaStreams: MediaStream[];
+  acuLocalMediaStreams: MediaStream[];
   _acuRemoteMediaStreams: MediaStream[];
+  _acuGUMStream: MediaStream | null;
   notified_streams: MediaStream[];
   userToInternalLocalStreamIds: Map<string, string>;
   remoteMediaStreamsToInternal: Map<string, string>;
@@ -38,8 +39,9 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
       receiveVideo: false,
     };
     this.usingOptionsLocalStream = false;
-    this.localMediaStreams = [];
+    this.acuLocalMediaStreams = [];
     this._acuRemoteMediaStreams = [];
+    this._acuGUMStream = null;
     this.notified_streams = [];
     this.userToInternalLocalStreamIds = new Map();
     this.remoteMediaStreamsToInternal = new Map();
@@ -99,14 +101,14 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     return this._acuRemoteMediaStreams;
   }
 
-//   get remoteMediaStream()  {
-//     console.log(this._peerConnection?.getReceivers());
-//     if (this._peerConnection?.getSenders) {
-//       return super.remoteMediaStream;
-//     }
-//     // // return the first remote stream on react-native
-//     // return this._peerConnection.getRemoteStreams()[0]; // TODO is this ever fired??? check and edit code
-//   }
+  //   get remoteMediaStream()  {
+  //     console.log(this._peerConnection?.getReceivers());
+  //     if (this._peerConnection?.getSenders) {
+  //       return super.remoteMediaStream;
+  //     }
+  //     // // return the first remote stream on react-native
+  //     // return this._peerConnection.getRemoteStreams()[0]; // TODO is this ever fired??? check and edit code
+  //   }
 
   setRemoteTrack(track: MediaStreamTrack) {
     // Don't want to actually use this function since we are using deprecated
@@ -160,7 +162,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
         stream.id,
     );
 
-    this.localMediaStreams.forEach(stm => {
+    this.acuLocalMediaStreams.forEach(stm => {
       this.logger.debug(
         "SessionDescriptionHandler.setLocalMediaStream: Checking stream " +
           stream.id,
@@ -176,7 +178,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     });
 
     if (!exists) {
-      this.localMediaStreams.push(stream);
+      this.acuLocalMediaStreams.push(stream);
       this.logger.debug(
         "SessionDescriptionHandler.setLocalMediaStream: Adding audio tracks " +
           stream.id,
@@ -282,7 +284,6 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
   //       .then(() => this.waitForIceGatheringComplete(iceRestart, iceTimeout))
   //       .then(() => this.getLocalSessionDescription())
   //       .then(sessionDescription => {
-  //         console.log("mjw... sdp ", sessionDescription.sdp);
   //         return {
   //           body: sessionDescription.sdp,
   //           contentType: "application/sdp",
@@ -297,7 +298,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
   //   }
   getLocalMediaStreamById(id: string): MediaStream | null {
     var stream = null;
-    this.localMediaStreams.forEach(stream => {
+    this.acuLocalMediaStreams.forEach(stream => {
       if (stream.id === id) {
         stream = stream;
       }
@@ -305,27 +306,50 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     return stream;
   }
 
-  //   async getLocalMediaStream(options: CallOptions) {
-  //     let ms = await this.getLocalMediaStreams(options);
-  //     if (ms !== null && ms.length > 0) {
-  //       return ms[0];
-  //     }
-  //     return null;
-  //   }
+  // @ts-expect-error overwriting - this method is incompatible with the original from SessionDescriptionHandler.
+  async getLocalMediaStream(options: CallOptions) {
+    const ms = await this.getLocalMediaStreams(options);
+    if (ms !== null && ms.length > 0) {
+      return ms[0];
+    }
+    return null;
+  }
 
   removeLocalMediaStream(stream: MediaStream) {
     this._peerConnection?.getSenders().forEach(sender => {
       if (sender.track) {
         stream.getTracks().forEach(track => {
           if (sender.track && sender.track.id == track.id) {
+            sender.track.stop();
             this._peerConnection?.removeTrack(sender);
           }
         });
       }
     });
-    this.localMediaStreams = this.localMediaStreams.filter(
+    this.acuLocalMediaStreams = this.acuLocalMediaStreams.filter(
       s => s.id != stream.id,
     );
+  }
+
+  addStreamToInternalList(stream: MediaStream, do_clone: boolean) {
+    let internalStreamId = null;
+    this.userToInternalLocalStreamIds.forEach((value, key, table) => {
+      if (key == stream.id) {
+        internalStreamId = value;
+      }
+    });
+    if (!internalStreamId) {
+      let newStream = stream;
+      if (do_clone) {
+        // Clone the stream in case it changes beneath us
+        newStream = stream.clone();
+      }
+      internalStreamId = newStream.id;
+      this.setLocalMediaStream(newStream);
+      this.userToInternalLocalStreamIds.set(stream.id, newStream.id);
+    }
+
+    return internalStreamId;
   }
 
   async getLocalMediaStreams(options: CallOptions) {
@@ -344,22 +368,13 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
         if (reinvite || !this.usingOptionsLocalStream) {
           this.usingOptionsLocalStream = true;
           options.localStreams.forEach(stream => {
-            let internalStreamId = null;
-            this.userToInternalLocalStreamIds.forEach((value, key, table) => {
-              if (key == stream.id) {
-                internalStreamId = value;
-              }
-            });
-            if (!internalStreamId) {
-              // Clone the stream in case it changes beneath us
-              let newStream = stream.clone();
-              internalStreamId = newStream.id;
-              this.setLocalMediaStream(newStream);
-              this.userToInternalLocalStreamIds.set(stream.id, newStream.id);
+            let internalStreamId = this.addStreamToInternalList(stream, true);
+            if (internalStreamId !== null) {
+              addedStreams.push(internalStreamId);
             }
             addedStreams.push(internalStreamId);
           });
-          this.localMediaStreams.forEach(stream => {
+          this.acuLocalMediaStreams.forEach(stream => {
             if (!addedStreams.includes(stream.id)) {
               let userStreamId = null;
               this.userToInternalLocalStreamIds.forEach((value, key, table) => {
@@ -376,47 +391,48 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
           options.reinvite = false;
         }
       } else {
-        await super.getLocalMediaStream(options);
+        if (this._acuGUMStream == null) {
+          this._acuGUMStream = await navigator.mediaDevices.getUserMedia(
+            options.constraints,
+          );
+        }
+        this.addStreamToInternalList(this._acuGUMStream, false);
       }
       this.options = options;
 
       if (this.onUserMedia) {
-        if (options.localStreams !== undefined) {
-          let notified_stream_ids = this.notified_streams.map(x => x.id);
-          this.localMediaStreams.forEach(stream => {
-            if (!notified_stream_ids.includes(stream.id)) {
-              this.logger.debug(
-                "SessionDescriptionHandler.getLocalMediaStreams, notifying user media",
-              );
-              let notified = this.onUserMedia!(stream);
-              if (notified) {
-                this.notified_streams.push(stream);
-              }
+        const notified_stream_ids = this.notified_streams.map(x => x.id);
+        this.acuLocalMediaStreams.forEach(stream => {
+          if (!notified_stream_ids.includes(stream.id)) {
+            this.logger.debug(
+              "SessionDescriptionHandler.getLocalMediaStreams, notifying user media",
+            );
+            const notified = this.onUserMedia!(stream);
+            if (notified) {
+              this.notified_streams.push(stream);
             }
-          });
-        }
+          }
+        });
       }
       if (this.onUserMediaRemove) {
-        if (options.localStreams !== undefined) {
-          let local_stream_ids = this.localMediaStreams.map(x => x.id);
-          let removed_ids: string[] = [];
-          this.notified_streams.forEach(stream => {
-            if (!local_stream_ids.includes(stream.id)) {
-              this.logger.debug(
-                "SessionDescriptionHandler.getLocalMediaStreams, notifying user media removed",
-              );
-              let notified = this.onUserMediaRemove!(stream);
-              if (notified) {
-                removed_ids.push(stream.id);
-              }
+        const local_stream_ids = this.acuLocalMediaStreams.map(x => x.id);
+        let removed_ids: string[] = [];
+        this.notified_streams.forEach(stream => {
+          if (!local_stream_ids.includes(stream.id)) {
+            this.logger.debug(
+              "SessionDescriptionHandler.getLocalMediaStreams, notifying user media removed",
+            );
+            let notified = this.onUserMediaRemove!(stream);
+            if (notified) {
+              removed_ids.push(stream.id);
             }
-          });
-          this.notified_streams = this.notified_streams.filter(
-            stream => !removed_ids.includes(stream.id),
-          );
-        }
+          }
+        });
+        this.notified_streams = this.notified_streams.filter(
+          stream => !removed_ids.includes(stream.id),
+        );
       }
-      return this.localMediaStreams;
+      return this.acuLocalMediaStreams;
     } catch (error) {
       if (this.onUserMediaFailed) {
         this.onUserMediaFailed(error);
@@ -711,7 +727,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
       reinvite: false,
       iceRestart: false,
     };
-    let opts = { ...defaults, ...options };
+    const opts = { ...defaults, ...options };
     if (opts.localStream) {
       // Backwards compatibility:
       // Add this to the localStreams array, and deal with it there

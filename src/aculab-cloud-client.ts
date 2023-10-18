@@ -99,7 +99,7 @@ export class AculabCloudClient {
 			},
 			userAgentString: "AculabCloudClient",
 			logLevel: ua_log_level,
-			sessionDescriptionHandlerFactory: (this.sessionDescriptionHandlerFactory.bind(this) as SessionDescriptionHandlerFactory),
+			sessionDescriptionHandlerFactory: (this.sessionDescriptionHandlerFactory.bind(this) as unknown as SessionDescriptionHandlerFactory),
 			sessionDescriptionHandlerFactoryOptions: {},
 			// autoStart: false,
 		});

@@ -13,6 +13,7 @@
     "loglevel",
     "NOANSWER",
     "onaccepted",
+    "onaddstream",
     "onclientready",
     "onterminate",
     "onterminated",

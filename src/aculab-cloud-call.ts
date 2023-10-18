@@ -296,7 +296,7 @@ export class AculabCloudCall {
       (
         this._session
           .sessionDescriptionHandler as MediaEventSessionDescriptionHandler
-      ).localMediaStreams.forEach((stream: MediaStream) => {
+      ).acuLocalMediaStreams.forEach((stream: MediaStream) => {
         this.muteLocalStream(stream, mic, camera);
       });
     }
@@ -602,7 +602,6 @@ export class AculabCloudCall {
     };
 
     sdh.onUserMediaFailed = err => {
-      console.log("mjw... onUserMediaFailed ", err);
       this.client.console_error("AculabCloudCall getUserMedia failed - " + err);
       // store error, so we can report correct reason in onDisconnect callback
       if (this._termination_reason == "") {
@@ -639,6 +638,9 @@ export class AculabCloudCall {
         this._remote_streams = sdh.remoteMediaStreams;
         this._check_notify_media();
       },
+      onicecandidateerror: (ev) => {
+        console.log("Ice candidate error ", ev);
+    },
       oniceconnectionstatechange: () => {
         this._remote_streams = sdh.remoteMediaStreams;
 
@@ -804,14 +806,18 @@ export class AculabCloudCall {
       try {
         this._sdh_options =
           MediaEventSessionDescriptionHandler.fixup_options(options);
-        let opts: InviterInviteOptions = {};
+        // let opts: InviterInviteOptions = {};
+        // let opts = this._sdh_options;
+        const opts = {
+          sessionDescriptionHandlerOptions: this._sdh_options
+        };
 
         this._sdh_options.reinvite = true;
+        this._sdh_options.iceRestart = true;
         console.log(this._sdh_options);
         opts.sessionDescriptionHandlerOptions = this._sdh_options;
         // opts.sessionDescriptionHandlerOptionsReInvite = this._sdh_options;
         this.client.console_log("AculabCloudCall: new constraints: " + opts);
-        this.client.console_error(opts);
         this._session.invite(opts);
       } catch (err: any) {
         this.client.console_error(
