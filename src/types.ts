@@ -1,12 +1,15 @@
 import { RegistererRegisterOptions, RegistererState } from "sip.js";
-import type { AculabCloudCall } from "./aculab-cloud-call";
-import { AculabCloudIncomingCall } from "./aculab-cloud-incoming-call";
-import type { AculabCloudOutgoingCall } from "./aculab-cloud-outgoing-call";
-import { IncomingResponse, RequestOptions } from "sip.js/lib/core";
+import type { AculabCloudCall as CloudCall } from "./aculab-cloud-call";
+import type { AculabCloudIncomingCall as CloudIncomingCall } from "./aculab-cloud-incoming-call";
+import type { AculabCloudOutgoingCall as CloudOutgoingCall } from "./aculab-cloud-outgoing-call";
+// import { IncomingResponse, RequestOptions } from "sip.js/lib/core";
 
 export type TransceiverKind = "audio" | "video";
 export type Cause = 'FAILED' | 'INVALIDTOKEN' | 'DISCONNECTED' | 'NORMAL';
 // export type RegStateType = "Initial" | "Registered" | "Unregistered" | "Terminated";
+export type AculabCloudCall = CloudCall;
+export type AculabCloudIncomingCall = CloudIncomingCall;
+export type AculabCloudOutgoingCall = CloudOutgoingCall;
 
 export interface MuteObj {
   call: AculabCloudCall;
@@ -15,7 +18,7 @@ export interface MuteObj {
 }
 
 export interface CallObj {
-  call: AculabCloudCall | AculabCloudOutgoingCall;
+  call: AculabCloudCall | AculabCloudOutgoingCall | AculabCloudIncomingCall;
 }
 
 export interface DisconnectedCallObj extends CallObj {

@@ -1,7 +1,7 @@
-import { Inviter, URI, UserAgent } from "sip.js";
+import { Inviter, URI, UserAgent, Core as sipCore } from "sip.js";
 import type { AculabCloudOutgoingCall } from "./aculab-cloud-outgoing-call";
 import { MediaEventSessionDescriptionHandler } from "./media-event-session-description-handler";
-import { IncomingResponse } from "sip.js/lib/core";
+// import { IncomingResponse } from "sip.js/lib/core";
 
 /**
  * Used only for outbound calls?
@@ -34,13 +34,13 @@ export class CallInviter extends Inviter {
     this._sessionDescriptionHandler = sdh;
   }
 
-  onRedirect(response: IncomingResponse) {
+  onRedirect(response: sipCore.IncomingResponse) {
     this.call._set_termination_reason_from_response(response);
     // @ts-ignore 'onReject' is private and only accessible within class 'Inviter'.
     super.onRedirect(response);
   }
 
-  onReject(response: IncomingResponse) {
+  onReject(response: sipCore.IncomingResponse) {
     this.call._set_termination_reason_from_response(response);
     // @ts-ignore 'onReject' is private and only accessible within class 'Inviter'.
     super.onReject(response);

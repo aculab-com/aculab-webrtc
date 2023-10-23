@@ -1,12 +1,12 @@
 {
   "name": "aculab-webrtc",
   "version": "3.3.1",
-  "main": "src/index.js",
-  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "module": "lib/index.js",
   "dependencies": {
     "sip.js": "^0.21.2",
     "source-map-loader": "^4.0.1",
-    "ts-loader": "^9.4.4",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
@@ -29,14 +29,20 @@
     "copy-dist-files": "npm run copy-dist-file && npm run copy-dist-file-min",
     "build-interface-html": "marked -i interface.md -o interface.html",
     "build-web-tgz": "tar -czf dist/webrtc-client-web-package-$npm_package_version.tgz --group 0 --owner 0 --numeric-owner --transform=s,^,$npm_package_version/, dist/AculabCloudCaller.js demos/* test/* interface.html",
-    "build": "npm run build-package && npm run build-bundles && npm rum copy-dist-files && npm run build-interface-html && npm run build-web-tgz",
+    "build": "npm run ts-build && npm run build-package && npm run build-bundles && npm rum copy-dist-files && npm run build-interface-html && npm run build-web-tgz",
     "ts-build": "tsc"
   },
   "files": [
     "/build",
     "/demos",
+    "/lib",
     "/src",
     "/test",
     "interface.md"
+  ],
+  "keywords": [
+    "sip",
+    "webrtc",
+    "aculab"
   ]
 }

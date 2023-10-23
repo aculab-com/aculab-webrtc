@@ -1,8 +1,8 @@
-import { Invitation } from "../node_modules/sip.js/lib/index";
+// import { Invitation } from "../node_modules/sip.js/lib/index";
 import { AculabCloudCall } from "./aculab-cloud-call";
 import { AculabCloudClient } from "./aculab-cloud-client";
 import { MediaEventSessionDescriptionHandler } from "./media-event-session-description-handler";
-import { SessionState } from "sip.js";
+import { SessionState, Invitation } from "sip.js";
 import { CallOptions } from "./types";
 import { CallInviter } from "./call-inviter";
 

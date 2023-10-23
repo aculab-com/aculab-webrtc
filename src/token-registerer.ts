@@ -1,9 +1,9 @@
-import { Grammar, RegistererOptions, RegistererRegisterOptions, RegistererUnregisterOptions, URI, UserAgent, equivalentURI } from "sip.js";
+import { Grammar, RegistererOptions, RegistererRegisterOptions, RegistererUnregisterOptions, URI, UserAgent, equivalentURI, Core as sipCore} from "sip.js";
 import { EmitterImpl } from "sip.js";
 import { RequestPendingError } from "sip.js";
 import { RegistererState } from "sip.js";
 import { Cause, StateEventEmitter } from "./types";
-import { Logger, OutgoingRequestMessage } from "sip.js/lib/core";
+// import { Logger, OutgoingRequestMessage } from "sip.js/lib/core";
 
 const DEFAULT_EXPIRE_TIME = 600;
 
@@ -24,9 +24,9 @@ export class TokenRegisterer {
     _waitingEventEmitter: EmitterImpl<boolean>;
     userAgent: UserAgent;
     options: RegistererOptions;
-    request: OutgoingRequestMessage;
+    request: sipCore.OutgoingRequestMessage;
     expires: number | undefined;
-    logger: Logger;
+    logger: sipCore.Logger;
     id: string;
     registrationTimer: NodeJS.Timeout | undefined;
     registrationExpiredTimer: NodeJS.Timeout | undefined;

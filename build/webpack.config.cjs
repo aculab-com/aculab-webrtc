@@ -27,7 +27,7 @@ module.exports = function (env) {
   var mainDir = __dirname + '/../';
 
   var entry = {};
-  entry['AculabCloudCaller' + (env.buildType === 'min' ? '.min' : '')] = mainDir + '/src/index.ts';
+  entry['AculabCloudCaller' + (env.buildType === 'min' ? '.min' : '')] = mainDir + '/lib/index.js';
 
   return {
     mode: mode,
@@ -42,7 +42,7 @@ module.exports = function (env) {
     // Enable sourcemaps for debugging webpack's output.
     devtool: "source-map",
     resolve: {
-      extensions: ['.js', '.ts', '.tsx']
+      extensions: ['.js']
     },
     optimization: {
       minimizer: [
@@ -62,8 +62,6 @@ module.exports = function (env) {
     ],
     module: {
       rules: [
-        // All files with a '.ts' or '.tsx' extension will be handled by 'ts-loader'.
-        {test: /\.tsx?$/, loader: "ts-loader"},
         // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
         {test: /\.js$/, loader: "source-map-loader"},
         {test: /\.m?js/, resolve: {fullySpecified: false}}

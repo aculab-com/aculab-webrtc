@@ -46,7 +46,7 @@ export class AculabCloudCall {
   onLocalVideoUnmute: ((obj?: MuteObj) => void) | undefined;
   onRemoteVideoMute: ((obj?: MuteObj) => void) | undefined;
   onRemoteVideoUnmute: ((obj?: MuteObj) => void) | undefined;
-  onConnecting: ((callObj?: MediaCallObj) => void) | undefined;
+  onConnecting: ((callObj: MediaCallObj) => void) | undefined;
   onMedia: ((callObj: MediaCallObj) => void) | undefined;
   onMediaRemove: ((callObj?: MediaCallObj) => void) | undefined;
   onGotMedia: (() => void) | undefined;

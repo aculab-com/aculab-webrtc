@@ -1,10 +1,10 @@
-import { SessionDescriptionHandlerModifier, Web } from "sip.js";
-import type { Logger } from "sip.js/lib/core";
-import type {
-  MediaStreamFactory,
-  SessionDescriptionHandlerConfiguration,
-  SessionDescriptionHandlerOptions,
-} from "sip.js/lib/platform/web";
+import { SessionDescriptionHandlerModifier, Web, Core as sipCore} from "sip.js";
+// import type { Logger } from "sip.js/lib/core";
+// import type {
+//   MediaStreamFactory,
+//   SessionDescriptionHandlerConfiguration,
+//   SessionDescriptionHandlerOptions
+// } from "sip.js/lib/platform/web";
 import {
   CallConstraints,
   CallOptions,
@@ -28,9 +28,9 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
   //   iceGatheringTimer: NodeJS.Timeout | string | number | undefined;
 
   constructor(
-    logger: Logger,
-    mediaStreamFactory: MediaStreamFactory,
-    sessionDescriptionHandlerConfiguration: SessionDescriptionHandlerConfiguration,
+    logger: sipCore.Logger,
+    mediaStreamFactory: Web.MediaStreamFactory,
+    sessionDescriptionHandlerConfiguration: Web.SessionDescriptionHandlerConfiguration,
   ) {
     super(logger, mediaStreamFactory, sessionDescriptionHandlerConfiguration);
     this.options = {
@@ -239,11 +239,11 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
   //    * @param modifiers - Modifiers.
   //    */
   //   async getDescription(
-  //     options: SessionDescriptionHandlerOptions,
+  //     options: Web.SessionDescriptionHandlerOptions,
   //     modifiers: SessionDescriptionHandlerModifier[],
   //   ) {
   //     let _a: RTCOfferOptions;
-  //     let _b: SessionDescriptionHandlerConfiguration;
+  //     let _b: Web.SessionDescriptionHandlerConfiguration;
 
   //     this.logger.debug("SessionDescriptionHandler.getDescription");
   //     if (this._peerConnection === undefined) {

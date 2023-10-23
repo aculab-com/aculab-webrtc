@@ -1,10 +1,10 @@
 import { CallInviter } from "./call-inviter.js";
 import { AculabCloudCall } from "./aculab-cloud-call.js";
 import { MediaEventSessionDescriptionHandler } from "./media-event-session-description-handler.js";
-import { SessionState, URI } from "sip.js";
+import { SessionState, URI, Core as sipCore } from "sip.js";
 import { AculabCloudClient } from "./aculab-cloud-client.js";
 import { CallOptions } from "./types.js";
-import { IncomingResponse } from "sip.js/lib/core/index.js";
+// import { IncomingResponse } from "sip.js/lib/core/index.js";
 
 export class AculabCloudOutgoingCall extends AculabCloudCall {
 	_uri: URI;
@@ -25,7 +25,7 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
 			// should we queue a timeout that results on _onterminate getting called
 		}
 	}
-	_set_termination_reason_from_response(response: IncomingResponse) {
+	_set_termination_reason_from_response(response: sipCore.IncomingResponse) {
 		// get termination reason from response
 		if (this._termination_reason == '' && response.message.statusCode) {
 			this._termination_reason = this._get_reason_from_sip_code(response.message.statusCode.toString());
@@ -52,7 +52,7 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
 		this._session?.invite(opts);
 		this.invite_pending = false;
 	}
-	_progress(response: IncomingResponse) {
+	_progress(response: sipCore.IncomingResponse) {
 		if (response.message && response.message.statusCode == 180) {
 			if (this.onRinging) {
 				this.client.console_log('AculabCloudOutgoingCall calling onRinging');

@@ -114,3 +114,6 @@ interface.html
 
 # maven build folder
 /example/webrtc-tomcat-demo/target/
+
+# generated js from ts
+lib
