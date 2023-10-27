@@ -49,7 +49,7 @@ export class AculabCloudCall {
   onConnecting: ((callObj: MediaCallObj) => void) | undefined;
   onMedia: ((callObj: MediaCallObj) => void) | undefined;
   onMediaRemove: ((callObj?: MediaCallObj) => void) | undefined;
-  onGotMedia: (() => void) | undefined;
+  // onGotMedia: (() => void) | undefined;
   onLocalMedia: ((callObj?: MediaCallObj) => void) | undefined;
   onLocalMediaRemove: ((callObj?: MediaCallObj) => void) | undefined;
   onConnected: ((callObj?: CallObj) => void) | undefined;
@@ -610,38 +610,31 @@ export class AculabCloudCall {
     };
 
     sdh.peerConnectionDelegate = {
-      ontrack: ev => {
-        // TODO: check if this does work? TS does not like it.
-        console.log("111111 sdh.peerConnectionDelegate event", ev);
-
-        // @ts-ignore Property 'streams' does not exist on type 'Event'
+      ontrack: (ev: RTCTrackEvent) => {
         ev.streams[0].onremovetrack = ({ track }) => {
           sdh.removeRemoteMediaTrack(track);
-          // @ts-ignore Property 'streams' does not exist on type 'Event'
           if (!ev.streams[0].getTracks().length) {
           }
           this._remote_streams = sdh.remoteMediaStreams;
           this._check_notify_remove_media();
         };
 
-        // @ts-ignore Property 'streams' does not exist on type 'Event'
         if (ev.track) {
-          // @ts-ignore Property 'streams' does not exist on type 'Event'
           sdh.addRemoteMediaStream(ev.streams[0], ev.track);
           this._remote_streams = sdh.remoteMediaStreams;
           this._check_notify_media();
         }
       },
-      // @ts-ignore 'onaddstream' does not exist in type 'PeerConnectionDelegate'.
-      onaddstream: (ev: Event) => {
-        // TODO: check if this does work? TS does not like it.
-        this._remote_streams = sdh.remoteMediaStreams;
-        this._check_notify_media();
-      },
-      onicecandidateerror: (ev) => {
+
+      // onaddstream: () => {
+      //   // TODO: check if this does work? TS does not like it.
+      //   this._remote_streams = sdh.remoteMediaStreams;
+      //   this._check_notify_media();
+      // },
+      onicecandidateerror: (ev: RTCPeerConnectionIceErrorEvent) => {
         console.log("Ice candidate error ", ev);
     },
-      oniceconnectionstatechange: () => {
+      oniceconnectionstatechange: (event: Event) => {
         this._remote_streams = sdh.remoteMediaStreams;
 
         var icestate = sdh.peerConnection?.iceConnectionState;

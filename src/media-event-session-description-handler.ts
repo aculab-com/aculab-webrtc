@@ -1,4 +1,8 @@
-import { SessionDescriptionHandlerModifier, Web, Core as sipCore} from "sip.js";
+import {
+  SessionDescriptionHandlerModifier,
+  Web,
+  Core as sipCore,
+} from "sip.js";
 // import type { Logger } from "sip.js/lib/core";
 // import type {
 //   MediaStreamFactory,
@@ -24,7 +28,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
   onUserMedia: ((stream: MediaStream) => boolean) | undefined;
   onUserMediaRemove: ((stream: MediaStream) => boolean) | undefined;
   onUserMediaFailed: ((error: any) => void) | undefined;
-  //   iceGatheringTimeout: boolean;
+  // iceGatheringTimeout: boolean;
   //   iceGatheringTimer: NodeJS.Timeout | string | number | undefined;
 
   constructor(
@@ -45,6 +49,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     this.notified_streams = [];
     this.userToInternalLocalStreamIds = new Map();
     this.remoteMediaStreamsToInternal = new Map();
+    // this.iceGatheringTimeout = false;
   }
   getUserStreamId(stream: MediaStream) {
     let userStream = "";
@@ -233,69 +238,71 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     return super.sendDtmf(indtmf, options);
   }
 
-  //   /**
-  //    * Creates an offer or answer.
-  //    * @param options - Options bucket.
-  //    * @param modifiers - Modifiers.
-  //    */
-  //   async getDescription(
-  //     options: Web.SessionDescriptionHandlerOptions,
-  //     modifiers: SessionDescriptionHandlerModifier[],
-  //   ) {
-  //     let _a: RTCOfferOptions;
-  //     let _b: Web.SessionDescriptionHandlerConfiguration;
+  /**
+   * Creates an offer or answer.
+   * @param options - Options bucket.
+   * @param modifiers - Modifiers.
+   */
+  async getDescription(
+    options: Web.SessionDescriptionHandlerOptions,
+    modifiers?: Array<SessionDescriptionHandlerModifier>,
+  ) {
+    let _a: RTCOfferOptions | undefined;
+    let _b: Web.SessionDescriptionHandlerConfiguration | undefined;
 
-  //     this.logger.debug("SessionDescriptionHandler.getDescription");
-  //     if (this._peerConnection === undefined) {
-  //       return Promise.reject(new Error("Peer connection closed."));
-  //     }
-  //     // Callback on data channel creation
-  //     this.onDataChannel =
-  //       options === null || options === void 0 ? void 0 : options.onDataChannel;
-  //     // ICE will restart upon applying an offer created with the iceRestart option
-  //     const iceRestart =
-  //       (_a =
-  //         options === null || options === void 0
-  //           ? void 0
-  //           : options.offerOptions) === null || _a === void 0
-  //         ? void 0
-  //         : _a.iceRestart;
-  //     // ICE gathering timeout may be set on a per call basis, otherwise the configured default is used
-  //     const iceTimeout =
-  //       (options === null || options === void 0
-  //         ? void 0
-  //         : options.iceGatheringTimeout) === undefined
-  //         ? (_b = this.sessionDescriptionHandlerConfiguration) === null ||
-  //           _b === void 0
-  //           ? void 0
-  //           : _b.iceGatheringTimeout
-  //         : options === null || options === void 0
-  //         ? void 0
-  //         : options.iceGatheringTimeout;
-  //     return this.getLocalMediaStreams(options)
-  //       .then(() => this.createDataChannel(options))
-  //       .then(() => this.createLocalOfferOrAnswer(options))
-  //       .then(sessionDescription =>
-  //         this.applyModifiers(sessionDescription, modifiers),
-  //       )
-  //       .then(sessionDescription =>
-  //         this.setLocalSessionDescription(sessionDescription),
-  //       )
-  //       .then(() => this.waitForIceGatheringComplete(iceRestart, iceTimeout))
-  //       .then(() => this.getLocalSessionDescription())
-  //       .then(sessionDescription => {
-  //         return {
-  //           body: sessionDescription.sdp,
-  //           contentType: "application/sdp",
-  //         };
-  //       })
-  //       .catch(error => {
-  //         this.logger.error(
-  //           "SessionDescriptionHandler.getDescription failed - " + error,
-  //         );
-  //         throw error;
-  //       });
-  //   }
+    this.logger.debug("SessionDescriptionHandler.getDescription");
+    if (this._peerConnection === undefined) {
+      return Promise.reject(new Error("Peer connection closed."));
+    }
+    // Callback on data channel creation
+    // @ts-ignore Property 'onDataChannel' is private and only accessible within class 'SessionDescriptionHandler'.
+    this.onDataChannel =
+      options === null || options === void 0 ? void 0 : options.onDataChannel;
+    // ICE will restart upon applying an offer created with the iceRestart option
+    const iceRestart =
+      (_a =
+        options === null || options === void 0
+          ? void 0
+          : options.offerOptions as RTCOfferOptions) === null || _a === void 0
+        ? void 0
+        : _a.iceRestart;
+    // ICE gathering timeout may be set on a per call basis, otherwise the configured default is used
+    const iceTimeout =
+      (options === null || options === void 0
+        ? void 0
+        : options.iceGatheringTimeout) === undefined
+        ? (_b = this.sessionDescriptionHandlerConfiguration) === null ||
+          _b === void 0
+          ? void 0
+          : _b.iceGatheringTimeout
+        : options === null || options === void 0
+        ? void 0
+        : options.iceGatheringTimeout;
+    return this.getLocalMediaStreams(options)
+      .then(() => this.createDataChannel(options))
+      .then(() => this.createLocalOfferOrAnswer(options))
+      .then(sessionDescription =>
+        this.applyModifiers(sessionDescription, modifiers),
+      )
+      .then(sessionDescription =>
+        this.setLocalSessionDescription(sessionDescription),
+      )
+      .then(() => this.waitForIceGatheringComplete(iceRestart, iceTimeout))
+      .then(() => this.getLocalSessionDescription())
+      .then(sessionDescription => {
+        return {
+          body: sessionDescription.sdp,
+          contentType: "application/sdp",
+        };
+      })
+      .catch(error => {
+        this.logger.error(
+          "SessionDescriptionHandler.getDescription failed - " + error,
+        );
+        throw error;
+      });
+  }
+
   getLocalMediaStreamById(id: string): MediaStream | null {
     var stream = null;
     this.acuLocalMediaStreams.forEach(stream => {
@@ -442,18 +449,18 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     return null;
   }
 
-  //   resetIceGatheringComplete() {
-  //     this.iceGatheringTimeout = false;
-  //     this.logger.log("resetIceGatheringComplete");
-  //     if (this.iceGatheringTimer) {
-  //       clearTimeout(this.iceGatheringTimer);
-  //       this.iceGatheringTimer = undefined;
-  //     }
-  //     if (this.iceGatheringDeferred) {
-  //       this.iceGatheringDeferred.reject();
-  //       this.iceGatheringDeferred = undefined;
-  //     }
+  // resetIceGatheringComplete() {
+  //   this.iceGatheringTimeout = false;
+  //   this.logger.log("resetIceGatheringComplete");
+  //   if (this.iceGatheringTimer) {
+  //     clearTimeout(this.iceGatheringTimer);
+  //     this.iceGatheringTimer = undefined;
   //   }
+  //   if (this.iceGatheringDeferred) {
+  //     this.iceGatheringDeferred.reject();
+  //     this.iceGatheringDeferred = undefined;
+  //   }
+  // }
 
   close() {
     this.logger.log("closing PeerConnection");
@@ -490,31 +497,31 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
         //       });
         //     });
       }
-      //   this.resetIceGatheringComplete();
+      // this.resetIceGatheringComplete();
       this._peerConnection.close();
     }
   }
 
-  //   setDirection(sdp) {
-  //     const match = sdp.match(/a=(sendrecv|sendonly|recvonly|inactive)/);
-  //     if (match === null) {
-  //       this.direction = this.C.DIRECTION.NULL;
+  // setDirection(sdp) {
+  //   const match = sdp.match(/a=(sendrecv|sendonly|recvonly|inactive)/);
+  //   if (match === null) {
+  //     this.direction = this.C.DIRECTION.NULL;
 
-  //       return;
-  //     }
-  //     const direction = match[1];
-  //     switch (direction) {
-  //       case this.C.DIRECTION.SENDRECV:
-  //       case this.C.DIRECTION.SENDONLY:
-  //       case this.C.DIRECTION.RECVONLY:
-  //       case this.C.DIRECTION.INACTIVE:
-  //         this.direction = direction;
-  //         break;
-  //       default:
-  //         this.direction = this.C.DIRECTION.NULL;
-  //         break;
-  //     }
+  //     return;
   //   }
+  //   const direction = match[1];
+  //   switch (direction) {
+  //     case this.C.DIRECTION.SENDRECV:
+  //     case this.C.DIRECTION.SENDONLY:
+  //     case this.C.DIRECTION.RECVONLY:
+  //     case this.C.DIRECTION.INACTIVE:
+  //       this.direction = direction;
+  //       break;
+  //     default:
+  //       this.direction = this.C.DIRECTION.NULL;
+  //       break;
+  //   }
+  // }
 
   updateDirection(options: CallOptions) {
     if (this._peerConnection === undefined) {
@@ -607,15 +614,15 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
               let kind = getTransceiverKind(transceiver) as TransceiverKind;
 
               if (kind == "video") {
-                if (options.constraints.video && options.receiveVideo) {
+                if (options.constraints?.video && options.receiveVideo) {
                   offerDirection = "sendrecv";
-                } else if (options.constraints.video) {
+                } else if (options.constraints?.video) {
                   offerDirection = "sendonly";
                 }
               } else if (kind == "audio") {
-                if (options.constraints.audio && options.receiveAudio) {
+                if (options.constraints?.audio && options.receiveAudio) {
                   offerDirection = "sendrecv";
-                } else if (options.constraints.audio) {
+                } else if (options.constraints?.audio) {
                   offerDirection = "sendonly";
                 }
               }
@@ -655,7 +662,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
               if (transceiver.mid !== null) {
                 if (kind == "video" && offeredDirections.video) {
                   if (
-                    options.constraints.video &&
+                    options.constraints?.video &&
                     offeredDirections.video.includes("recv")
                   ) {
                     answerDirection = "sendonly";
@@ -669,7 +676,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
                 }
                 if (kind == "audio" && offeredDirections.audio) {
                   if (
-                    options.constraints.audio &&
+                    options.constraints?.audio &&
                     offeredDirections.audio.includes("recv")
                   ) {
                     answerDirection = "sendonly";
@@ -742,14 +749,14 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
         has_video =
           has_video || opts.localStreams[i].getVideoTracks().length > 0;
       }
-      opts.constraints.audio = has_audio;
-      opts.constraints.video = has_video;
+      opts.constraints!.audio = has_audio;
+      opts.constraints!.video = has_video;
     }
     if (opts.receiveAudio === undefined) {
-      opts.receiveAudio = opts.constraints.audio != false;
+      opts.receiveAudio = opts.constraints!.audio != false;
     }
     if (opts.receiveVideo === undefined) {
-      opts.receiveVideo = opts.constraints.video != false;
+      opts.receiveVideo = opts.constraints!.video != false;
     }
     if (typeof RTCRtpTransceiver === "undefined") {
       // legacy options as transceiver not supported
@@ -813,6 +820,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
   }
 
   // Creates an RTCSessionDescriptionInit from an RTCSessionDescription
+  //TODO: what is this for?
   createRTCSessionDescriptionInit(
     RTCSessionDescription: RTCSessionDescription,
   ) {
@@ -822,26 +830,28 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     };
   }
 
-  //   // ICE gathering state handling
-  //   isIceGatheringComplete() {
+  // // ICE gathering state handling
+  // isIceGatheringComplete() {
+  //   if (this._peerConnection) {
   //     return (
   //       this._peerConnection.iceGatheringState === "complete" ||
   //       this.iceGatheringTimeout
   //     );
   //   }
+  // }
 
-  //   triggerIceGatheringComplete() {
-  //     if (this.isIceGatheringComplete()) {
-  //       if (this.iceGatheringTimer) {
-  //         clearTimeout(this.iceGatheringTimer);
-  //         this.iceGatheringTimer = undefined;
-  //       }
-  //     //   if (this.iceGatheringDeferred) {
-  //     //     this.iceGatheringDeferred.resolve();
-  //     //     this.iceGatheringDeferred = undefined;
-  //     //   }
+  // triggerIceGatheringComplete() {
+  //   if (this.isIceGatheringComplete()) {
+  //     if (this.iceGatheringTimer) {
+  //       clearTimeout(this.iceGatheringTimer);
+  //       this.iceGatheringTimer = undefined;
+  //     }
+  //     if (this.iceGatheringDeferred) {
+  //       this.iceGatheringDeferred.resolve();
+  //       this.iceGatheringDeferred = undefined;
   //     }
   //   }
+  // }
 
   //   addDefaultIceServers(rtcConfiguration) {
   //     if (!rtcConfiguration.iceServers) {

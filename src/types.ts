@@ -1,4 +1,4 @@
-import { RegistererRegisterOptions, RegistererState } from "sip.js";
+import { RegistererRegisterOptions, RegistererState, Web } from "sip.js";
 import type { AculabCloudCall as CloudCall } from "./aculab-cloud-call";
 import type { AculabCloudIncomingCall as CloudIncomingCall } from "./aculab-cloud-incoming-call";
 import type { AculabCloudOutgoingCall as CloudOutgoingCall } from "./aculab-cloud-outgoing-call";
@@ -34,10 +34,9 @@ export interface CallConstraints {
   video: boolean;
 }
 
-export interface CallOptions {
-  constraints: CallConstraints;
-  receiveAudio: boolean;
-  receiveVideo: boolean;
+export interface CallOptions extends Web.SessionDescriptionHandlerOptions {
+  receiveAudio?: boolean;
+  receiveVideo?: boolean;
   codecs?: {
     audio: RTCRtpCodecCapability[];
     video: RTCRtpCodecCapability[];
@@ -48,11 +47,7 @@ export interface CallOptions {
   localStreams?: MediaStream[];
   reinvite?: boolean;
   iceRestart?: boolean;
-  offerOptions?: {
-    // legacy options keep for backwards compatibility
-    offerToReceiveAudio: boolean;
-    offerToReceiveVideo: boolean;
-  };
+  offerOptions?: RTCOfferOptions; // legacy options keep for backwards compatibility
 }
 
 export interface DtmfOptions {
