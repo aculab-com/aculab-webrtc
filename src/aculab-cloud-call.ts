@@ -102,7 +102,11 @@ export class AculabCloudCall {
     return this._callUuid;
   }
 
-  get callId() {
+  get theCallId() {
+    return this._callId;
+  }
+
+  callId() {
     return this._callId;
   }
 
