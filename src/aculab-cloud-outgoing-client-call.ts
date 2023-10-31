@@ -11,7 +11,7 @@ export class AculabCloudOutgoingClientCall extends AculabCloudOutgoingCall {
     token: string,
     options: CallOptions,
   ) {
-    // TODO add option to allow video
+    // TODO: add option to allow video
     let uri = new URI(
       "sip",
       clientId,

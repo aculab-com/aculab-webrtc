@@ -91,11 +91,7 @@ export class AculabCloudCall {
     return this._callUuid;
   }
 
-  get theCallId() {
-    return this._callId;
-  }
-
-  callId() {
+  get callId() {
     return this._callId;
   }
 
@@ -618,12 +614,6 @@ export class AculabCloudCall {
           this._check_notify_media();
         }
       },
-
-      // onaddstream: () => {
-      //   // TODO: check if this does work? TS does not like it.
-      //   this._remote_streams = sdh.remoteMediaStreams;
-      //   this._check_notify_media();
-      // },
       onicecandidateerror: (ev: RTCPeerConnectionIceErrorEvent) => {
         console.log("Ice candidate error ", ev);
     },
@@ -792,8 +782,6 @@ export class AculabCloudCall {
       try {
         this._sdh_options =
           MediaEventSessionDescriptionHandler.fixup_options(options);
-        // let opts: InviterInviteOptions = {};
-        // let opts = this._sdh_options;
         const opts = {
           sessionDescriptionHandlerOptions: this._sdh_options
         };
@@ -802,7 +790,6 @@ export class AculabCloudCall {
         this._sdh_options.iceRestart = true;
         console.log(this._sdh_options);
         opts.sessionDescriptionHandlerOptions = this._sdh_options;
-        // opts.sessionDescriptionHandlerOptionsReInvite = this._sdh_options;
         this.client.console_log("AculabCloudCall: new constraints: " + opts);
         this._session.invite(opts);
       } catch (err: any) {
