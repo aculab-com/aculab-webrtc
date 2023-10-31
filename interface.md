@@ -169,9 +169,13 @@ AculabCloudCall object functions
 
 Gets the callId used for the call. For outgoing calls this may return `undefined` until the onConnecting() callback is being called. For incoming calls it is always available.
 
+### string theCallId()
+
+Object property. Gets the callId used for the call. For outgoing calls this may return `undefined` until the onConnecting() callback is being called. For incoming calls it is always available.
+
 ### string callUuid()
 
-Gets the callUuid used for the call.
+Object property. Gets the callUuid used for the call.
 
 ### void mute(mic, outputAudio, camera, outputVideo)
 
