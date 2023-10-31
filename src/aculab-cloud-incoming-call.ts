@@ -1,10 +1,8 @@
-// import { Invitation } from "../node_modules/sip.js/lib/index";
 import { AculabCloudCall } from "./aculab-cloud-call";
 import { AculabCloudClient } from "./aculab-cloud-client";
 import { MediaEventSessionDescriptionHandler } from "./media-event-session-description-handler";
 import { SessionState, Invitation } from "sip.js";
 import { CallOptions } from "./types";
-import { CallInviter } from "./call-inviter";
 
 export class AculabCloudIncomingCall extends AculabCloudCall {
   answer_pending: boolean;

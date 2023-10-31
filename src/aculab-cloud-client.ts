@@ -2,7 +2,6 @@
 
 import {
   RegistererState,
-  SessionState,
   UserAgent,
   URI,
   Web,
@@ -15,14 +14,8 @@ import { AculabCloudIncomingCall } from "./aculab-cloud-incoming-call";
 import { AculabCloudOutgoingClientCall } from "./aculab-cloud-outgoing-client-call";
 import { MediaEventSessionDescriptionHandler } from "./media-event-session-description-handler";
 import { TokenRegisterer } from "./token-registerer";
-// import type { OutgoingRequest } from "sip.js/lib/core/index.js";
 import { AculabCloudOutgoingServiceCall } from "./aculab-cloud-outgoing-service-call";
 import { CallOptions, OnIncomingObj, OnIncomingStateObj } from "./types";
-// import {
-//   SessionDescriptionHandlerConfiguration,
-//   SessionDescriptionHandlerFactory,
-// } from "sip.js/lib/platform/web";
-import { CallInviter } from "./call-inviter";
 import { AculabCloudCall } from "./aculab-cloud-call";
 
 export class AculabCloudClient {
@@ -42,7 +35,6 @@ export class AculabCloudClient {
   _ua_started: boolean;
   _reconnecting: boolean;
   _aculabIceServers: RTCIceServer[] | undefined;
-  // call: ??
   iceServers: RTCIceServer[] | null;
   onIncoming: ((onIncomingObj: OnIncomingObj) => void) | undefined;
   onIncomingState:
@@ -161,9 +153,6 @@ export class AculabCloudClient {
             call._termination_reason = "FAILED";
           }
           call.disconnect();
-          // if (call._session && call._session.state == SessionState.Terminating) { // TODO: check is this works or is it legacy code?
-          // 	(call._session as CallInviter).onReject(); // force termination
-          // }
         });
         // stop getting ice servers
         if (this._option_request_refresh_timer) {
@@ -182,7 +171,7 @@ export class AculabCloudClient {
           invitation.reject({ statusCode: 486 }); // 486 == busy here
         } else {
           if (this.onIncoming) {
-            const ic = new AculabCloudIncomingCall(this, invitation); // TODO: see how looks like the invitation parameter
+            const ic = new AculabCloudIncomingCall(this, invitation);
             const media_dirs =
               MediaEventSessionDescriptionHandler.get_audio_video_directions(
                 invitation.body!,

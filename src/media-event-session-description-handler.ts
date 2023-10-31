@@ -3,12 +3,6 @@ import {
   Web,
   Core as sipCore,
 } from "sip.js";
-// import type { Logger } from "sip.js/lib/core";
-// import type {
-//   MediaStreamFactory,
-//   SessionDescriptionHandlerConfiguration,
-//   SessionDescriptionHandlerOptions
-// } from "sip.js/lib/platform/web";
 import {
   CallConstraints,
   CallOptions,
@@ -28,8 +22,6 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
   onUserMedia: ((stream: MediaStream) => boolean) | undefined;
   onUserMediaRemove: ((stream: MediaStream) => boolean) | undefined;
   onUserMediaFailed: ((error: any) => void) | undefined;
-  // iceGatheringTimeout: boolean;
-  //   iceGatheringTimer: NodeJS.Timeout | string | number | undefined;
 
   constructor(
     logger: sipCore.Logger,
@@ -49,7 +41,6 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     this.notified_streams = [];
     this.userToInternalLocalStreamIds = new Map();
     this.remoteMediaStreamsToInternal = new Map();
-    // this.iceGatheringTimeout = false;
   }
   getUserStreamId(stream: MediaStream) {
     let userStream = "";
@@ -106,15 +97,6 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     return this._acuRemoteMediaStreams;
   }
 
-  //   get remoteMediaStream()  {
-  //     console.log(this._peerConnection?.getReceivers());
-  //     if (this._peerConnection?.getSenders) {
-  //       return super.remoteMediaStream;
-  //     }
-  //     // // return the first remote stream on react-native
-  //     // return this._peerConnection.getRemoteStreams()[0]; // TODO is this ever fired??? check and edit code
-  //   }
-
   setRemoteTrack(track: MediaStreamTrack) {
     // Don't want to actually use this function since we are using deprecated
     // getLocalStreams....  NEED THIS EVENTUALLY ONE OF THE APIS REACT NATIVE NEEDS
@@ -130,13 +112,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
       this.logger.debug(
         `SessionDescriptionHandler.setRemoteTrack - adding remote ${track.kind} track`,
       );
-      /*
-          remoteStream.getAudioTracks().forEach((track) => {
-            track.stop();
-            remoteStream.removeTrack(track);
-            Web.SessionDescriptionHandler.dispatchRemoveTrackEvent(remoteStream, track);
-          });
-*/
+
       remoteStream.addTrack(track);
       // @ts-ignore 'dispatchAddTrackEvent' is private and only accessible within class 'SessionDescriptionHandler'
       Web.SessionDescriptionHandler.dispatchAddTrackEvent(remoteStream, track); // TODO investigate this while testing !!
@@ -144,13 +120,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
       this.logger.debug(
         `SessionDescriptionHandler.setRemoteTrack - adding remote ${track.kind} track`,
       );
-      /*
-          remoteStream.getVideoTracks().forEach((track) => {
-            track.stop();
-            remoteStream.removeTrack(track);
-            Web.SessionDescriptionHandler.dispatchRemoveTrackEvent(remoteStream, track);
-          });
-*/
+
       remoteStream.addTrack(track);
       // @ts-ignore 'dispatchAddTrackEvent' is private and only accessible within class 'SessionDescriptionHandler'
       Web.SessionDescriptionHandler.dispatchAddTrackEvent(remoteStream, track); // TODO investigate this while testing !!
@@ -446,21 +416,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
       }
       throw error;
     }
-    return null;
   }
-
-  // resetIceGatheringComplete() {
-  //   this.iceGatheringTimeout = false;
-  //   this.logger.log("resetIceGatheringComplete");
-  //   if (this.iceGatheringTimer) {
-  //     clearTimeout(this.iceGatheringTimer);
-  //     this.iceGatheringTimer = undefined;
-  //   }
-  //   if (this.iceGatheringDeferred) {
-  //     this.iceGatheringDeferred.reject();
-  //     this.iceGatheringDeferred = undefined;
-  //   }
-  // }
 
   close() {
     this.logger.log("closing PeerConnection");
@@ -475,13 +431,6 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
             sender.track.stop();
           }
         });
-        //   } else {
-        //     this.logger.warn("Using getLocalStreams which is deprecated");
-        //     this._peerConnection.getLocalStreams().forEach(stream => {
-        //       stream.getTracks().forEach(track => {
-        //         track.stop();
-        //       });
-        //     });
       }
       if (this._peerConnection.getReceivers) {
         this._peerConnection.getReceivers().forEach(receiver => {
@@ -489,39 +438,10 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
             receiver.track.stop();
           }
         });
-        //   } else {
-        //     this.logger.warn("Using getRemoteStreams which is deprecated");
-        //     this._peerConnection.getRemoteStreams().forEach(stream => {
-        //       stream.getTracks().forEach(track => {
-        //         track.stop();
-        //       });
-        //     });
       }
-      // this.resetIceGatheringComplete();
       this._peerConnection.close();
     }
   }
-
-  // setDirection(sdp) {
-  //   const match = sdp.match(/a=(sendrecv|sendonly|recvonly|inactive)/);
-  //   if (match === null) {
-  //     this.direction = this.C.DIRECTION.NULL;
-
-  //     return;
-  //   }
-  //   const direction = match[1];
-  //   switch (direction) {
-  //     case this.C.DIRECTION.SENDRECV:
-  //     case this.C.DIRECTION.SENDONLY:
-  //     case this.C.DIRECTION.RECVONLY:
-  //     case this.C.DIRECTION.INACTIVE:
-  //       this.direction = direction;
-  //       break;
-  //     default:
-  //       this.direction = this.C.DIRECTION.NULL;
-  //       break;
-  //   }
-  // }
 
   updateDirection(options: CallOptions) {
     if (this._peerConnection === undefined) {
@@ -820,7 +740,6 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
   }
 
   // Creates an RTCSessionDescriptionInit from an RTCSessionDescription
-  //TODO: what is this for?
   createRTCSessionDescriptionInit(
     RTCSessionDescription: RTCSessionDescription,
   ) {
@@ -829,40 +748,4 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
       sdp: RTCSessionDescription.sdp,
     };
   }
-
-  // // ICE gathering state handling
-  // isIceGatheringComplete() {
-  //   if (this._peerConnection) {
-  //     return (
-  //       this._peerConnection.iceGatheringState === "complete" ||
-  //       this.iceGatheringTimeout
-  //     );
-  //   }
-  // }
-
-  // triggerIceGatheringComplete() {
-  //   if (this.isIceGatheringComplete()) {
-  //     if (this.iceGatheringTimer) {
-  //       clearTimeout(this.iceGatheringTimer);
-  //       this.iceGatheringTimer = undefined;
-  //     }
-  //     if (this.iceGatheringDeferred) {
-  //       this.iceGatheringDeferred.resolve();
-  //       this.iceGatheringDeferred = undefined;
-  //     }
-  //   }
-  // }
-
-  //   addDefaultIceServers(rtcConfiguration) {
-  //     if (!rtcConfiguration.iceServers) {
-  //       rtcConfiguration.iceServers = [{ urls: "stun:stun.l.google.com:19302" }];
-  //     }
-  //     return rtcConfiguration;
-  //   }
-  //   addDefaultIceCheckingTimeout(peerConnectionOptions) {
-  //     if (peerConnectionOptions.iceCheckingTimeout === undefined) {
-  //       peerConnectionOptions.iceCheckingTimeout = 5000;
-  //     }
-  //     return peerConnectionOptions;
-  //   }
 }

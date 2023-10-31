@@ -1,7 +1,6 @@
 import { Inviter, URI, UserAgent, Core as sipCore } from "sip.js";
 import type { AculabCloudOutgoingCall } from "./aculab-cloud-outgoing-call";
 import { MediaEventSessionDescriptionHandler } from "./media-event-session-description-handler";
-// import { IncomingResponse } from "sip.js/lib/core";
 
 /**
  * Used only for outbound calls?
