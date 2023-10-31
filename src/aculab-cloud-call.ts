@@ -49,7 +49,6 @@ export class AculabCloudCall {
   onConnecting: ((callObj: MediaCallObj) => void) | undefined;
   onMedia: ((callObj: MediaCallObj) => void) | undefined;
   onMediaRemove: ((callObj?: MediaCallObj) => void) | undefined;
-  // onGotMedia: (() => void) | undefined;
   onLocalMedia: ((callObj?: MediaCallObj) => void) | undefined;
   onLocalMediaRemove: ((callObj?: MediaCallObj) => void) | undefined;
   onConnected: ((callObj?: CallObj) => void) | undefined;
@@ -86,16 +85,6 @@ export class AculabCloudCall {
     // this.onLocalVideoUnmute = () => {};
     // this.onRemoteVideoMute = () => {};
     // this.onRemoteVideoUnmute = () => {};
-
-    // this.onRinging = () => {};
-    // this.onConnecting = () => {};
-    // this.onMedia = () => {};
-    // this.onMediaRemove = () => {};
-    // this.onGotMedia = () => {};
-    // this.onLocalMedia = () => {};
-    // this.onLocalMediaRemove = () => {};
-    // this.onConnected = () => {};
-    // this.onDisconnect = () => {};
   }
 
   get callUuid() {
@@ -211,7 +200,7 @@ export class AculabCloudCall {
       onBye: bye => {
         // extract reason from BYE message
         if (this._termination_reason == "") {
-          var reason_hdr = bye.request.getHeader("Reason");
+          const reason_hdr = bye.request.getHeader("Reason");
           this.client.console_log(`dialog end BYE Reason ${reason_hdr}`);
           if (reason_hdr) {
             const m = reason_hdr.match(/SIP\s*;\s*cause\s*=\s*([0-9]{3})\s*;/);
@@ -337,7 +326,7 @@ export class AculabCloudCall {
     this.client.console_log(
       "AculabCloudCall muteLocalStream(mic=" + mic + ",  camera=" + camera,
     );
-    var internal_stream_id = null;
+    let internal_stream_id = null;
     if (this._session && this._session.sessionDescriptionHandler) {
       internal_stream_id = (
         this._session
@@ -429,7 +418,7 @@ export class AculabCloudCall {
 
   _onterminated() {
     this._session = null;
-    var cause = this._termination_reason || "NORMAL";
+    const cause = this._termination_reason || "NORMAL";
     this.client.console_log("term: " + cause);
     this._remote_streams = null;
     if (this._sdh_options && this._sdh_options.localStream) {
@@ -637,7 +626,7 @@ export class AculabCloudCall {
       oniceconnectionstatechange: (event: Event) => {
         this._remote_streams = sdh.remoteMediaStreams;
 
-        var icestate = sdh.peerConnection?.iceConnectionState;
+        const icestate = sdh.peerConnection?.iceConnectionState;
         if (icestate == "connected" || icestate == "completed") {
           this._set_ice_state(true);
         } else {
@@ -647,7 +636,7 @@ export class AculabCloudCall {
     };
   }
   getConnectionInfo() {
-    var that = this;
+    const that = this;
     return new Promise(function (resolve) {
       if (
         that._session?.sessionDescriptionHandler &&

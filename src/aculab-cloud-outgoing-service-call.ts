@@ -4,7 +4,7 @@ import { URI } from "sip.js";
 
 export class AculabCloudOutgoingServiceCall extends AculabCloudOutgoingCall {
 	constructor(client: AculabCloudClient, serviceName: string) {
-		var uri = new URI("sip", serviceName, `sip-${client._cloud}.aculab.com;transport=tcp`);
+		const uri = new URI("sip", serviceName, `sip-${client._cloud}.aculab.com;transport=tcp`);
 		super(client, uri, {
 			earlyMedia: true,
 		}, undefined, false);
