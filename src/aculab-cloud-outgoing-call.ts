@@ -4,6 +4,7 @@ import { MediaEventSessionDescriptionHandler } from "./media-event-session-descr
 import { SessionState, URI, Core as sipCore } from "sip.js";
 import { AculabCloudClient } from "./aculab-cloud-client.js";
 import { CallOptions } from "./types.js";
+import { IncomingResponse } from "sip.js/lib/core/index.js";
 // import { IncomingResponse } from "sip.js/lib/core/index.js";
 
 export class AculabCloudOutgoingCall extends AculabCloudCall {
@@ -42,7 +43,7 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
 		this.session = new CallInviter(this, this.client._ua, this._uri, this._inviter_options);
 		const opts = { 
 			requestDelegate: {
-				onProgress: (response: any) => {
+				onProgress: (response: IncomingResponse) => {
 					this._progress(response);
 				}
 			},

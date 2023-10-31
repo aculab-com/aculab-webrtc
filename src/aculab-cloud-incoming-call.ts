@@ -53,7 +53,7 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
   }
   reject(cause?: string) {
     this.client.console_log("AculabCloudIncomingCall: reject(" + cause + ")");
-    var int_cause = 486;
+    let int_cause = 486;
     if (cause) {
       try {
         int_cause = parseInt(cause);

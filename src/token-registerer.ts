@@ -450,8 +450,8 @@ export class TokenRegisterer {
                 }
                 // Set for the state change (if any) and the delegate callback (if any)
                 this._retryAfter = isNaN(retryAfterDuration) ? undefined : retryAfterDuration;
-                var authenticate_header = response.message.getHeader('WWW-Authenticate');
-                var cause: Cause = 'FAILED';
+                const authenticate_header = response.message.getHeader('WWW-Authenticate');
+                let cause: Cause = 'FAILED';
                 if (authenticate_header && authenticate_header.indexOf('error="invalid_token"') != -1) {
                     cause = 'INVALIDTOKEN';
                 } else if (response.message.statusCode == 503) {
@@ -652,8 +652,8 @@ export class TokenRegisterer {
             throw new Error(`Invalid state transition from ${this._state} to ${newState}`);
         };
         // Validate transition
-        var retry = this.change_pending || (this.registrationTimer !== undefined);
-        var notify = true;
+        const retry = this.change_pending || (this.registrationTimer !== undefined);
+        let notify = true;
         switch (this._state) {
             case RegistererState.Initial:
                 if (newState !== RegistererState.Registered &&

@@ -304,7 +304,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
   }
 
   getLocalMediaStreamById(id: string): MediaStream | null {
-    var result = null;
+    let result = null;
     this.acuLocalMediaStreams.forEach(stream => {
       if (stream.id === id) {
         result = stream;

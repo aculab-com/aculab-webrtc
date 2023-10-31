@@ -17,7 +17,7 @@ import { MediaEventSessionDescriptionHandler } from "./media-event-session-descr
 import { TokenRegisterer } from "./token-registerer";
 // import type { OutgoingRequest } from "sip.js/lib/core/index.js";
 import { AculabCloudOutgoingServiceCall } from "./aculab-cloud-outgoing-service-call";
-import { OnIncomingObj, OnIncomingStateObj } from "./types";
+import { CallOptions, OnIncomingObj, OnIncomingStateObj } from "./types";
 // import {
 //   SessionDescriptionHandlerConfiguration,
 //   SessionDescriptionHandlerFactory,
@@ -101,7 +101,7 @@ export class AculabCloudClient {
     this._cloud = cloudId;
     this._webRtcAccessKey = webRtcAccessKey;
     this._clientId = clientId;
-    var ua_log_level: LogLevel = "error";
+    let ua_log_level: LogLevel = "error";
     if (this.loglevel > 4) {
       ua_log_level = "debug";
     } else if (this.loglevel == 4) {
@@ -188,7 +188,7 @@ export class AculabCloudClient {
                 invitation.body!,
               );
             this._calls.add(ic);
-            var caller_type = "other";
+            let caller_type = "other";
 
             try {
               this.console_log("AculabCloudClient calling onIncoming");
@@ -350,7 +350,7 @@ export class AculabCloudClient {
         this.console_log(
           "AculabCloudClient: OPTIONS body:" + response.message.body,
         );
-        var turn_str = response.message.body;
+        const turn_str = response.message.body;
         try {
           this._aculabIceServers = JSON.parse(turn_str);
         } catch (err: any) {
@@ -385,12 +385,12 @@ export class AculabCloudClient {
       },
     });
   }
-  console_log(msg: any) {
+  console_log(msg: string) {
     if (this.loglevel > 1) {
       console.log(msg);
     }
   }
-  console_error(msg: any) {
+  console_error(msg: string) {
     if (this.loglevel > 0) {
       console.error(msg);
     }
@@ -441,12 +441,12 @@ export class AculabCloudClient {
       this._ua.start();
       this._ua_started = true;
     }
-    var outcall = new AculabCloudOutgoingServiceCall(this, serviceName);
+    const outcall = new AculabCloudOutgoingServiceCall(this, serviceName);
     this._calls.add(outcall);
     return outcall;
   }
 
-  callClient(clientId: string, token: string, options: any) {
+  callClient(clientId: string, token: string, options: CallOptions) {
     if (typeof clientId !== "string") {
       throw "clientId is not a string";
     }
@@ -457,7 +457,7 @@ export class AculabCloudClient {
       clientId = clientId.substring(4);
     }
     // service names are more restrictive than plain SIP usernames
-    var testServiceName = clientId.replace(/([A-Za-z0-9-_.+])/g, "");
+    const testServiceName = clientId.replace(/([A-Za-z0-9-_.+])/g, "");
     if (testServiceName != "" || clientId === "") {
       throw "Invalid clientId";
     }
@@ -469,18 +469,18 @@ export class AculabCloudClient {
       this._ua_started = true;
     }
     // check token looks plausible
-    var token_bits = token.split(".");
+    const token_bits = token.split(".");
     if (token_bits.length != 3 && token_bits.length != 5) {
       // 3 for just signed, 5 for encrypted and signed
       throw "Invalid token";
     }
-    var b64u_re = RegExp("^[-_0-9a-zA-Z]+$");
+    const b64u_re = RegExp("^[-_0-9a-zA-Z]+$");
     token_bits.forEach(bit => {
       if (!b64u_re.test(bit)) {
         throw "Invalid token";
       }
     });
-    var outcall = new AculabCloudOutgoingClientCall(
+    const outcall = new AculabCloudOutgoingClientCall(
       this,
       clientId,
       token,
@@ -492,12 +492,12 @@ export class AculabCloudClient {
 
   enableIncoming(token: string) {
     // check token looks plausible
-    var token_bits = token.split(".");
+    const token_bits = token.split(".");
     if (token_bits.length != 3 && token_bits.length != 5) {
       // 3 for just signed, 5 for encrypted and signed
       throw "Invalid token";
     }
-    var b64u_re = RegExp("^[-_0-9a-zA-Z]+$");
+    const b64u_re = RegExp("^[-_0-9a-zA-Z]+$");
     token_bits.forEach(bit => {
       if (!b64u_re.test(bit)) {
         throw "Invalid token";
@@ -510,15 +510,15 @@ export class AculabCloudClient {
     }
     if (!this._registerer) {
       this._registerer = new TokenRegisterer(this._ua);
-      this._registerer.stateChange.addListener((update: any) => {
+      this._registerer.stateChange.addListener((update) => {
         if (update.state == RegistererState.Terminated) {
           return;
         }
-        var ready = update.state == RegistererState.Registered;
+        const ready = update.state == RegistererState.Registered;
         if (this.onIncomingState) {
           let retry =
             update.retry ||
-            (this._ua_started && this._token && !this._transport_connected);
+            (this._ua_started && this._token && !this._transport_connected) as boolean;
           this.console_log(
             `AculabCloudCaller calling onIncomingState(${ready}, ${update.cause}, ${retry})`,
           );
