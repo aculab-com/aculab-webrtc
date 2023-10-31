@@ -295,6 +295,40 @@ export class AculabCloudCall {
     }
   }
 
+  isMuted(stream: MediaStream) {
+    /**
+     * @return {Object} - {"mic": true/false, "output_audio": true/false, "camera": true/false, "output_video": true/false}
+     * */
+    let ret = {"mic": true, "output_audio": true, "camera": true, "output_video": true};
+
+    // check output
+    if (stream) {
+      stream.getTracks().forEach((t: MediaStreamTrack) => {
+        if (t.kind == "audio") {
+          ret["output_audio"] = !t.enabled;
+        } else if (t.kind == "video") {
+          ret["output_video"] = !t.enabled;
+        }
+      });
+    }
+
+    // check mic and camera
+    const sdh = this._session?.sessionDescriptionHandler as MediaEventSessionDescriptionHandler;
+    if (sdh && sdh.peerConnection) {
+      const pc = sdh.peerConnection;
+      pc.getSenders().forEach(function (sender) {
+        if (sender.track) {
+           if (sender.track.kind == "audio") {
+              ret["mic"] = !sender.track.enabled;
+           } else if (sender.track.kind == "video") {
+              ret["camera"] = !sender.track.enabled;
+           }
+        }
+      });
+    }
+    return ret;
+  }
+
   muteStream(
     stream: MediaStream,
     mic: boolean,

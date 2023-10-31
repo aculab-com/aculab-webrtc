@@ -8,10 +8,10 @@
 	var acc = null;
 	var inbound_enabled = false;
 	var slots = new Map([
-		['a', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'playing_ringing':false, 'gotremotestream':false}],
-		['b', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'playing_ringing':false, 'gotremotestream':false}],
-		['c', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'playing_ringing':false, 'gotremotestream':false}],
-		['d', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'playing_ringing':false, 'gotremotestream':false}],
+		['a', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'playing_ringing':false, 'gotremotestream':false, 'remotestream':null}],
+		['b', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'playing_ringing':false, 'gotremotestream':false, 'remotestream':null}],
+		['c', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'playing_ringing':false, 'gotremotestream':false, 'remotestream':null}],
+		['d', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'playing_ringing':false, 'gotremotestream':false, 'remotestream':null}],
 	]);
 	var statsTimer = null;
 	function startStats() {
@@ -62,12 +62,15 @@
 		slot_obj.gotremotestream = false;
 		if (obj !== null) {
 			slot_obj.gotremotestream = true;
+			slot_obj.remotestream = obj.stream;
 			player.srcObject = obj.stream;
 			player.load();
 			var p = player.play();
 			if (p !== undefined) {
 				p.catch(error => {console.log(error)});
 			}
+		} else {
+			slot_obj.remotestream = null;
 		}
 	}
 	function handle_disconnect(slot, cause) {
@@ -168,6 +171,41 @@
 			slot_obj.call.mute(mic, outa, cam, outv);
 		}
 	}
+
+	function switch_led_colour(slot, type, state) {
+        /* Helper function to change the colour of a mic/cam/outa/outv LED light */
+        var led = document.getElementById(slot + "-" + type + "-led");
+        if (state) {
+          led.classList.add("green");
+        } else {
+          led.classList.remove("green");
+        }
+    }
+
+    function switch_status_leds(slot){
+        /* Checks the status of all tracks in a particular slots and changes the LEDs accordingly */
+        var slot_obj = slots.get(slot);
+        if (slot_obj.call) {  // there is an ongoing call
+            var muted_dict = slot_obj.call.isMuted(slot_obj.remotestream);
+            switch_led_colour(slot, "mic", !muted_dict["mic"]);
+            switch_led_colour(slot, "outa", !muted_dict["output_audio"]);
+            switch_led_colour(slot, "cam", !muted_dict["camera"]);
+            switch_led_colour(slot, "outv", !muted_dict["output_video"]);
+        } else {  // no ongoing call
+            switch_led_colour(slot, "mic", false);
+            switch_led_colour(slot, "outa", false);
+            switch_led_colour(slot, "cam", false);
+            switch_led_colour(slot, "outv", false);
+        }
+    }
+
+    /* Check periodically if the call is muted and change the LED colour accordingly */
+    var ledsIntervalId = setInterval(function() {
+        for (var [slot, obj] of slots) {
+            switch_status_leds(slot);
+        }
+    }, 400);
+
 
 	function get_audio_constraints(slot) {
 		let val = document.getElementById(slot + "-audio-constraints").value;
@@ -711,6 +749,21 @@
 	.slider.round:before {
 		border-radius: 50%;
 	}
+
+	/* MediaTrack indicator lights */
+	.led {
+		height: 12px;
+		width: 12px;
+		border-radius: 50%;
+		display: inline-flex;
+		background-color: red; 
+		transform: translate(0, 2px);  /* align with text */
+	}
+
+	.led.green {
+		background-color: green;
+	}
+
 	</style>
     <h2>Aculab Cloud WebRTC demo</h2>
 	<table>
@@ -825,21 +878,25 @@
 						<input type="checkbox" id="a-mute-mic" onchange="mute_call('a')" disabled=true>
 						<span class="slider round"></span>
 					</label>
+					<div id="a-mic-led" class="led"></div>
 					&nbsp;Cam: 
 					<label class="switch">
 						<input type="checkbox" id="a-mute-cam" onchange="mute_call('a')" disabled=true>
 						<span class="slider round"></span>
 					</label>
+					<div id="a-cam-led" class="led"></div>
 					&nbsp;OutA: 
 					<label class="switch">
 						<input type="checkbox" id="a-mute-outa" onchange="mute_call('a')" disabled=true>
 						<span class="slider round"></span>
 					</label>
+					<div id="a-outa-led" class="led"></div>
 					&nbsp;OutV: 
 					<label class="switch">
 						<input type="checkbox" id="a-mute-outv" onchange="mute_call('a')" disabled=true>
 						<span class="slider round"></span>
 					</label>
+					<div id="a-outv-led" class="led"></div>
 				</td></tr><tr><td>
 				<div style="display: flex; flex-wrap: wrap; justify-content: space-between;">
 					<table id="a-dtmf-buttons" style="display:inline-block">
@@ -970,21 +1027,25 @@
 						<input type="checkbox" id="b-mute-mic" onchange="mute_call('b')" disabled=true>
 						<span class="slider round"></span>
 					</label>
+					<div id="b-mic-led" class="led"></div>
 					&nbsp;Cam: 
 					<label class="switch">
 						<input type="checkbox" id="b-mute-cam" onchange="mute_call('b')" disabled=true>
 						<span class="slider round"></span>
 					</label>
+					<div id="b-cam-led" class="led"></div>
 					&nbsp;OutA: 
 					<label class="switch">
 						<input type="checkbox" id="b-mute-outa" onchange="mute_call('b')" disabled=true>
 						<span class="slider round"></span>
 					</label>
+					<div id="b-outa-led" class="led"></div>
 					&nbsp;OutV: 
 					<label class="switch">
 						<input type="checkbox" id="b-mute-outv" onchange="mute_call('b')" disabled=true>
 						<span class="slider round"></span>
 					</label>
+					<div id="b-outv-led" class="led"></div>
 				</td></tr><tr><td>
 					<div style="display: flex; flex-wrap: wrap; justify-content: space-between;">
 						<table id="b-dtmf-buttons" style="display:inline-block">
@@ -1117,21 +1178,25 @@
 						<input type="checkbox" id="c-mute-mic" onchange="mute_call('c')" disabled=true>
 						<span class="slider round"></span>
 					</label>
+					<div id="c-mic-led" class="led"></div>
 					&nbsp;Cam: 
 					<label class="switch">
 						<input type="checkbox" id="c-mute-cam" onchange="mute_call('c')" disabled=true>
 						<span class="slider round"></span>
 					</label>
+					<div id="c-cam-led" class="led"></div>
 					&nbsp;OutA: 
 					<label class="switch">
 						<input type="checkbox" id="c-mute-outa" onchange="mute_call('c')" disabled=true>
 						<span class="slider round"></span>
 					</label>
+					<div id="c-outa-led" class="led"></div>
 					&nbsp;OutV: 
 					<label class="switch">
 						<input type="checkbox" id="c-mute-outv" onchange="mute_call('c')" disabled=true>
 						<span class="slider round"></span>
 					</label>
+					<div id="c-outv-led" class="led"></div>
 				</td></tr><tr><td>
 					<div style="display: flex; flex-wrap: wrap; justify-content: space-between;">
 						<table id="c-dtmf-buttons" style="display:inline-block">
@@ -1262,21 +1327,25 @@
 						<input type="checkbox" id="d-mute-mic" onchange="mute_call('d')" disabled=true>
 						<span class="slider round"></span>
 					</label>
+					<div id="d-mic-led" class="led"></div>
 					&nbsp;Cam: 
 					<label class="switch">
 						<input type="checkbox" id="d-mute-cam" onchange="mute_call('d')" disabled=true>
 						<span class="slider round"></span>
 					</label>
+					<div id="d-cam-led" class="led"></div>
 					&nbsp;OutA: 
 					<label class="switch">
 						<input type="checkbox" id="d-mute-outa" onchange="mute_call('d')" disabled=true>
 						<span class="slider round"></span>
 					</label>
+					<div id="d-outa-led" class="led"></div>
 					&nbsp;OutV: 
 					<label class="switch">
 						<input type="checkbox" id="d-mute-outv" onchange="mute_call('d')" disabled=true>
 						<span class="slider round"></span>
 					</label>
+					<div id="d-outv-led" class="led"></div>
 				</td></tr><tr><td>
 					<div style="display: flex; flex-wrap: wrap; justify-content: space-between;">
 						<table id="d-dtmf-buttons" style="display:inline-block">
