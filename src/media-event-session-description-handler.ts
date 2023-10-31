@@ -304,13 +304,13 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
   }
 
   getLocalMediaStreamById(id: string): MediaStream | null {
-    var stream = null;
+    var result = null;
     this.acuLocalMediaStreams.forEach(stream => {
       if (stream.id === id) {
-        stream = stream;
+        result = stream;
       }
     });
-    return stream;
+    return result;
   }
 
   // @ts-expect-error overwriting - this method is incompatible with the original from SessionDescriptionHandler.
