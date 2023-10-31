@@ -17,7 +17,7 @@ import { MediaEventSessionDescriptionHandler } from "./media-event-session-descr
 import { TokenRegisterer } from "./token-registerer";
 // import type { OutgoingRequest } from "sip.js/lib/core/index.js";
 import { AculabCloudOutgoingServiceCall } from "./aculab-cloud-outgoing-service-call";
-import { OnIncomingObj, OnIncomingStateObj } from "./types";
+import { CallOptions, OnIncomingObj, OnIncomingStateObj } from "./types";
 // import {
 //   SessionDescriptionHandlerConfiguration,
 //   SessionDescriptionHandlerFactory,
@@ -385,12 +385,12 @@ export class AculabCloudClient {
       },
     });
   }
-  console_log(msg: any) {
+  console_log(msg: string) {
     if (this.loglevel > 1) {
       console.log(msg);
     }
   }
-  console_error(msg: any) {
+  console_error(msg: string) {
     if (this.loglevel > 0) {
       console.error(msg);
     }
@@ -446,7 +446,7 @@ export class AculabCloudClient {
     return outcall;
   }
 
-  callClient(clientId: string, token: string, options: any) {
+  callClient(clientId: string, token: string, options: CallOptions) {
     if (typeof clientId !== "string") {
       throw "clientId is not a string";
     }
@@ -510,7 +510,7 @@ export class AculabCloudClient {
     }
     if (!this._registerer) {
       this._registerer = new TokenRegisterer(this._ua);
-      this._registerer.stateChange.addListener((update: any) => {
+      this._registerer.stateChange.addListener((update) => {
         if (update.state == RegistererState.Terminated) {
           return;
         }
@@ -518,7 +518,7 @@ export class AculabCloudClient {
         if (this.onIncomingState) {
           let retry =
             update.retry ||
-            (this._ua_started && this._token && !this._transport_connected);
+            (this._ua_started && this._token && !this._transport_connected) as boolean;
           this.console_log(
             `AculabCloudCaller calling onIncomingState(${ready}, ${update.cause}, ${retry})`,
           );

@@ -1,4 +1,4 @@
-import { Invitation, InviterInviteOptions, SessionState } from "sip.js";
+import { Invitation, SessionState } from "sip.js";
 import { MediaEventSessionDescriptionHandler } from "./media-event-session-description-handler";
 import { v4 as uuidV4 } from "uuid";
 import type { AculabCloudClient } from "./aculab-cloud-client";
