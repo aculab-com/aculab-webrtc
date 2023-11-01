@@ -35,7 +35,7 @@ export class CallInviter extends Inviter {
 
   onRedirect(response: sipCore.IncomingResponse) {
     this.call._set_termination_reason_from_response(response);
-    // @ts-ignore 'onReject' is private and only accessible within class 'Inviter'.
+    // @ts-ignore 'onRedirect' is private and only accessible within class 'Inviter'.
     super.onRedirect(response);
   }
 
