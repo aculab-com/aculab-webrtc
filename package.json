@@ -12,9 +12,13 @@
   "devDependencies": {
     "@types/node": "^20.6.2",
     "@types/uuid": "^9.0.3",
-    "eslint": "^7.20.0",
-    "eslint-plugin-react": "^7.22.0",
+    "@typescript-eslint/eslint-plugin": "^6.9.1",
+    "@typescript-eslint/parser": "^6.9.1",
+    "eslint": "^8.52.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.1",
     "marked": "^4.0.12",
+    "prettier": "^3.0.3",
     "typescript": "^5.1.6",
     "webpack": "^5.70.0",
     "webpack-cli": "^4.9.2"
@@ -44,5 +48,15 @@
     "sip",
     "webrtc",
     "aculab"
-  ]
+  ],
+  "prettier": {
+    "quoteProps": "consistent",
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "all",
+    "useTabs": false,
+    "arrowParens": "avoid",
+    "bracketSameLine": true,
+    "bracketSpacing": false
+  }
 }

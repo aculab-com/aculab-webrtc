@@ -17,6 +17,7 @@
     "onclientready",
     "onterminate",
     "onterminated",
+    "Parens",
     "registerers",
     "sess",
     "sipproxy",
