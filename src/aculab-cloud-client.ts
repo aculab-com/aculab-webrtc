@@ -192,16 +192,29 @@ export class AculabCloudClient {
               ) {
                 caller_type = "client";
               }
-              if (media_dirs.audio && media_dirs.video) {
+              if (media_dirs.audio || media_dirs.video) {
+                let audio = "";
+                let video = "";
+                if (media_dirs.audio !== undefined) {
+                  audio = media_dirs.audio;
+		}
+                if (media_dirs.video !== undefined) {
+                  video = media_dirs.video;
+		}
                 this.onIncoming({
                   call: ic,
                   from: invitation.remoteIdentity.uri.user!,
                   type: caller_type,
-                  offeringAudio: media_dirs.audio.includes("send"),
-                  canReceiveAudio: media_dirs.audio.includes("recv"),
-                  offeringVideo: media_dirs.video.includes("send"),
-                  canReceiveVideo: media_dirs.video.includes("recv"),
+                  offeringAudio: audio.includes("send"),
+                  canReceiveAudio: audio.includes("recv"),
+                  offeringVideo: video.includes("send"),
+                  canReceiveVideo: video.includes("recv"),
                 });
+              } else {
+                this.console_log(
+                  "AculabCloudClient rejecting incoming, no media in incoming call"
+                );
+                ic.reject("500"); // should be a 500?
               }
             } catch (err: any) {
               this.console_error(
