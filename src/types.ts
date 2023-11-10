@@ -1,10 +1,10 @@
-import { RegistererState, Web } from "sip.js";
-import type { AculabCloudCall as CloudCall } from "./aculab-cloud-call";
-import type { AculabCloudIncomingCall as CloudIncomingCall } from "./aculab-cloud-incoming-call";
-import type { AculabCloudOutgoingCall as CloudOutgoingCall } from "./aculab-cloud-outgoing-call";
+import {RegistererState, Web} from 'sip.js';
+import type {AculabCloudCall as CloudCall} from './aculab-cloud-call';
+import type {AculabCloudIncomingCall as CloudIncomingCall} from './aculab-cloud-incoming-call';
+import type {AculabCloudOutgoingCall as CloudOutgoingCall} from './aculab-cloud-outgoing-call';
 
-export type TransceiverKind = "audio" | "video";
-export type Cause = "FAILED" | "INVALIDTOKEN" | "DISCONNECTED" | "NORMAL";
+export type TransceiverKind = 'audio' | 'video';
+export type Cause = 'FAILED' | 'INVALIDTOKEN' | 'DISCONNECTED' | 'NORMAL';
 export type AculabCloudCall = CloudCall;
 export type AculabCloudIncomingCall = CloudIncomingCall;
 export type AculabCloudOutgoingCall = CloudOutgoingCall;
@@ -73,4 +73,12 @@ export interface StateEventEmitter {
   state: RegistererState;
   cause?: string;
   retry: boolean;
+}
+
+export interface CandParam {
+  address?: string;
+  port?: string;
+  ip?: string;
+  ipAddress?: string;
+  portNumber?: string;
 }

@@ -1,8 +1,8 @@
-import type { AculabCloudClient } from "./aculab-cloud-client.js";
-import { AculabCloudOutgoingCall } from "./aculab-cloud-outgoing-call.js";
-import { URI } from "sip.js";
-import { MediaEventSessionDescriptionHandler } from "./media-event-session-description-handler.js";
-import { CallOptions } from "./types.js";
+import type {AculabCloudClient} from './aculab-cloud-client.js';
+import {AculabCloudOutgoingCall} from './aculab-cloud-outgoing-call.js';
+import {URI} from 'sip.js';
+import {MediaEventSessionDescriptionHandler} from './media-event-session-description-handler.js';
+import {CallOptions} from './types.js';
 
 export class AculabCloudOutgoingClientCall extends AculabCloudOutgoingCall {
   constructor(
@@ -12,8 +12,8 @@ export class AculabCloudOutgoingClientCall extends AculabCloudOutgoingCall {
     options: CallOptions,
   ) {
     // TODO: add option to allow video
-    let uri = new URI(
-      "sip",
+    const uri = new URI(
+      'sip',
       clientId,
       `${client._webRtcAccessKey}.webrtc-${client._cloud}.aculabcloud.net;transport=tcp`,
     );
@@ -21,7 +21,7 @@ export class AculabCloudOutgoingClientCall extends AculabCloudOutgoingCall {
       client,
       uri,
       {
-        extraHeaders: ["Authorization: Bearer " + token],
+        extraHeaders: ['Authorization: Bearer ' + token],
       },
       options,
       true,
@@ -30,14 +30,18 @@ export class AculabCloudOutgoingClientCall extends AculabCloudOutgoingCall {
   _add_media_handlers(sdh: MediaEventSessionDescriptionHandler) {
     super._add_media_handlers(sdh);
     // add transceivers if we want to receive (not needed if we are sending, but doesn't hurt)
-    if (typeof RTCRtpTransceiver !== "undefined") {
+    if (typeof RTCRtpTransceiver !== 'undefined') {
       if (this._sdh_options?.receiveAudio) {
-        // @ts-ignore '_peerConnection' is protected and only accessible within class 'SessionDescriptionHandler' and its subclasses.
-        sdh._peerConnection.addTransceiver("audio", { direction: "recvonly" });
+        // '_peerConnection' is protected and only accessible within class 'SessionDescriptionHandler' and its subclasses.
+        sdh['_peerConnection']!.addTransceiver('audio', {
+          direction: 'recvonly',
+        });
       }
       if (this._sdh_options?.receiveVideo) {
-        // @ts-ignore '_peerConnection' is protected and only accessible within class 'SessionDescriptionHandler' and its subclasses.
-        sdh._peerConnection.addTransceiver("video", { direction: "recvonly" });
+        // '_peerConnection' is protected and only accessible within class 'SessionDescriptionHandler' and its subclasses.
+        sdh['_peerConnection']!.addTransceiver('video', {
+          direction: 'recvonly',
+        });
       }
     }
   }

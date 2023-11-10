@@ -1,14 +1,10 @@
-import {
-  SessionDescriptionHandlerModifier,
-  Web,
-  Core as sipCore,
-} from "sip.js";
+import {SessionDescriptionHandlerModifier, Web, Core as sipCore} from 'sip.js';
 import {
   CallConstraints,
   CallOptions,
   DtmfOptions,
   TransceiverKind,
-} from "./types";
+} from './types';
 
 export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionHandler {
   options: CallOptions;
@@ -21,6 +17,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
   remoteMediaStreamsToInternal: Map<string, string>;
   onUserMedia: ((stream: MediaStream) => boolean) | undefined;
   onUserMediaRemove: ((stream: MediaStream) => boolean) | undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onUserMediaFailed: ((error: any) => void) | undefined;
 
   constructor(
@@ -30,7 +27,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
   ) {
     super(logger, mediaStreamFactory, sessionDescriptionHandlerConfiguration);
     this.options = {
-      constraints: { audio: false, video: false },
+      constraints: {audio: false, video: false},
       receiveAudio: false,
       receiveVideo: false,
     };
@@ -43,7 +40,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     this.remoteMediaStreamsToInternal = new Map();
   }
   getUserStreamId(stream: MediaStream) {
-    let userStream = "";
+    let userStream = '';
     this.userToInternalLocalStreamIds.forEach((value, key) => {
       if (key == stream.id) {
         userStream = key;
@@ -54,7 +51,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     return userStream;
   }
   getInternalStreamId(stream: MediaStream) {
-    let internalStream = "";
+    let internalStream = '';
     this.userToInternalLocalStreamIds.forEach((value, key) => {
       if (key == stream.id) {
         internalStream = value;
@@ -68,7 +65,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     let internalStreamId = this.remoteMediaStreamsToInternal.get(stream.id);
 
     if (!internalStreamId) {
-      let newStream = stream;
+      const newStream = stream;
       this._acuRemoteMediaStreams.push(newStream);
       this.remoteMediaStreamsToInternal.set(stream.id, newStream.id);
       internalStreamId = newStream.id;
@@ -100,7 +97,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
   setRemoteTrack(track: MediaStreamTrack) {
     // Don't want to actually use this function since we are using deprecated
     // getLocalStreams....  NEED THIS EVENTUALLY ONE OF THE APIS REACT NATIVE NEEDS
-    this.logger.debug("SessionDescriptionHandler.setRemoteTrack");
+    this.logger.debug('SessionDescriptionHandler.setRemoteTrack');
 
     const remoteStream = this._remoteMediaStream;
 
@@ -108,72 +105,78 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
       this.logger.debug(
         `SessionDescriptionHandler.setRemoteTrack - have remote ${track.kind} track`,
       );
-    } else if (track.kind === "audio") {
+    } else if (track.kind === 'audio') {
       this.logger.debug(
         `SessionDescriptionHandler.setRemoteTrack - adding remote ${track.kind} track`,
       );
 
       remoteStream.addTrack(track);
-      // @ts-ignore 'dispatchAddTrackEvent' is private and only accessible within class 'SessionDescriptionHandler'
-      Web.SessionDescriptionHandler.dispatchAddTrackEvent(remoteStream, track); // TODO investigate this while testing !!
-    } else if (track.kind === "video") {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      Web.SessionDescriptionHandler['dispatchAddTrackEvent'](
+        remoteStream,
+        track,
+      ); // TODO: investigate this while testing !!
+    } else if (track.kind === 'video') {
       this.logger.debug(
         `SessionDescriptionHandler.setRemoteTrack - adding remote ${track.kind} track`,
       );
 
       remoteStream.addTrack(track);
-      // @ts-ignore 'dispatchAddTrackEvent' is private and only accessible within class 'SessionDescriptionHandler'
-      Web.SessionDescriptionHandler.dispatchAddTrackEvent(remoteStream, track); // TODO investigate this while testing !!
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      Web.SessionDescriptionHandler['dispatchAddTrackEvent'](
+        remoteStream,
+        track,
+      ); // TODO: investigate this while testing !!
     }
   }
   setLocalMediaStream(stream: MediaStream) {
-    this.logger.debug("SessionDescriptionHandler.setLocalMediaStream");
+    this.logger.debug('SessionDescriptionHandler.setLocalMediaStream');
     if (!this._peerConnection) {
-      throw new Error("Peer connection undefined.");
+      throw new Error('Peer connection undefined.');
     }
     let exists = false;
     this.logger.debug(
-      "SessionDescriptionHandler.setLocalMediaStream: Finding stream " +
+      'SessionDescriptionHandler.setLocalMediaStream: Finding stream ' +
         stream.id,
     );
 
     this.acuLocalMediaStreams.forEach(stm => {
       this.logger.debug(
-        "SessionDescriptionHandler.setLocalMediaStream: Checking stream " +
+        'SessionDescriptionHandler.setLocalMediaStream: Checking stream ' +
           stream.id,
       );
       if (stream.id == stm.id) {
         this.logger.debug(
-          "SessionDescriptionHandler.setLocalMediaStream: Stream already exists " +
+          'SessionDescriptionHandler.setLocalMediaStream: Stream already exists ' +
             stream.id,
         );
         exists = true;
-        return Promise.reject();
+        // return Promise.reject();
       }
     });
 
     if (!exists) {
       this.acuLocalMediaStreams.push(stream);
       this.logger.debug(
-        "SessionDescriptionHandler.setLocalMediaStream: Adding audio tracks " +
+        'SessionDescriptionHandler.setLocalMediaStream: Adding audio tracks ' +
           stream.id,
       );
       // update peer connection audio tracks
       stream.getAudioTracks().forEach(track => {
         this._peerConnection?.addTrack(track, stream);
         this._localMediaStream.addTrack(track);
-        // @ts-ignore 'dispatchAddTrackEvent' is private and only accessible within class 'SessionDescriptionHandler'
-        Web.SessionDescriptionHandler.dispatchAddTrackEvent(stream, track); // TODO investigate this while testing !!
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        Web.SessionDescriptionHandler['dispatchAddTrackEvent'](stream, track); // TODO: investigate this while testing !!
       });
       this.logger.debug(
-        "SessionDescriptionHandler.setLocalMediaStream: Adding video tracks " +
+        'SessionDescriptionHandler.setLocalMediaStream: Adding video tracks ' +
           stream.id,
       );
       stream.getVideoTracks().forEach(track => {
         this._peerConnection?.addTrack(track, stream);
         this._localMediaStream.addTrack(track);
-        // @ts-ignore 'dispatchAddTrackEvent' is private and only accessible within class 'SessionDescriptionHandler'
-        Web.SessionDescriptionHandler.dispatchAddTrackEvent(stream, track); // TODO investigate this while testing !!
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        Web.SessionDescriptionHandler['dispatchAddTrackEvent'](stream, track); // TODO: investigate this while testing !!
       });
     }
 
@@ -181,7 +184,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
   }
 
   checkAndDefaultConstraints(constraints: CallConstraints) {
-    const defaultConstraints: CallConstraints = { audio: true, video: true };
+    const defaultConstraints: CallConstraints = {audio: true, video: true};
     constraints = constraints || defaultConstraints;
     // Empty object check
     if (
@@ -200,9 +203,9 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
    * @returns true if DTMF send is successful, false otherwise
    */
   sendDtmf(indtmf: string, options?: DtmfOptions): boolean {
-    this.logger.debug("AculabCloudCall sendDtmf(" + indtmf + ")");
+    this.logger.debug('AculabCloudCall sendDtmf(' + indtmf + ')');
     if (indtmf.match(/[^0-9A-Da-d#*]/) != null) {
-      throw "Invalid DTMF string";
+      throw 'Invalid DTMF string';
     }
 
     return super.sendDtmf(indtmf, options);
@@ -220,20 +223,19 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     let _a: RTCOfferOptions | undefined;
     let _b: Web.SessionDescriptionHandlerConfiguration | undefined;
 
-    this.logger.debug("SessionDescriptionHandler.getDescription");
+    this.logger.debug('SessionDescriptionHandler.getDescription');
     if (this._peerConnection === undefined) {
-      return Promise.reject(new Error("Peer connection closed."));
+      return Promise.reject(new Error('Peer connection closed.'));
     }
     // Callback on data channel creation
-    // @ts-ignore Property 'onDataChannel' is private and only accessible within class 'SessionDescriptionHandler'.
-    this.onDataChannel =
+    this['onDataChannel'] =
       options === null || options === void 0 ? void 0 : options.onDataChannel;
     // ICE will restart upon applying an offer created with the iceRestart option
     const iceRestart =
       (_a =
         options === null || options === void 0
           ? void 0
-          : options.offerOptions as RTCOfferOptions) === null || _a === void 0
+          : (options.offerOptions as RTCOfferOptions)) === null || _a === void 0
         ? void 0
         : _a.iceRestart;
     // ICE gathering timeout may be set on a per call basis, otherwise the configured default is used
@@ -262,12 +264,12 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
       .then(sessionDescription => {
         return {
           body: sessionDescription.sdp,
-          contentType: "application/sdp",
+          contentType: 'application/sdp',
         };
       })
       .catch(error => {
         this.logger.error(
-          "SessionDescriptionHandler.getDescription failed - " + error,
+          'SessionDescriptionHandler.getDescription failed - ' + error,
         );
         throw error;
       });
@@ -310,7 +312,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
 
   addStreamToInternalList(stream: MediaStream, do_clone: boolean) {
     let internalStreamId = null;
-    this.userToInternalLocalStreamIds.forEach((value, key, table) => {
+    this.userToInternalLocalStreamIds.forEach((value, key) => {
       if (key == stream.id) {
         internalStreamId = value;
       }
@@ -322,7 +324,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
         newStream = stream.clone();
       }
       internalStreamId = newStream.id;
-      this.setLocalMediaStream(newStream);
+      void this.setLocalMediaStream(newStream);
       this.userToInternalLocalStreamIds.set(stream.id, newStream.id);
     }
 
@@ -341,11 +343,11 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
       }
 
       if (options.localStreams !== undefined) {
-        let addedStreams: string[] = [];
+        const addedStreams: string[] = [];
         if (reinvite || !this.usingOptionsLocalStream) {
           this.usingOptionsLocalStream = true;
           options.localStreams.forEach(stream => {
-            let internalStreamId = this.addStreamToInternalList(stream, true);
+            const internalStreamId = this.addStreamToInternalList(stream, true);
             if (internalStreamId !== null) {
               addedStreams.push(internalStreamId);
             }
@@ -354,7 +356,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
           this.acuLocalMediaStreams.forEach(stream => {
             if (!addedStreams.includes(stream.id)) {
               let userStreamId = null;
-              this.userToInternalLocalStreamIds.forEach((value, key, table) => {
+              this.userToInternalLocalStreamIds.forEach((value, key) => {
                 if (value == stream.id) {
                   userStreamId = key;
                 }
@@ -382,7 +384,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
         this.acuLocalMediaStreams.forEach(stream => {
           if (!notified_stream_ids.includes(stream.id)) {
             this.logger.debug(
-              "SessionDescriptionHandler.getLocalMediaStreams, notifying user media",
+              'SessionDescriptionHandler.getLocalMediaStreams, notifying user media',
             );
             const notified = this.onUserMedia!(stream);
             if (notified) {
@@ -393,13 +395,13 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
       }
       if (this.onUserMediaRemove) {
         const local_stream_ids = this.acuLocalMediaStreams.map(x => x.id);
-        let removed_ids: string[] = [];
+        const removed_ids: string[] = [];
         this.notified_streams.forEach(stream => {
           if (!local_stream_ids.includes(stream.id)) {
             this.logger.debug(
-              "SessionDescriptionHandler.getLocalMediaStreams, notifying user media removed",
+              'SessionDescriptionHandler.getLocalMediaStreams, notifying user media removed',
             );
-            let notified = this.onUserMediaRemove!(stream);
+            const notified = this.onUserMediaRemove!(stream);
             if (notified) {
               removed_ids.push(stream.id);
             }
@@ -419,11 +421,11 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
   }
 
   close() {
-    this.logger.log("closing PeerConnection");
+    this.logger.log('closing PeerConnection');
     // have to check signalingState since this.close() gets called multiple times
     if (
       this._peerConnection &&
-      this._peerConnection.signalingState !== "closed"
+      this._peerConnection.signalingState !== 'closed'
     ) {
       if (this._peerConnection.getSenders) {
         this._peerConnection.getSenders().forEach(sender => {
@@ -445,7 +447,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
 
   updateDirection(options: CallOptions) {
     if (this._peerConnection === undefined) {
-      return Promise.reject(new Error("Peer connection closed."));
+      return Promise.reject(new Error('Peer connection closed.'));
     }
 
     const getTransceiverKind = (transceiver: RTCRtpTransceiver) => {
@@ -455,7 +457,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
       if (transceiver.receiver && transceiver.receiver.track) {
         return transceiver.receiver.track.kind;
       }
-      return "unknown";
+      return 'unknown';
     };
 
     const updateTransceiverCodecsAndBitrates = (
@@ -463,14 +465,14 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
       kind: TransceiverKind,
     ) => {
       if (transceiver.setCodecPreferences && options.codecs) {
-        if (kind == "video") {
+        if (kind == 'video') {
           this.logger.debug(
-            "SessionDescriptionHandler.updateDirection - setting video codecs",
+            'SessionDescriptionHandler.updateDirection - setting video codecs',
           );
           transceiver.setCodecPreferences(options.codecs.video);
-        } else if (kind == "audio") {
+        } else if (kind == 'audio') {
           this.logger.debug(
-            "SessionDescriptionHandler.updateDirection - setting audio codecs",
+            'SessionDescriptionHandler.updateDirection - setting audio codecs',
           );
           transceiver.setCodecPreferences(options.codecs.audio);
         }
@@ -478,9 +480,9 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
       if (transceiver.sender) {
         let bitrate: number | undefined;
 
-        if (kind == "video" && options.maxBitrateVideo) {
+        if (kind == 'video' && options.maxBitrateVideo) {
           bitrate = options.maxBitrateVideo;
-        } else if (kind == "audio" && options.maxBitrateAudio) {
+        } else if (kind == 'audio' && options.maxBitrateAudio) {
           bitrate = options.maxBitrateAudio;
         }
 
@@ -494,7 +496,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
           let changed = false;
           parameters.encodings.forEach(enc => {
             if (!isFinite(bitrate!) || bitrate! < 0) {
-              if (Object.prototype.hasOwnProperty.call(enc, "maxBitrate")) {
+              if (Object.prototype.hasOwnProperty.call(enc, 'maxBitrate')) {
                 delete enc.maxBitrate;
                 changed = true;
               }
@@ -506,23 +508,24 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
 
           if (changed) {
             this.logger.debug(
-              "SessionDescriptionHandler.updateDirection - setting " +
+              'SessionDescriptionHandler.updateDirection - setting ' +
                 kind +
-                " bandwidth",
+                ' bandwidth',
             );
             transceiver.sender
               .setParameters(parameters)
               .then(() => {})
-              .catch(e => this.logger.error(e));
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+              .catch((err: any) => this.logger.error(err));
           }
         }
       }
     };
     switch (this._peerConnection.signalingState) {
-      case "stable":
+      case 'stable':
         // if we are stable, assume we are creating a local offer
         this.logger.debug(
-          "SessionDescriptionHandler.updateDirection - setting offer direction",
+          'SessionDescriptionHandler.updateDirection - setting offer direction',
         );
         {
           // set the transceiver direction to the offer direction
@@ -530,20 +533,20 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
             if (
               transceiver.direction /* guarding, but should always be true */
             ) {
-              let offerDirection: RTCRtpTransceiverDirection = "inactive";
-              let kind = getTransceiverKind(transceiver) as TransceiverKind;
+              let offerDirection: RTCRtpTransceiverDirection = 'inactive';
+              const kind = getTransceiverKind(transceiver) as TransceiverKind;
 
-              if (kind == "video") {
+              if (kind == 'video') {
                 if (options.constraints?.video && options.receiveVideo) {
-                  offerDirection = "sendrecv";
+                  offerDirection = 'sendrecv';
                 } else if (options.constraints?.video) {
-                  offerDirection = "sendonly";
+                  offerDirection = 'sendonly';
                 }
-              } else if (kind == "audio") {
+              } else if (kind == 'audio') {
                 if (options.constraints?.audio && options.receiveAudio) {
-                  offerDirection = "sendrecv";
+                  offerDirection = 'sendrecv';
                 } else if (options.constraints?.audio) {
-                  offerDirection = "sendonly";
+                  offerDirection = 'sendonly';
                 }
               }
               if (transceiver.direction !== offerDirection) {
@@ -554,16 +557,16 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
           });
         }
         break;
-      case "have-remote-offer":
+      case 'have-remote-offer':
         // if we have a remote offer, assume we are creating a local answer
         this.logger.debug(
-          "SessionDescriptionHandler.updateDirection - setting answer direction",
+          'SessionDescriptionHandler.updateDirection - setting answer direction',
         );
         {
           // determine the offered direction
           const description = this._peerConnection.remoteDescription;
           if (!description) {
-            throw new Error("Failed to read remote offer");
+            throw new Error('Failed to read remote offer');
           }
 
           const offeredDirections =
@@ -575,41 +578,41 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
           this._peerConnection.getTransceivers().forEach(transceiver => {
             if (
               transceiver.direction /* guarding, but should always be true */ &&
-              transceiver.direction !== "stopped"
+              transceiver.direction !== 'stopped'
             ) {
-              let answerDirection: RTCRtpTransceiverDirection = "inactive";
-              let kind = getTransceiverKind(transceiver) as TransceiverKind;
+              let answerDirection: RTCRtpTransceiverDirection = 'inactive';
+              const kind = getTransceiverKind(transceiver) as TransceiverKind;
               if (transceiver.mid !== null) {
-                if (kind == "video" && offeredDirections.video) {
+                if (kind == 'video' && offeredDirections.video) {
                   if (
                     options.constraints?.video &&
-                    offeredDirections.video.includes("recv")
+                    offeredDirections.video.includes('recv')
                   ) {
-                    answerDirection = "sendonly";
+                    answerDirection = 'sendonly';
                     if (
                       options.receiveVideo &&
-                      offeredDirections.video.includes("send")
+                      offeredDirections.video.includes('send')
                     ) {
-                      answerDirection = "sendrecv";
+                      answerDirection = 'sendrecv';
                     }
                   }
                 }
-                if (kind == "audio" && offeredDirections.audio) {
+                if (kind == 'audio' && offeredDirections.audio) {
                   if (
                     options.constraints?.audio &&
-                    offeredDirections.audio.includes("recv")
+                    offeredDirections.audio.includes('recv')
                   ) {
-                    answerDirection = "sendonly";
+                    answerDirection = 'sendonly';
                     if (
                       options.receiveAudio &&
-                      offeredDirections.audio.includes("send")
+                      offeredDirections.audio.includes('send')
                     ) {
-                      answerDirection = "sendrecv";
+                      answerDirection = 'sendrecv';
                     }
                   }
                 }
               }
-              if (answerDirection === "inactive") {
+              if (answerDirection === 'inactive') {
                 transceiver.stop();
               } else {
                 if (transceiver.direction !== answerDirection) {
@@ -621,14 +624,14 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
           });
         }
         break;
-      case "have-local-offer":
-      case "have-local-pranswer":
-      case "have-remote-pranswer":
-      case "closed":
+      case 'have-local-offer':
+      case 'have-local-pranswer':
+      case 'have-remote-pranswer':
+      case 'closed':
       default:
         return Promise.reject(
           new Error(
-            "Invalid signaling state " + this._peerConnection.signalingState,
+            'Invalid signaling state ' + this._peerConnection.signalingState,
           ),
         );
     }
@@ -654,7 +657,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
       reinvite: false,
       iceRestart: false,
     };
-    const opts = { ...defaults, ...options };
+    const opts = {...defaults, ...options};
     if (opts.localStream) {
       // Backwards compatibility:
       // Add this to the localStreams array, and deal with it there
@@ -678,7 +681,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     if (opts.receiveVideo === undefined) {
       opts.receiveVideo = opts.constraints!.video != false;
     }
-    if (typeof RTCRtpTransceiver === "undefined") {
+    if (typeof RTCRtpTransceiver === 'undefined') {
       // legacy options as transceiver not supported
       opts.offerOptions = {
         offerToReceiveAudio: opts.receiveAudio,
@@ -688,22 +691,22 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     return opts;
   }
   static get_audio_video_directions(sdp: string) {
-    let lines = sdp.split("\r\n");
+    const lines = sdp.split('\r\n');
     let sess_dir: RTCRtpTransceiverDirection | undefined;
     let aud_dir: RTCRtpTransceiverDirection | undefined;
     let vid_dir: RTCRtpTransceiverDirection | undefined;
     let in_vid_m = false;
     let in_aud_m = false;
-    for (let line of lines) {
+    for (const line of lines) {
       let dir: RTCRtpTransceiverDirection | undefined;
-      if (line == "a=sendrecv") {
-        dir = "sendrecv";
-      } else if (line == "a=sendonly") {
-        dir = "sendonly";
-      } else if (line == "a=recvonly") {
-        dir = "recvonly";
-      } else if (line == "a=inactive") {
-        dir = "inactive";
+      if (line == 'a=sendrecv') {
+        dir = 'sendrecv';
+      } else if (line == 'a=sendonly') {
+        dir = 'sendonly';
+      } else if (line == 'a=recvonly') {
+        dir = 'recvonly';
+      } else if (line == 'a=inactive') {
+        dir = 'inactive';
       }
       if (dir) {
         if (!sess_dir) {
@@ -718,25 +721,25 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
           break;
         }
       }
-      if (line.startsWith("m=")) {
+      if (line.startsWith('m=')) {
         // check for aud and vid being set and break early
         if (vid_dir && aud_dir) {
           break;
         }
         if (!sess_dir) {
-          sess_dir = "sendrecv"; // the default
+          sess_dir = 'sendrecv'; // the default
         }
-        if (!vid_dir && line.startsWith("m=video ")) {
+        if (!vid_dir && line.startsWith('m=video ')) {
           in_vid_m = true;
           vid_dir = sess_dir;
         }
-        if (!aud_dir && line.startsWith("m=audio ")) {
+        if (!aud_dir && line.startsWith('m=audio ')) {
           in_aud_m = true;
           aud_dir = sess_dir;
         }
       }
     }
-    return { video: vid_dir, audio: aud_dir };
+    return {video: vid_dir, audio: aud_dir};
   }
 
   // Creates an RTCSessionDescriptionInit from an RTCSessionDescription

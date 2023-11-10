@@ -1,8 +1,8 @@
-import { AculabCloudCall } from "./aculab-cloud-call";
-import { AculabCloudClient } from "./aculab-cloud-client";
-import { MediaEventSessionDescriptionHandler } from "./media-event-session-description-handler";
-import { SessionState, Invitation } from "sip.js";
-import { CallOptions } from "./types";
+import {AculabCloudCall} from './aculab-cloud-call';
+import {AculabCloudClient} from './aculab-cloud-client';
+import {MediaEventSessionDescriptionHandler} from './media-event-session-description-handler';
+import {SessionState, Invitation} from 'sip.js';
+import {CallOptions} from './types';
 
 export class AculabCloudIncomingCall extends AculabCloudCall {
   answer_pending: boolean;
@@ -19,7 +19,7 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
   answer(options: CallOptions) {
     this._sdh_options =
       MediaEventSessionDescriptionHandler.fixup_options(options);
-    this.client.console_log("AculabCloudIncomingCall: answer requested");
+    this.client.console_log('AculabCloudIncomingCall: answer requested');
     if (this.client._isReady()) {
       this._doanswer();
     } else {
@@ -33,34 +33,34 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
     }
   }
   _doanswer() {
-    this.client.console_log("AculabCloudIncomingCall: answering");
+    this.client.console_log('AculabCloudIncomingCall: answering');
     if (this._session) {
       // FIXME: Allow video and audio for re invite
-      let opts = {
+      const opts = {
         sessionDescriptionHandlerOptions: this._sdh_options,
       };
-      (this._session as Invitation).accept(opts);
+      void (this._session as Invitation).accept(opts);
     }
     this.answer_pending = false;
   }
   ringing() {
-    this.client.console_log("AculabCloudIncomingCall: ringing");
+    this.client.console_log('AculabCloudIncomingCall: ringing');
     if (this._session) {
-      (this._session as Invitation).progress();
+      void (this._session as Invitation).progress();
     }
   }
   reject(cause?: string) {
-    this.client.console_log("AculabCloudIncomingCall: reject(" + cause + ")");
+    this.client.console_log('AculabCloudIncomingCall: reject(' + cause + ')');
     let int_cause = 486;
     if (cause) {
       try {
         int_cause = parseInt(cause);
         if (int_cause < 400 || int_cause > 699) {
-          throw "out of range";
+          throw 'out of range';
         }
       } catch (err) {
         this.client.console_error(
-          "AculabCloudIncomingCall: reject cause invalid - " + cause,
+          'AculabCloudIncomingCall: reject cause invalid - ' + cause,
         );
         int_cause = 486; // default to busy
       }
@@ -71,9 +71,9 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
         this._session.state == SessionState.Initial ||
         this._session.state == SessionState.Establishing
       ) {
-        (this._session as Invitation).reject({ statusCode: int_cause });
+        void (this._session as Invitation).reject({statusCode: int_cause});
       } else {
-        this._session.bye({
+        void this._session.bye({
           requestOptions: {
             extraHeaders: [`Reason: SIP; cause=${int_cause}; text="Rejected"`],
           },
@@ -82,7 +82,7 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
     }
   }
   disconnect() {
-    this.client.console_log("AculabCloudIncomingCall disconnect called");
+    this.client.console_log('AculabCloudIncomingCall disconnect called');
     if (this._session && !this._disconnect_called) {
       this._disconnect_called = true;
       this.client.console_log(`call in state ${this._session.state}`);
@@ -92,7 +92,7 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
       ) {
         this.reject();
       } else {
-        this._session.bye();
+        void this._session.bye();
       }
     }
     this.answer_pending = false;

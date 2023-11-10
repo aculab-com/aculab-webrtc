@@ -1,14 +1,17 @@
-import { Inviter, URI, UserAgent, Core as sipCore } from "sip.js";
-import type { AculabCloudOutgoingCall } from "./aculab-cloud-outgoing-call";
-import { MediaEventSessionDescriptionHandler } from "./media-event-session-description-handler";
+import {Inviter, URI, UserAgent, Core as sipCore} from 'sip.js';
+import type {AculabCloudOutgoingCall} from './aculab-cloud-outgoing-call';
+import {MediaEventSessionDescriptionHandler} from './media-event-session-description-handler';
 
 /**
  * Used only for outbound calls?
  */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore CallInviter incorrectly extends Inviter
 export class CallInviter extends Inviter {
   call: AculabCloudOutgoingCall;
-  private _sessionDescriptionHandler: MediaEventSessionDescriptionHandler | undefined;
+  private _sessionDescriptionHandler:
+    | MediaEventSessionDescriptionHandler
+    | undefined;
 
   constructor(
     call: AculabCloudOutgoingCall,
@@ -20,7 +23,9 @@ export class CallInviter extends Inviter {
     this.call = call;
   }
 
-  public get sessionDescriptionHandler(): MediaEventSessionDescriptionHandler | undefined {
+  public get sessionDescriptionHandler():
+    | MediaEventSessionDescriptionHandler
+    | undefined {
     return this._sessionDescriptionHandler;
   }
 
@@ -28,20 +33,20 @@ export class CallInviter extends Inviter {
     sdh: MediaEventSessionDescriptionHandler,
   ) {
     if (this._sessionDescriptionHandler) {
-      throw new Error("Session description handler defined.");
+      throw new Error('Session description handler defined.');
     }
     this._sessionDescriptionHandler = sdh;
   }
 
   onRedirect(response: sipCore.IncomingResponse) {
     this.call._set_termination_reason_from_response(response);
-    // @ts-ignore 'onRedirect' is private and only accessible within class 'Inviter'.
-    super.onRedirect(response);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    super['onRedirect'](response);
   }
 
   onReject(response: sipCore.IncomingResponse) {
     this.call._set_termination_reason_from_response(response);
-    // @ts-ignore 'onReject' is private and only accessible within class 'Inviter'.
-    super.onReject(response);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    super['onReject'](response);
   }
 }

@@ -1,19 +1,21 @@
-import { Invitation, SessionState } from "sip.js";
-import { MediaEventSessionDescriptionHandler } from "./media-event-session-description-handler";
-import { v4 as uuidV4 } from "uuid";
-import type { AculabCloudClient } from "./aculab-cloud-client";
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
+import {Invitation, SessionState} from 'sip.js';
+import {MediaEventSessionDescriptionHandler} from './media-event-session-description-handler';
+import {v4 as uuidV4} from 'uuid';
+import type {AculabCloudClient} from './aculab-cloud-client';
 import {
   CallObj,
   CallOptions,
+  CandParam,
   DisconnectedCallObj,
   MediaCallObj,
   MuteObj,
-} from "./types";
-import { CallInviter } from "./call-inviter";
+} from './types';
+import {CallInviter} from './call-inviter';
 
-function _extractAddrPort(cand: any) {
-  let addr = "a.b.c.d";
-  let port = "N";
+function _extractAddrPort(cand: CandParam) {
+  let addr = 'a.b.c.d';
+  let port = 'N';
   if (cand.address !== undefined && cand.port !== undefined) {
     addr = cand.address;
     port = cand.port;
@@ -40,26 +42,26 @@ export class AculabCloudCall {
   _session: CallInviter | Invitation | null;
   _remote_streams: MediaStream[] | null;
   _notified_remote_streams: MediaStream[];
-  _sdh_options: CallOptions | undefined;
-  onRinging: ((callObj?: CallObj) => void) | undefined;
-  onLocalVideoMute: ((obj?: MuteObj) => void) | undefined;
-  onLocalVideoUnmute: ((obj?: MuteObj) => void) | undefined;
-  onRemoteVideoMute: ((obj?: MuteObj) => void) | undefined;
-  onRemoteVideoUnmute: ((obj?: MuteObj) => void) | undefined;
-  onConnecting: ((callObj: MediaCallObj) => void) | undefined;
-  onMedia: ((callObj: MediaCallObj) => void) | undefined;
-  onMediaRemove: ((callObj?: MediaCallObj) => void) | undefined;
-  onLocalMedia: ((callObj?: MediaCallObj) => void) | undefined;
-  onLocalMediaRemove: ((callObj?: MediaCallObj) => void) | undefined;
-  onConnected: ((callObj?: CallObj) => void) | undefined;
-  onDisconnect: ((callObj: DisconnectedCallObj) => void) | undefined;
+  _sdh_options?: CallOptions;
+  onRinging?: (callObj?: CallObj) => void;
+  onLocalVideoMute?: (obj?: MuteObj) => void;
+  onLocalVideoUnmute?: (obj?: MuteObj) => void;
+  onRemoteVideoMute?: (obj?: MuteObj) => void;
+  onRemoteVideoUnmute?: (obj?: MuteObj) => void;
+  onConnecting?: (callObj: MediaCallObj) => void;
+  onMedia?: (callObj: MediaCallObj) => void;
+  onMediaRemove?: (callObj?: MediaCallObj) => void;
+  onLocalMedia?: (callObj?: MediaCallObj) => void;
+  onLocalMediaRemove?: (callObj?: MediaCallObj) => void;
+  onConnected?: (callObj?: CallObj) => void;
+  onDisconnect?: (callObj: DisconnectedCallObj) => void;
 
   /**
    * @param {AculabCloudClient} client
    */
   constructor(client: AculabCloudClient, reinvite_possible: boolean) {
     this.client = client;
-    this._callId = "";
+    this._callId = '';
     this._session = null;
     this._connected = false;
     this._disconnect_called = false;
@@ -67,7 +69,7 @@ export class AculabCloudCall {
     this._remote_streams = null;
     this._notified_remote_streams = [];
     this._ice_connected = false;
-    this._termination_reason = "";
+    this._termination_reason = '';
     this._sdh_options = undefined;
     this._callUuid = uuidV4();
     this._allowed_reinvite = reinvite_possible;
@@ -119,12 +121,14 @@ export class AculabCloudCall {
   //Functions to call the callbacks with logging around it
   _onLocalVideoMute(obj: MuteObj) {
     if (this.onLocalVideoMute != null) {
-      this.client.console_log("AculabCloudCall calling onLocalVideoMute");
+      this.client.console_log('AculabCloudCall calling onLocalVideoMute');
       try {
         this.onLocalVideoMute(obj);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         this.client.console_error(
-          "AculabCloudCall: Exception calling onLocalVideoMute: " + err.message,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          'AculabCloudCall: Exception calling onLocalVideoMute: ' + err.message,
         );
       }
     }
@@ -132,12 +136,14 @@ export class AculabCloudCall {
 
   _onLocalVideoUnmute(obj: MuteObj) {
     if (this.onLocalVideoUnmute != null) {
-      this.client.console_log("AculabCloudCall calling onLocalVideoUnmute");
+      this.client.console_log('AculabCloudCall calling onLocalVideoUnmute');
       try {
         this.onLocalVideoUnmute(obj);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         this.client.console_error(
-          "AculabCloudCall: Exception calling onLocalVideoUnmute: " +
+          'AculabCloudCall: Exception calling onLocalVideoUnmute: ' +
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err.message,
         );
       }
@@ -146,12 +152,14 @@ export class AculabCloudCall {
 
   _onRemoteVideoMute(obj: MuteObj) {
     if (this.onRemoteVideoMute != null) {
-      this.client.console_log("AculabCloudCall calling onRemoteVideoMute");
+      this.client.console_log('AculabCloudCall calling onRemoteVideoMute');
       try {
         this.onRemoteVideoMute(obj);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         this.client.console_error(
-          "AculabCloudCall: Exception calling onRemoteVideoMute: " +
+          'AculabCloudCall: Exception calling onRemoteVideoMute: ' +
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err.message,
         );
       }
@@ -160,12 +168,14 @@ export class AculabCloudCall {
 
   _onRemoteVideoUnmute(obj: MuteObj) {
     if (this.onRemoteVideoUnmute != null) {
-      this.client.console_log("AculabCloudCall calling onRemoteVideoUnmute");
+      this.client.console_log('AculabCloudCall calling onRemoteVideoUnmute');
       try {
         this.onRemoteVideoUnmute(obj);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         this.client.console_error(
-          "AculabCloudCall: Exception calling onRemoteVideoUnmute: " +
+          'AculabCloudCall: Exception calling onRemoteVideoUnmute: ' +
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err.message,
         );
       }
@@ -174,27 +184,27 @@ export class AculabCloudCall {
 
   _get_reason_from_sip_code(code: string) {
     if (/^10[0-9]/.test(code)) {
-      return ""; // a provisional result!
+      return ''; // a provisional result!
     }
-    if (code == "487") {
-      return "NOANSWER";
-    } else if (code == "486" || code == "600" || code == "603") {
-      return "BUSY";
+    if (code == '487') {
+      return 'NOANSWER';
+    } else if (code == '486' || code == '600' || code == '603') {
+      return 'BUSY';
     } else if (
-      code == "404" ||
-      code == "410" ||
-      code == "480" ||
-      code == "604"
+      code == '404' ||
+      code == '410' ||
+      code == '480' ||
+      code == '604'
     ) {
-      return "UNOBTAINABLE";
+      return 'UNOBTAINABLE';
     } else if (/^3[0-9]%2$/.test(code)) {
-      return "MOVED";
+      return 'MOVED';
     } else if (/^6[0-9]%2$/.test(code)) {
-      return "REJECTED";
+      return 'REJECTED';
     } else if (!/^20[0-9]/.test(code)) {
-      return "FAILED";
+      return 'FAILED';
     }
-    return "NORMAL";
+    return 'NORMAL';
   }
 
   set session(invite: CallInviter | Invitation) {
@@ -203,8 +213,8 @@ export class AculabCloudCall {
     this._session.delegate = {
       onBye: bye => {
         // extract reason from BYE message
-        if (this._termination_reason == "") {
-          const reason_hdr = bye.request.getHeader("Reason");
+        if (this._termination_reason == '') {
+          const reason_hdr = bye.request.getHeader('Reason');
           this.client.console_log(`dialog end BYE Reason ${reason_hdr}`);
           if (reason_hdr) {
             const m = reason_hdr.match(/SIP\s*;\s*cause\s*=\s*([0-9]{3})\s*;/);
@@ -218,7 +228,7 @@ export class AculabCloudCall {
             }
           }
         }
-        bye.accept();
+        void bye.accept();
       },
       onSessionDescriptionHandler: (
         sdh: MediaEventSessionDescriptionHandler,
@@ -237,21 +247,23 @@ export class AculabCloudCall {
   }
 
   sendDtmf(dtmf: string) {
-    this.client.console_log("AculabCloudCall sendDtmf(" + dtmf + ")");
+    this.client.console_log('AculabCloudCall sendDtmf(' + dtmf + ')');
     if (dtmf.match(/^[^0-9A-Da-d#*]+$/) != null) {
-      throw "Invalid DTMF string";
+      throw 'Invalid DTMF string';
     }
     if (this._session?.sessionDescriptionHandler) {
       try {
         this._session.sessionDescriptionHandler.sendDtmf(dtmf);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         this.client.console_error(
-          "AculabCloudCall: Exception sending DTMF: " + err.message,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          'AculabCloudCall: Exception sending DTMF: ' + err.message,
         );
-        throw "DTMF send error";
+        throw 'DTMF send error';
       }
     } else {
-      throw "DTMF send error";
+      throw 'DTMF send error';
     }
   }
 
@@ -262,15 +274,15 @@ export class AculabCloudCall {
     output_video: boolean,
   ) {
     this.client.console_log(
-      "AculabCloudCall mute(mic=" +
+      'AculabCloudCall mute(mic=' +
         mic +
-        ", output_audio=" +
+        ', output_audio=' +
         output_audio +
-        ", camera=" +
+        ', camera=' +
         camera +
-        ", output_video=" +
+        ', output_video=' +
         output_video +
-        ")",
+        ')',
     );
     if (camera === undefined) {
       camera = mic;
@@ -299,30 +311,36 @@ export class AculabCloudCall {
     /**
      * @return {Object} - {"mic": true/false, "output_audio": true/false, "camera": true/false, "output_video": true/false}
      * */
-    let ret = {"mic": true, "output_audio": true, "camera": true, "output_video": true};
+    const ret = {
+      mic: true,
+      output_audio: true,
+      camera: true,
+      output_video: true,
+    };
 
     // check output
     if (stream) {
       stream.getTracks().forEach((t: MediaStreamTrack) => {
-        if (t.kind == "audio") {
-          ret["output_audio"] = !t.enabled;
-        } else if (t.kind == "video") {
-          ret["output_video"] = !t.enabled;
+        if (t.kind == 'audio') {
+          ret['output_audio'] = !t.enabled;
+        } else if (t.kind == 'video') {
+          ret['output_video'] = !t.enabled;
         }
       });
     }
 
     // check mic and camera
-    const sdh = this._session?.sessionDescriptionHandler as MediaEventSessionDescriptionHandler;
+    const sdh = this._session
+      ?.sessionDescriptionHandler as MediaEventSessionDescriptionHandler;
     if (sdh && sdh.peerConnection) {
       const pc = sdh.peerConnection;
       pc.getSenders().forEach(function (sender) {
         if (sender.track) {
-           if (sender.track.kind == "audio") {
-              ret["mic"] = !sender.track.enabled;
-           } else if (sender.track.kind == "video") {
-              ret["camera"] = !sender.track.enabled;
-           }
+          if (sender.track.kind == 'audio') {
+            ret['mic'] = !sender.track.enabled;
+          } else if (sender.track.kind == 'video') {
+            ret['camera'] = !sender.track.enabled;
+          }
         }
       });
     }
@@ -337,15 +355,15 @@ export class AculabCloudCall {
     output_video: boolean,
   ) {
     this.client.console_log(
-      "AculabCloudCall muteStream(mic=" +
+      'AculabCloudCall muteStream(mic=' +
         mic +
-        ", output_audio=" +
+        ', output_audio=' +
         output_audio +
-        ", camera=" +
+        ', camera=' +
         camera +
-        ", output_video=" +
+        ', output_video=' +
         output_video +
-        ")",
+        ')',
     );
     if (
       this._session?.sessionDescriptionHandler &&
@@ -362,7 +380,7 @@ export class AculabCloudCall {
 
   muteLocalStream(stream: MediaStream, mic: boolean, camera: boolean) {
     this.client.console_log(
-      "AculabCloudCall muteLocalStream(mic=" + mic + ",  camera=" + camera,
+      'AculabCloudCall muteLocalStream(mic=' + mic + ',  camera=' + camera,
     );
     let internal_stream_id = null;
     if (this._session && this._session.sessionDescriptionHandler) {
@@ -395,10 +413,10 @@ export class AculabCloudCall {
                 sender.track.id,
               );
               if (sender.track && internal_track) {
-                if (sender.track.kind == "audio") {
+                if (sender.track.kind == 'audio') {
                   sender.track.enabled = !mic;
                   internal_track.enabled = !mic;
-                } else if (sender.track.kind == "video") {
+                } else if (sender.track.kind == 'video') {
                   sender.track.enabled = !camera;
                   internal_track.enabled = !camera;
                   if (sender.track.enabled) {
@@ -429,18 +447,18 @@ export class AculabCloudCall {
     output_video: boolean,
   ) {
     this.client.console_log(
-      "AculabCloudCall muteRemoteStream(output_audio=" +
+      'AculabCloudCall muteRemoteStream(output_audio=' +
         output_audio +
-        ",  output_video=" +
+        ',  output_video=' +
         output_video,
     );
     if (this._remote_streams) {
       this._remote_streams.forEach(rStream => {
         if (rStream.id === stream.id) {
           rStream.getTracks().forEach(t => {
-            if (t.kind == "audio") {
+            if (t.kind == 'audio') {
               t.enabled = !output_audio;
-            } else if (t.kind == "video") {
+            } else if (t.kind == 'video') {
               t.enabled = !output_video;
             }
           });
@@ -456,8 +474,8 @@ export class AculabCloudCall {
 
   _onterminated() {
     this._session = null;
-    const cause = this._termination_reason || "NORMAL";
-    this.client.console_log("term: " + cause);
+    const cause = this._termination_reason || 'NORMAL';
+    this.client.console_log('term: ' + cause);
     this._remote_streams = null;
     if (this._sdh_options && this._sdh_options.localStream) {
       this._sdh_options.localStreams?.forEach(streams => {
@@ -470,10 +488,12 @@ export class AculabCloudCall {
       // was removed, so call user callback
       if (this.onDisconnect) {
         try {
-          this.onDisconnect({ call: this, cause: cause });
+          this.onDisconnect({call: this, cause: cause});
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
           this.client.console_error(
-            "AculabCloudCall: Exception calling onDisconnect: " + err.message,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            'AculabCloudCall: Exception calling onDisconnect: ' + err.message,
           );
         }
       }
@@ -488,15 +508,18 @@ export class AculabCloudCall {
         }
       });
       if (!found && this.onMediaRemove) {
-        this.client.console_log("AculabCloudCall calling onMediaRemove");
+        this.client.console_log('AculabCloudCall calling onMediaRemove');
         try {
           this.onMediaRemove({
             call: this,
             stream: this._notified_remote_streams[i],
           });
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           this.client.console_error(
-            "AculabCloudCall onMediaRemove caused exception: " + err.message,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            'AculabCloudCall onMediaRemove caused exception: ' + err.message,
           );
         }
         this._notified_remote_streams.splice(i, 1);
@@ -521,14 +544,14 @@ export class AculabCloudCall {
         //Need to do some setup of mute callbacks for remote stream
         if (stream) {
           stream.getVideoTracks().forEach(track => {
-            track.onunmute = ev => {
+            track.onunmute = () => {
               this._onRemoteVideoUnmute({
                 call: this,
                 stream: stream,
                 track: track,
               });
             };
-            track.onmute = ev => {
+            track.onmute = () => {
               this._onRemoteVideoMute({
                 call: this,
                 stream: stream,
@@ -537,19 +560,23 @@ export class AculabCloudCall {
             };
           });
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         this.client.console_error(
-          "AculabCloudCall adding video track mute handlers caused exception: " +
+          'AculabCloudCall adding video track mute handlers caused exception: ' +
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             err.message,
         );
       }
-      this.client.console_log("AculabCloudCall calling onMedia");
+      this.client.console_log('AculabCloudCall calling onMedia');
       if (this.onMedia) {
         try {
-          this.onMedia({ call: this, stream: stream });
+          this.onMedia({call: this, stream: stream});
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
           this.client.console_error(
-            "AculabCloudCall onMedia caused exception: " + err.message,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            'AculabCloudCall onMedia caused exception: ' + err.message,
           );
         }
       }
@@ -561,14 +588,16 @@ export class AculabCloudCall {
 
       if (this.onConnected) {
         this.client.console_log(
-          "AculabCloudCall calling onConnected" +
+          'AculabCloudCall calling onConnected' +
             ` ice: ${this._ice_connected}`,
         );
         try {
-          this.onConnected({ call: this });
+          this.onConnected({call: this});
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
           this.client.console_error(
-            "AculabCloudCall onConnected caused exception:" + err.message,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            'AculabCloudCall onConnected caused exception:' + err.message,
           );
         }
       }
@@ -580,31 +609,33 @@ export class AculabCloudCall {
   }
   _set_ice_state(connected: boolean) {
     this.client.console_log(
-      "AculabCloudCall set_ice_state(connected=" + connected + ")",
+      'AculabCloudCall set_ice_state(connected=' + connected + ')',
     );
     this._ice_connected = connected;
     this._check_notify_media();
     this._check_notify_connected();
   }
   _add_media_handlers(sdh: MediaEventSessionDescriptionHandler) {
-    this.client.console_log("AculabCloudCall adding media event handlers");
+    this.client.console_log('AculabCloudCall adding media event handlers');
 
     sdh.onUserMedia = (stream: MediaStream) => {
       let notified = false;
       if (this.onConnecting || this.onLocalMedia) {
-        this.client.console_log("AculabCloudCall calling onConnecting");
+        this.client.console_log('AculabCloudCall calling onConnecting');
         try {
           if (this.onLocalMedia) {
-            this.onLocalMedia({ call: this, stream: stream });
+            this.onLocalMedia({call: this, stream: stream});
           } else if (this.onConnecting) {
             // Legacy callback, from when we supported only
             // one stream
-            this.onConnecting({ call: this, stream: stream });
+            this.onConnecting({call: this, stream: stream});
           }
           notified = true;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
           this.client.console_error(
-            "AculabCloudCall onConnecting caused exception:" + err.message,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            'AculabCloudCall onConnecting caused exception:' + err.message,
           );
         }
       }
@@ -614,13 +645,15 @@ export class AculabCloudCall {
     sdh.onUserMediaRemove = (stream: MediaStream) => {
       let notified = false;
       if (this.onLocalMediaRemove) {
-        this.client.console_log("AculabCloudCall calling onUserMediaRemoved");
+        this.client.console_log('AculabCloudCall calling onUserMediaRemoved');
         try {
-          this.onLocalMediaRemove({ call: this, stream: stream });
+          this.onLocalMediaRemove({call: this, stream: stream});
           notified = true;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
           this.client.console_error(
-            "AculabCloudCall onUserMediaRemoved caused exception:" +
+            'AculabCloudCall onUserMediaRemoved caused exception:' +
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
               err.message,
           );
         }
@@ -629,19 +662,17 @@ export class AculabCloudCall {
     };
 
     sdh.onUserMediaFailed = err => {
-      this.client.console_error("AculabCloudCall getUserMedia failed - " + err);
+      this.client.console_error('AculabCloudCall getUserMedia failed - ' + err);
       // store error, so we can report correct reason in onDisconnect callback
-      if (this._termination_reason == "") {
-        this._termination_reason = "MIC_ERROR";
+      if (this._termination_reason == '') {
+        this._termination_reason = 'MIC_ERROR';
       }
     };
 
     sdh.peerConnectionDelegate = {
       ontrack: (ev: RTCTrackEvent) => {
-        ev.streams[0].onremovetrack = ({ track }) => {
+        ev.streams[0].onremovetrack = ({track}) => {
           sdh.removeRemoteMediaTrack(track);
-          if (!ev.streams[0].getTracks().length) {
-          }
           this._remote_streams = sdh.remoteMediaStreams;
           this._check_notify_remove_media();
         };
@@ -653,13 +684,16 @@ export class AculabCloudCall {
         }
       },
       onicecandidateerror: (ev: RTCPeerConnectionIceErrorEvent) => {
-        console.log("Ice candidate error ", ev);
-    },
-      oniceconnectionstatechange: (event: Event) => {
+        // console.log('Ice candidate error ', ev);
+        this.client.console_error(
+          'Ice candidate error: ' + ev.errorText + ' code: ' + ev.errorCode,
+        );
+      },
+      oniceconnectionstatechange: () => {
         this._remote_streams = sdh.remoteMediaStreams;
 
         const icestate = sdh.peerConnection?.iceConnectionState;
-        if (icestate == "connected" || icestate == "completed") {
+        if (icestate == 'connected' || icestate == 'completed') {
           this._set_ice_state(true);
         } else {
           this._set_ice_state(false);
@@ -668,6 +702,7 @@ export class AculabCloudCall {
     };
   }
   getConnectionInfo() {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const that = this;
     return new Promise(function (resolve) {
       if (
@@ -677,67 +712,87 @@ export class AculabCloudCall {
         (that._session as CallInviter).sessionDescriptionHandler?.peerConnection
           ?.getStats()
           .then((stats: RTCStatsReport) => {
-            let localAddr = "Unknown";
-            let remoteAddr = "Unknown";
-            let localType = "?";
-            let remoteType = "?";
+            let localAddr = 'Unknown';
+            let remoteAddr = 'Unknown';
+            let localType = '?';
+            let remoteType = '?';
             if (stats) {
-              let selectedPairId = "";
+              let selectedPairId = '';
               stats.forEach(stat => {
-                if (stat.type == "transport") {
-                  selectedPairId = stat.selectedCandidatePairId;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                if (stat.type == 'transport') {
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                  selectedPairId = stat.selectedCandidatePairId as string;
                 }
               });
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
               let candidatePair = stats.get(selectedPairId);
               if (!candidatePair) {
                 stats.forEach(stat => {
-                  if (stat.type == "candidate-pair" && stat.selected) {
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                  if (stat.type == 'candidate-pair' && stat.selected) {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     candidatePair = stat;
                   }
                 });
               }
               if (candidatePair) {
-                let remote = stats.get(candidatePair.remoteCandidateId);
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+                const remote = stats.get(
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                  candidatePair.remoteCandidateId as string,
+                );
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
                 remoteType = remote.candidateType;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 remoteAddr = _extractAddrPort(remote);
-                let local = stats.get(candidatePair.localCandidateId);
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                const local = stats.get(
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                  candidatePair.localCandidateId as string,
+                );
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 if (local.relayProtocol) {
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
                   localType = local.relayProtocol;
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 } else if (local.protocol) {
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
                   localType = local.protocol;
                 }
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 localAddr = _extractAddrPort(local);
               }
             }
             resolve(
               localAddr +
-                " " +
+                ' ' +
                 localType +
-                " => " +
+                ' => ' +
                 remoteAddr +
-                " " +
+                ' ' +
                 remoteType,
             );
           })
           .catch(() => {
-            resolve("Failed to get stats");
+            resolve('Failed to get stats');
           });
       } else {
-        resolve("No peer connection");
+        resolve('No peer connection');
       }
     });
   }
   addStream(stream: MediaStream) {
     if (!this._allowed_reinvite) {
-      throw "addStream not available";
+      throw 'addStream not available';
     }
     this.client.console_log(
-      "AculabCloudOutgoingCall addStream :" + this._session,
+      'AculabCloudOutgoingCall addStream :' + this._session,
     );
     if (this._session && !this._disconnect_called) {
       try {
-        let options = this._sdh_options;
-        let internal_stream_id = (
+        const options = this._sdh_options;
+        const internal_stream_id = (
           this._session as CallInviter
         ).sessionDescriptionHandler?.userToInternalLocalStreamIds.get(
           stream.id,
@@ -758,30 +813,32 @@ export class AculabCloudCall {
           options?.localStreams?.push(stream);
           this.reinvite(options as CallOptions);
         } else {
-          throw "Stream already exists";
+          throw 'Stream already exists';
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         this.client.console_error(
-          "AculabCloudCall: Exception Adding stream: " + err.message,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          'AculabCloudCall: Exception Adding stream: ' + err.message,
         );
-        throw "Add stream error";
+        throw 'Add stream error';
       }
     } else {
-      throw "Not connected error";
+      throw 'Not connected error';
     }
   }
 
   removeStream(stream: MediaStream) {
     if (!this._allowed_reinvite) {
-      throw "removeStream not available";
+      throw 'removeStream not available';
     }
     this.client.console_log(
-      "AculabCloudOutgoingCall removeStream :" + this._session,
+      'AculabCloudOutgoingCall removeStream :' + this._session,
     );
     if (this._session && !this._disconnect_called) {
       try {
-        let options = this._sdh_options;
-        let stream_id = (
+        const options = this._sdh_options;
+        const stream_id = (
           this._session as CallInviter
         ).sessionDescriptionHandler?.getUserStreamId(stream);
         if (stream_id && options) {
@@ -790,54 +847,59 @@ export class AculabCloudCall {
           );
           this.reinvite(options);
         } else {
-          throw "Stream does not exist";
+          throw 'Stream does not exist';
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         this.client.console_error(
-          "AculabCloudCall: Exception Removing stream: " + err.message,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          'AculabCloudCall: Exception Removing stream: ' + err.message,
         );
-        throw "Remove stream error";
+        throw 'Remove stream error';
       }
     } else {
-      throw "Not connected error";
+      throw 'Not connected error';
     }
   }
 
   reinvite(options: CallOptions) {
     if (!this._allowed_reinvite) {
-      throw "Reinvite not available";
+      throw 'Reinvite not available';
     }
     if (
       options.localStreams === undefined ||
       options.localStreams.length == 0
     ) {
-      throw "At least one MediaStream needed in options.localStreams";
+      throw 'At least one MediaStream needed in options.localStreams';
     }
     this.client.console_log(
-      "AculabCloudOutgoingCall reinvite :" + this._session,
+      'AculabCloudOutgoingCall reinvite :' + this._session,
     );
     if (this._session && !this._disconnect_called) {
       try {
         this._sdh_options =
           MediaEventSessionDescriptionHandler.fixup_options(options);
         const opts = {
-          sessionDescriptionHandlerOptions: this._sdh_options
+          sessionDescriptionHandlerOptions: this._sdh_options,
         };
 
         this._sdh_options.reinvite = true;
         this._sdh_options.iceRestart = true;
-        console.log(this._sdh_options);
         opts.sessionDescriptionHandlerOptions = this._sdh_options;
-        this.client.console_log("AculabCloudCall: new constraints: " + opts);
-        this._session.invite(opts);
+        this.client.console_log(
+          'AculabCloudCall: new constraints: ' + JSON.stringify(opts),
+        );
+        void this._session.invite(opts);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         this.client.console_error(
-          "AculabCloudCall: Exception changing constraints: " + err.message,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          'AculabCloudCall: Exception changing constraints: ' + err.message,
         );
-        throw "Reinvite error";
+        throw 'Reinvite error';
       }
     } else {
-      throw "Reinvite error";
+      throw 'Reinvite error';
     }
   }
 

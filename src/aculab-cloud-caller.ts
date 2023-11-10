@@ -1,90 +1,124 @@
-"use strict";
+'use strict';
 
-import { AculabCloudClient } from "./aculab-cloud-client";
-import { AculabCloudOutgoingServiceCall } from "./aculab-cloud-outgoing-service-call";
-import { DisconnectedCallObj, MediaCallObj } from "./types";
+import {AculabCloudClient} from './aculab-cloud-client';
+import {AculabCloudOutgoingServiceCall} from './aculab-cloud-outgoing-service-call';
+import {DisconnectedCallObj, MediaCallObj} from './types';
 
 // NB this is the old v1 api, implemented using the new api
-export function AculabCloudCaller(this: any) {
-	let that = this;
-	let acc: AculabCloudClient | null = null;
-	let oc: AculabCloudOutgoingServiceCall | null = null;
+export class AculabCloudCaller {
+  acc: AculabCloudClient | null;
+  oc: AculabCloudOutgoingServiceCall | null;
+  logLevel = 6;
+  iceServers = null;
+  onDisconnect?: (callObj: DisconnectedCallObj) => void;
+  onRinging?: () => void;
+  onMedia?: (callObj: MediaCallObj) => void;
+  onConnecting?: () => void;
+  onConnected?: () => void;
+  onError?: () => void;
+  onIncoming?: () => void;
+  onRegistered?: () => void;
+  onUnregistered?: () => void;
+  onRegisterFail?: () => void;
+  makeCall: (
+    a_targetcloudid: string,
+    a_targetservice: string,
+    a_callerid: string,
+  ) => void;
+  isSupported: () => boolean;
+  sendDtmf: (dtmf: string) => void;
+  disconnect: () => void;
+  attachMediaStreamToElement: (
+    element: HTMLVideoElement,
+    stream: MediaStream,
+  ) => void;
+  detachMediaStreamFromElement: (element: HTMLVideoElement) => void;
 
-	this.logLevel = 6;
-	this.iceServers = null;
+  constructor() {
+    this.acc = null;
+    this.oc = null;
+    this.logLevel = 6;
+    this.makeCall = function (a_targetcloudid, a_targetservice, a_callerid) {
+      this.acc = new AculabCloudClient(
+        a_targetcloudid,
+        'acc2',
+        a_callerid,
+        this.logLevel,
+      );
+      this.oc = this.acc.makeOutgoing(a_targetservice);
 
-	this.onDisconnect = null;
-	this.onRinging = null;
-	this.onMedia = null;
-	this.onConnecting = null;
-	this.onConnected = null;
-	this.onError = null;
-	this.onIncoming = null;
-	this.onRegistered = null;
-	this.onUnregistered = null;
-	this.onRegisterFail = null;
-	this.makeCall = function(a_targetcloudid: string, a_targetservice: string, a_callerid: string) {
-		acc = new AculabCloudClient(a_targetcloudid, 'acc2', a_callerid, that.logLevel);
-		oc = acc.makeOutgoing(a_targetservice);
-		// plumb up callbacks
-		oc.onConnecting = function() {
-			if (that.onConnecting) {
-				that.onConnecting();
-			}
-		};
-		oc.onRinging = function() {
-			if (that.onRinging) {
-				that.onRinging();
-			}
-		};
-		oc.onMedia = function(obj: MediaCallObj) {
-			if (that.onMedia) {
-				that.onMedia(obj);
-			}
-		};
-		oc.onConnected = function() {
-			if (that.onConnected) {
-				that.onConnected();
-			}
-		};
-		oc.onDisconnect = function(obj: DisconnectedCallObj) {
-			oc = null;
-			acc = null;
-			if (that.onDisconnect) {
-				that.onDisconnect(obj);
-			}
-		};
-		
-	};
-	this.isSupported = function() {
-		return AculabCloudClient.isSupported();
-	}
-	this.sendDtmf = function(dtmf: string) {
-		if (oc) {
-			oc.sendDtmf(dtmf);
-		} else {
-			throw 'DTMF send error - no call';
-		}
-	}
-	
-	this.disconnect = function() {
-		if (oc) {
-			oc.disconnect();
-		}
-	}
-	
-	this.attachMediaStreamToElement = function(element: HTMLMediaElement, stream: MediaStream) {
-		if (typeof element.srcObject !== 'undefined') {
-			element.srcObject = stream;
-		} else {
-			console.error('srcObject not found');
-		}
-	}
-	this.detachMediaStreamFromElement = function(element: HTMLMediaElement) {
-		if (typeof element.srcObject !== 'undefined') {
-			element.srcObject = null;
-		} else {
-			console.error('srcObject not found');
-		}
-	}
+      // plumb up callbacks
+      this.oc.onConnecting = function (this: AculabCloudCaller) {
+        if (this.onConnecting) {
+          this.onConnecting();
+        }
+      }.bind(this);
+
+      this.oc.onRinging = function (this: AculabCloudCaller) {
+        if (this.onRinging) {
+          this.onRinging();
+        }
+      }.bind(this);
+
+      this.oc.onMedia = function (
+        this: AculabCloudCaller,
+        callObj: MediaCallObj,
+      ) {
+        if (this.onMedia) {
+          this.onMedia(callObj);
+        }
+      }.bind(this);
+
+      this.oc.onConnected = function (this: AculabCloudCaller) {
+        if (this.onConnected) {
+          this.onConnected();
+        }
+      }.bind(this);
+
+      this.oc.onDisconnect = function (
+        this: AculabCloudCaller,
+        callObj: DisconnectedCallObj,
+      ) {
+        this.oc = null;
+        this.acc = null;
+        if (this.onDisconnect) {
+          this.onDisconnect(callObj);
+        }
+      }.bind(this);
+    };
+
+    this.isSupported = function () {
+      return AculabCloudClient.isSupported();
+    };
+
+    this.sendDtmf = function (dtmf) {
+      if (this.oc) {
+        this.oc.sendDtmf(dtmf);
+      } else {
+        throw 'DTMF send error - no call';
+      }
+    };
+
+    this.disconnect = function () {
+      if (this.oc) {
+        this.oc.disconnect();
+      }
+    };
+
+    this.attachMediaStreamToElement = function (element, stream) {
+      if (typeof element.srcObject !== 'undefined') {
+        element.srcObject = stream;
+      } else {
+        console.error('srcObject not found');
+      }
+    };
+
+    this.detachMediaStreamFromElement = function (element) {
+      if (typeof element.srcObject !== 'undefined') {
+        element.srcObject = null;
+      } else {
+        console.error('srcObject not found');
+      }
+    };
+  }
 }

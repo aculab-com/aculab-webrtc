@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 import {
   RegistererState,
@@ -7,16 +7,16 @@ import {
   Web,
   LogLevel,
   Session,
-  Core as sipCore
-} from "sip.js";
+  Core as sipCore,
+} from 'sip.js';
 
-import { AculabCloudIncomingCall } from "./aculab-cloud-incoming-call";
-import { AculabCloudOutgoingClientCall } from "./aculab-cloud-outgoing-client-call";
-import { MediaEventSessionDescriptionHandler } from "./media-event-session-description-handler";
-import { TokenRegisterer } from "./token-registerer";
-import { AculabCloudOutgoingServiceCall } from "./aculab-cloud-outgoing-service-call";
-import { CallOptions, OnIncomingObj, OnIncomingStateObj } from "./types";
-import { AculabCloudCall } from "./aculab-cloud-call";
+import {AculabCloudIncomingCall} from './aculab-cloud-incoming-call';
+import {AculabCloudOutgoingClientCall} from './aculab-cloud-outgoing-client-call';
+import {MediaEventSessionDescriptionHandler} from './media-event-session-description-handler';
+import {TokenRegisterer} from './token-registerer';
+import {AculabCloudOutgoingServiceCall} from './aculab-cloud-outgoing-service-call';
+import {CallOptions, OnIncomingObj, OnIncomingStateObj} from './types';
+import {AculabCloudCall} from './aculab-cloud-call';
 
 export class AculabCloudClient {
   loglevel: number;
@@ -42,7 +42,7 @@ export class AculabCloudClient {
     | undefined;
   _registered_token: string;
   _option_request: sipCore.OutgoingRequest | null;
-  makeOutgoing: (serviceName: string) => AculabCloudOutgoingServiceCall;
+  // makeOutgoing: (serviceName: string) => AculabCloudOutgoingServiceCall;
 
   constructor(
     cloudId: string,
@@ -51,7 +51,7 @@ export class AculabCloudClient {
     logLevel: number,
   ) {
     this.loglevel = logLevel;
-    this._registered_token = "";
+    this._registered_token = '';
 
     if (this.loglevel < 0) {
       this.loglevel = 0;
@@ -67,54 +67,54 @@ export class AculabCloudClient {
     );
     //this.console_log("AculabCloudClient using adapter for '" + adapter.browserDetails.browser + "'");
     if (!/^[0-9]+-[0-9]+-[0-9]+$/.test(cloudId)) {
-      throw "Invalid cloudId";
+      throw 'Invalid cloudId';
     }
     if (!/^[a-z0-9]{1,63}$/.test(webRtcAccessKey)) {
-      throw "Invalid webRtcAccessKey";
+      throw 'Invalid webRtcAccessKey';
     }
     // will users include the sip: in the clientId? strip it if present
-    if (clientId.startsWith("sip%3A") || clientId.startsWith("sip%3a")) {
+    if (clientId.startsWith('sip%3A') || clientId.startsWith('sip%3a')) {
       clientId = clientId.substring(6);
-    } else if (clientId.startsWith("sip:")) {
+    } else if (clientId.startsWith('sip:')) {
       clientId = clientId.substring(4);
     }
     // we also strip 'webrtc:' just in case people use that!
-    if (clientId.startsWith("webrtc%3A") || clientId.startsWith("webrtc%3a")) {
+    if (clientId.startsWith('webrtc%3A') || clientId.startsWith('webrtc%3a')) {
       clientId = clientId.substring(9);
-    } else if (clientId.startsWith("webrtc:")) {
+    } else if (clientId.startsWith('webrtc:')) {
       clientId = clientId.substring(7);
     }
 
     // we restrict this, as the cloud back end seems to struggle with escaping
     if (!/^[A-Za-z0-9+\-_.]+$/.test(clientId)) {
-      throw "Invalid clientId";
+      throw 'Invalid clientId';
     }
 
     this._cloud = cloudId;
     this._webRtcAccessKey = webRtcAccessKey;
     this._clientId = clientId;
-    let ua_log_level: LogLevel = "error";
+    let ua_log_level: LogLevel = 'error';
     if (this.loglevel > 4) {
-      ua_log_level = "debug";
+      ua_log_level = 'debug';
     } else if (this.loglevel == 4) {
-      ua_log_level = "log";
+      ua_log_level = 'log';
     } else if (this.loglevel == 3) {
-      ua_log_level = "warn";
+      ua_log_level = 'warn';
     } else {
-      ua_log_level = "error";
+      ua_log_level = 'error';
     }
     this._ua = new UserAgent({
       uri: new URI(
-        "sip",
+        'sip',
         clientId,
-        webRtcAccessKey + ".webrtc-" + cloudId + ".aculabcloud.net",
+        webRtcAccessKey + '.webrtc-' + cloudId + '.aculabcloud.net',
       ),
       transportOptions: {
-        server: "wss://webrtc-" + cloudId + ".aculabcloud.net/sipproxy",
+        server: 'wss://webrtc-' + cloudId + '.aculabcloud.net/sipproxy',
         connectionTimeout: 30,
         traceSip: this.loglevel > 5,
       },
-      userAgentString: "AculabCloudClient",
+      userAgentString: 'AculabCloudClient',
       logLevel: ua_log_level,
       sessionDescriptionHandlerFactory:
         this.sessionDescriptionHandlerFactory.bind(
@@ -125,7 +125,7 @@ export class AculabCloudClient {
     });
     this._ua.delegate = {
       onConnect: () => {
-        this.console_log("AculabCloudClient: websocket connected");
+        this.console_log('AculabCloudClient: websocket connected');
         this._transport_connected = true;
         if (this._token) {
           this.enableIncoming(this._token);
@@ -145,12 +145,12 @@ export class AculabCloudClient {
         this._transport_connected = false;
         // clear registration
         if (this._registerer) {
-          this._registerer.setToken("");
+          this._registerer.setToken('');
         }
         // disconnect all calls
         this._calls.forEach(call => {
-          if (call._termination_reason == "") {
-            call._termination_reason = "FAILED";
+          if (call._termination_reason == '') {
+            call._termination_reason = 'FAILED';
           }
           call.disconnect();
         });
@@ -163,12 +163,12 @@ export class AculabCloudClient {
         this.reconnect(); // TODO: should this only be "if (err)"
       },
       onInvite: invitation => {
-        this.console_log("invite");
+        this.console_log('invite');
         if (this._calls.size >= this.maxConcurrent) {
           this.console_log(
-            "AculabCloudClient rejecting incoming, too many calls",
+            'AculabCloudClient rejecting incoming, too many calls',
           );
-          invitation.reject({ statusCode: 486 }); // 486 == busy here
+          void invitation.reject({statusCode: 486}); // 486 == busy here
         } else {
           if (this.onIncoming) {
             const ic = new AculabCloudIncomingCall(this, invitation);
@@ -177,56 +177,58 @@ export class AculabCloudClient {
                 invitation.body!,
               );
             this._calls.add(ic);
-            let caller_type = "other";
+            let caller_type = 'other';
 
             try {
-              this.console_log("AculabCloudClient calling onIncoming");
+              this.console_log('AculabCloudClient calling onIncoming');
               if (
                 invitation.remoteIdentity.uri.host ==
                 `sip-${this._cloud}.aculab.com`
               ) {
-                caller_type = "service";
+                caller_type = 'service';
               } else if (
                 invitation.remoteIdentity.uri.host ==
                 `${this._webRtcAccessKey}.webrtc-${this._cloud}.aculabcloud.net`
               ) {
-                caller_type = "client";
+                caller_type = 'client';
               }
               if (media_dirs.audio || media_dirs.video) {
-                let audio = "";
-                let video = "";
+                let audio = '';
+                let video = '';
                 if (media_dirs.audio !== undefined) {
                   audio = media_dirs.audio;
-		}
+                }
                 if (media_dirs.video !== undefined) {
                   video = media_dirs.video;
-		}
+                }
                 this.onIncoming({
                   call: ic,
                   from: invitation.remoteIdentity.uri.user!,
                   type: caller_type,
-                  offeringAudio: audio.includes("send"),
-                  canReceiveAudio: audio.includes("recv"),
-                  offeringVideo: video.includes("send"),
-                  canReceiveVideo: video.includes("recv"),
+                  offeringAudio: audio.includes('send'),
+                  canReceiveAudio: audio.includes('recv'),
+                  offeringVideo: video.includes('send'),
+                  canReceiveVideo: video.includes('recv'),
                 });
               } else {
                 this.console_log(
-                  "AculabCloudClient rejecting incoming, no media in incoming call"
+                  'AculabCloudClient rejecting incoming, no media in incoming call',
                 );
-                ic.reject("500"); // should be a 500?
+                ic.reject('500'); // should be a 500?
               }
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (err: any) {
               this.console_error(
-                "AculabCloudClient onIncoming cause exception: " + err.message,
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                'AculabCloudClient onIncoming cause exception: ' + err.message,
               );
-              ic.reject("500"); // should be a 500?
+              ic.reject('500'); // should be a 500?
             }
           } else {
             this.console_log(
-              "AculabCloudClient rejecting incoming, no onIncoming callback defined",
+              'AculabCloudClient rejecting incoming, no onIncoming callback defined',
             );
-            invitation.reject(); // default is 480, maybe "404 not found" as we can't alert the user
+            void invitation.reject(); // default is 480, maybe "404 not found" as we can't alert the user
           }
         }
       },
@@ -234,7 +236,7 @@ export class AculabCloudClient {
     this._calls = new Set();
     this._ua_started = false;
     this._transport_connected = false;
-    this._token = "";
+    this._token = '';
     this._registerer = null;
     this._aculabIceServers = undefined;
     this._option_request = null;
@@ -244,8 +246,14 @@ export class AculabCloudClient {
     this._reconnecting = false;
 
     // add legacy function name alias
-    this.makeOutgoing = this.callService;
+    // this.makeOutgoing = this.callService;
   }
+
+  // add legacy function name alias
+  makeOutgoing = (serviceName: string) => {
+    return this.callService(serviceName);
+  };
+
   reconnect() {
     if (!this._ua_started) {
       return;
@@ -286,7 +294,7 @@ export class AculabCloudClient {
           : options.iceGatheringTimeout
         : 5000;
     // merge passed factory options into default session description configuration
-    let sessionDescriptionHandlerConfiguration = {
+    const sessionDescriptionHandlerConfiguration = {
       iceGatheringTimeout,
       peerConnectionConfiguration: Object.assign(
         Object.assign({}, Web.defaultPeerConnectionConfiguration()),
@@ -303,7 +311,7 @@ export class AculabCloudClient {
       sessionDescriptionHandlerConfiguration.peerConnectionConfiguration.iceServers =
         this._aculabIceServers;
     }
-    const logger = session.userAgent.getLogger("sip.SessionDescriptionHandler");
+    const logger = session.userAgent.getLogger('sip.SessionDescriptionHandler');
     return new MediaEventSessionDescriptionHandler(
       logger,
       mediaStreamFactory,
@@ -327,10 +335,9 @@ export class AculabCloudClient {
       clearTimeout(this._option_request_refresh_timer);
       this._option_request_refresh_timer = null;
     }
-    this.console_log("AculabCloudClient: sending options request");
     const request_uri = new URI(
-      "sip",
-      "",
+      'sip',
+      '',
       `webrtc-${this._cloud}.aculabcloud.net`,
     );
 
@@ -339,25 +346,27 @@ export class AculabCloudClient {
     const core = this._ua.userAgentCore;
     const options = {};
     const message = core.makeOutgoingRequestMessage(
-      "OPTIONS",
+      'OPTIONS',
       request_uri,
       from_uri,
       to_uri,
       options,
-      ["X-AculabTurnRequest: 1"],
+      ['X-AculabTurnRequest: 1'],
     );
     // Send message
     this._option_request = core.request(message, {
       onAccept: response => {
         this.console_log(
-          "AculabCloudClient: OPTIONS body:" + response.message.body,
+          'AculabCloudClient: OPTIONS body:' + response.message.body,
         );
         const turn_str = response.message.body;
         try {
-          this._aculabIceServers = JSON.parse(turn_str);
+          this._aculabIceServers = JSON.parse(turn_str) as RTCIceServer[];
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
           this.console_error(
-            "AculabCloudClient: failed to parse iceServers response: " +
+            'AculabCloudClient: failed to parse iceServers response: ' +
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
               err.message,
           );
           this._aculabIceServers = undefined;
@@ -404,7 +413,7 @@ export class AculabCloudClient {
       this._registered_token == null
     ) {
       // no longer need websocket connection
-      this._ua.stop();
+      void this._ua.stop();
       this._ua_started = false;
       // the ua will disconnect the transport, but we don't get the event
       // so just clear the flag
@@ -427,20 +436,20 @@ export class AculabCloudClient {
 
   callService(serviceName: string) {
     // some users are including the sip: in the service name, strip it
-    if (serviceName.startsWith("sip%3A") || serviceName.startsWith("sip%3a")) {
+    if (serviceName.startsWith('sip%3A') || serviceName.startsWith('sip%3a')) {
       serviceName = serviceName.substring(6);
-    } else if (serviceName.startsWith("sip:")) {
+    } else if (serviceName.startsWith('sip:')) {
       serviceName = serviceName.substring(4);
     }
     // service names are more restrictive than plain SIP usernames
     if (!/^[A-Za-z0-9\-_.+]+$/.test(serviceName)) {
-      throw "Invalid serviceName";
+      throw 'Invalid serviceName';
     }
     if (this._calls.size >= this.maxConcurrent) {
-      throw "Too many calls";
+      throw 'Too many calls';
     }
     if (!this._ua_started) {
-      this._ua.start();
+      void this._ua.start();
       this._ua_started = true;
     }
     const outcall = new AculabCloudOutgoingServiceCall(this, serviceName);
@@ -449,37 +458,37 @@ export class AculabCloudClient {
   }
 
   callClient(clientId: string, token: string, options: CallOptions) {
-    if (typeof clientId !== "string") {
-      throw "clientId is not a string";
+    if (typeof clientId !== 'string') {
+      throw 'clientId is not a string';
     }
     // some users are including the sip: in the service name, strip it
-    if (clientId.startsWith("sip%3A")) {
+    if (clientId.startsWith('sip%3A')) {
       clientId = clientId.substring(6);
-    } else if (clientId.startsWith("sip:")) {
+    } else if (clientId.startsWith('sip:')) {
       clientId = clientId.substring(4);
     }
     // service names are more restrictive than plain SIP usernames
-    const testServiceName = clientId.replace(/([A-Za-z0-9-_.+])/g, "");
-    if (testServiceName != "" || clientId === "") {
-      throw "Invalid clientId";
+    const testServiceName = clientId.replace(/([A-Za-z0-9-_.+])/g, '');
+    if (testServiceName != '' || clientId === '') {
+      throw 'Invalid clientId';
     }
     if (this._calls.size >= this.maxConcurrent) {
-      throw "Too many calls";
+      throw 'Too many calls';
     }
     if (!this._ua_started) {
-      this._ua.start();
+      void this._ua.start();
       this._ua_started = true;
     }
     // check token looks plausible
-    const token_bits = token.split(".");
+    const token_bits = token.split('.');
     if (token_bits.length != 3 && token_bits.length != 5) {
       // 3 for just signed, 5 for encrypted and signed
-      throw "Invalid token";
+      throw 'Invalid token';
     }
-    const b64u_re = RegExp("^[-_0-9a-zA-Z]+$");
+    const b64u_re = RegExp('^[-_0-9a-zA-Z]+$');
     token_bits.forEach(bit => {
       if (!b64u_re.test(bit)) {
-        throw "Invalid token";
+        throw 'Invalid token';
       }
     });
     const outcall = new AculabCloudOutgoingClientCall(
@@ -494,33 +503,35 @@ export class AculabCloudClient {
 
   enableIncoming(token: string) {
     // check token looks plausible
-    const token_bits = token.split(".");
+    const token_bits = token.split('.');
     if (token_bits.length != 3 && token_bits.length != 5) {
       // 3 for just signed, 5 for encrypted and signed
-      throw "Invalid token";
+      throw 'Invalid token';
     }
-    const b64u_re = RegExp("^[-_0-9a-zA-Z]+$");
+    const b64u_re = RegExp('^[-_0-9a-zA-Z]+$');
     token_bits.forEach(bit => {
       if (!b64u_re.test(bit)) {
-        throw "Invalid token";
+        throw 'Invalid token';
       }
     });
     this._token = token;
     if (!this._ua_started) {
-      this._ua.start();
+      void this._ua.start();
       this._ua_started = true;
     }
     if (!this._registerer) {
       this._registerer = new TokenRegisterer(this._ua);
-      this._registerer.stateChange.addListener((update) => {
+      this._registerer.stateChange.addListener(update => {
         if (update.state == RegistererState.Terminated) {
           return;
         }
         const ready = update.state == RegistererState.Registered;
         if (this.onIncomingState) {
-          let retry =
+          const retry =
             update.retry ||
-            (this._ua_started && this._token && !this._transport_connected) as boolean;
+            ((this._ua_started &&
+              this._token &&
+              !this._transport_connected) as boolean);
           this.console_log(
             `AculabCloudCaller calling onIncomingState(${ready}, ${update.cause}, ${retry})`,
           );
@@ -530,14 +541,16 @@ export class AculabCloudClient {
               cause: update.cause,
               retry: retry,
             });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } catch (err: any) {
             this.console_error(
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
               `AculabCloudCaller onIncomingState(${ready}, ${update.cause}, ${retry}) caused exception: ${err.message}`,
             );
           }
         }
         if (!ready && !this._token && this._registerer) {
-          this._registerer.dispose();
+          void this._registerer.dispose();
           this._registerer = null;
           this._checkStop();
         }
@@ -549,16 +562,16 @@ export class AculabCloudClient {
   }
 
   disableIncoming() {
-    this._token = "";
+    this._token = '';
     if (this._registerer) {
-      this._registerer.setToken("");
+      this._registerer.setToken('');
     } else {
       this._checkStop();
     }
   }
 
   closeConnection() {
-    this._ua.transport.disconnect();
+    void this._ua.transport.disconnect();
   }
 
   static isSupported() {
@@ -577,7 +590,7 @@ export class AculabCloudClient {
   static getCodecList(mediaType: string) {
     if (
       window.RTCRtpTransceiver &&
-      "setCodecPreferences" in window.RTCRtpTransceiver.prototype
+      'setCodecPreferences' in window.RTCRtpTransceiver.prototype
     ) {
       const codecs = RTCRtpSender.getCapabilities(mediaType)?.codecs;
       return codecs;
