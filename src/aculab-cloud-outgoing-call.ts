@@ -77,8 +77,7 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
           this.client.console_error(
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            'AculabCloudOutgoingCall onRinging caused exception:' + err.message,
+            'AculabCloudOutgoingCall onRinging caused exception:' + err,
           );
         }
       }

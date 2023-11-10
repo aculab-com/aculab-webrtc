@@ -127,8 +127,7 @@ export class AculabCloudCall {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         this.client.console_error(
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          'AculabCloudCall: Exception calling onLocalVideoMute: ' + err.message,
+          'AculabCloudCall: Exception calling onLocalVideoMute: ' + err,
         );
       }
     }
@@ -142,9 +141,7 @@ export class AculabCloudCall {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         this.client.console_error(
-          'AculabCloudCall: Exception calling onLocalVideoUnmute: ' +
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            err.message,
+          'AculabCloudCall: Exception calling onLocalVideoUnmute: ' + err,
         );
       }
     }
@@ -158,9 +155,7 @@ export class AculabCloudCall {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         this.client.console_error(
-          'AculabCloudCall: Exception calling onRemoteVideoMute: ' +
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            err.message,
+          'AculabCloudCall: Exception calling onRemoteVideoMute: ' + err,
         );
       }
     }
@@ -174,9 +169,7 @@ export class AculabCloudCall {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         this.client.console_error(
-          'AculabCloudCall: Exception calling onRemoteVideoUnmute: ' +
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            err.message,
+          'AculabCloudCall: Exception calling onRemoteVideoUnmute: ' + err,
         );
       }
     }
@@ -257,8 +250,7 @@ export class AculabCloudCall {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         this.client.console_error(
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          'AculabCloudCall: Exception sending DTMF: ' + err.message,
+          'AculabCloudCall: Exception sending DTMF: ' + err,
         );
         throw 'DTMF send error';
       }
@@ -492,8 +484,7 @@ export class AculabCloudCall {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
           this.client.console_error(
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            'AculabCloudCall: Exception calling onDisconnect: ' + err.message,
+            'AculabCloudCall: Exception calling onDisconnect: ' + err,
           );
         }
       }
@@ -518,8 +509,7 @@ export class AculabCloudCall {
         } catch (err: any) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           this.client.console_error(
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            'AculabCloudCall onMediaRemove caused exception: ' + err.message,
+            'AculabCloudCall onMediaRemove caused exception: ' + err,
           );
         }
         this._notified_remote_streams.splice(i, 1);
@@ -564,8 +554,7 @@ export class AculabCloudCall {
       } catch (err: any) {
         this.client.console_error(
           'AculabCloudCall adding video track mute handlers caused exception: ' +
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            err.message,
+            err,
         );
       }
       this.client.console_log('AculabCloudCall calling onMedia');
@@ -575,8 +564,7 @@ export class AculabCloudCall {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
           this.client.console_error(
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            'AculabCloudCall onMedia caused exception: ' + err.message,
+            'AculabCloudCall onMedia caused exception: ' + err,
           );
         }
       }
@@ -596,8 +584,7 @@ export class AculabCloudCall {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
           this.client.console_error(
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            'AculabCloudCall onConnected caused exception:' + err.message,
+            'AculabCloudCall onConnected caused exception:' + err,
           );
         }
       }
@@ -634,8 +621,7 @@ export class AculabCloudCall {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
           this.client.console_error(
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            'AculabCloudCall onConnecting caused exception:' + err.message,
+            'AculabCloudCall onConnecting caused exception:' + err,
           );
         }
       }
@@ -652,9 +638,7 @@ export class AculabCloudCall {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
           this.client.console_error(
-            'AculabCloudCall onUserMediaRemoved caused exception:' +
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-              err.message,
+            'AculabCloudCall onUserMediaRemoved caused exception:' + err,
           );
         }
       }
@@ -818,8 +802,7 @@ export class AculabCloudCall {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         this.client.console_error(
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          'AculabCloudCall: Exception Adding stream: ' + err.message,
+          'AculabCloudCall: Exception Adding stream: ' + err,
         );
         throw 'Add stream error';
       }
@@ -852,8 +835,7 @@ export class AculabCloudCall {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         this.client.console_error(
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          'AculabCloudCall: Exception Removing stream: ' + err.message,
+          'AculabCloudCall: Exception Removing stream: ' + err,
         );
         throw 'Remove stream error';
       }
@@ -893,8 +875,7 @@ export class AculabCloudCall {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         this.client.console_error(
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          'AculabCloudCall: Exception changing constraints: ' + err.message,
+          'AculabCloudCall: Exception changing constraints: ' + err,
         );
         throw 'Reinvite error';
       }

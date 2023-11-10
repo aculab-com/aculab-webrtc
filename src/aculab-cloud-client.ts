@@ -219,8 +219,7 @@ export class AculabCloudClient {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (err: any) {
               this.console_error(
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                'AculabCloudClient onIncoming cause exception: ' + err.message,
+                'AculabCloudClient onIncoming cause exception: ' + err,
               );
               ic.reject('500'); // should be a 500?
             }
@@ -365,9 +364,7 @@ export class AculabCloudClient {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
           this.console_error(
-            'AculabCloudClient: failed to parse iceServers response: ' +
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-              err.message,
+            'AculabCloudClient: failed to parse iceServers response: ' + err,
           );
           this._aculabIceServers = undefined;
         }
@@ -544,8 +541,7 @@ export class AculabCloudClient {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } catch (err: any) {
             this.console_error(
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-              `AculabCloudCaller onIncomingState(${ready}, ${update.cause}, ${retry}) caused exception: ${err.message}`,
+              `AculabCloudCaller onIncomingState(${ready}, ${update.cause}, ${retry}) caused exception: ${err}`,
             );
           }
         }
