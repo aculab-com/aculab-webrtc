@@ -12,7 +12,7 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
    * @param {Invitation} session
    */
   constructor(client: AculabCloudClient, session: Invitation) {
-    super(client, true);
+    super(client, true, false);
     this.session = session;
     this.answer_pending = false;
   }

@@ -23,6 +23,7 @@ export class AculabCloudClient {
   _cloud: string;
   _webRtcAccessKey: string;
   _clientId: string;
+  _legacy_interface: boolean;
   _ua: UserAgent;
   _transport_connected: boolean;
   _token: string;
@@ -49,8 +50,10 @@ export class AculabCloudClient {
     webRtcAccessKey: string,
     clientId: string,
     logLevel: number,
+    legacy_interface: boolean
   ) {
     this.loglevel = logLevel;
+    this._legacy_interface = legacy_interface;
     this._registered_token = '';
 
     if (this.loglevel < 0) {
@@ -449,7 +452,7 @@ export class AculabCloudClient {
       void this._ua.start();
       this._ua_started = true;
     }
-    const outcall = new AculabCloudOutgoingServiceCall(this, serviceName);
+    const outcall = new AculabCloudOutgoingServiceCall(this, serviceName, this._legacy_interface);
     this._calls.add(outcall);
     return outcall;
   }
@@ -492,7 +495,7 @@ export class AculabCloudClient {
       this,
       clientId,
       token,
-      options,
+      options
     );
     this._calls.add(outcall);
     return outcall;

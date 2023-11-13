@@ -9,7 +9,7 @@ export class AculabCloudOutgoingClientCall extends AculabCloudOutgoingCall {
     client: AculabCloudClient,
     clientId: string,
     token: string,
-    options: CallOptions,
+    options: CallOptions
   ) {
     // TODO: add option to allow video
     const uri = new URI(
@@ -25,6 +25,7 @@ export class AculabCloudOutgoingClientCall extends AculabCloudOutgoingCall {
       },
       options,
       true,
+      false,
     );
   }
   _add_media_handlers(sdh: MediaEventSessionDescriptionHandler) {

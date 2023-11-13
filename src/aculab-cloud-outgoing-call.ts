@@ -16,8 +16,9 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
     inviter_options: object,
     options: CallOptions | undefined,
     reinvite_possible: boolean,
+    legacy_interface: boolean
   ) {
-    super(client, reinvite_possible);
+    super(client, reinvite_possible, legacy_interface);
     this._uri = uri;
     this.invite_pending = false;
     this._inviter_options = inviter_options;

@@ -43,6 +43,7 @@ export class AculabCloudCall {
   _remote_streams: MediaStream[] | null;
   _notified_remote_streams: MediaStream[];
   _sdh_options?: CallOptions;
+  _legacy_interface: boolean;
   onRinging?: (callObj?: CallObj) => void;
   onLocalVideoMute?: (obj?: MuteObj) => void;
   onLocalVideoUnmute?: (obj?: MuteObj) => void;
@@ -59,7 +60,8 @@ export class AculabCloudCall {
   /**
    * @param {AculabCloudClient} client
    */
-  constructor(client: AculabCloudClient, reinvite_possible: boolean) {
+  constructor(client: AculabCloudClient, reinvite_possible: boolean,
+	      legacy_interface: boolean) {
     this.client = client;
     this._callId = '';
     this._session = null;
@@ -73,6 +75,7 @@ export class AculabCloudCall {
     this._sdh_options = undefined;
     this._callUuid = uuidV4();
     this._allowed_reinvite = reinvite_possible;
+    this._legacy_interface = legacy_interface;
 
     /*
      * In order to deal with the fact that react-native-webrtc implemented muted video by stopping the stream
@@ -649,7 +652,11 @@ export class AculabCloudCall {
       this.client.console_error('AculabCloudCall getUserMedia failed - ' + err);
       // store error, so we can report correct reason in onDisconnect callback
       if (this._termination_reason == '') {
-        this._termination_reason = 'MIC_ERROR';
+        if (this._legacy_interface) {
+          this._termination_reason = 'MIC_ERROR';
+        } else {
+          this._termination_reason = 'DEVICE_ERROR';
+        }
       }
     };
 
