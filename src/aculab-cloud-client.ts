@@ -97,9 +97,9 @@ export class AculabCloudClient {
     let ua_log_level: LogLevel = 'error';
     if (this.loglevel > 4) {
       ua_log_level = 'debug';
-    } else if (this.loglevel == 4) {
+    } else if (this.loglevel === 4) {
       ua_log_level = 'log';
-    } else if (this.loglevel == 3) {
+    } else if (this.loglevel === 3) {
       ua_log_level = 'warn';
     } else {
       ua_log_level = 'error';
@@ -149,7 +149,7 @@ export class AculabCloudClient {
         }
         // disconnect all calls
         this._calls.forEach(call => {
-          if (call._termination_reason == '') {
+          if (call._termination_reason === '') {
             call._termination_reason = 'FAILED';
           }
           call.disconnect();
@@ -168,7 +168,7 @@ export class AculabCloudClient {
           this.console_log(
             'AculabCloudClient rejecting incoming, too many calls',
           );
-          void invitation.reject({statusCode: 486}); // 486 == busy here
+          void invitation.reject({statusCode: 486}); // 486 = busy here
         } else {
           if (this.onIncoming) {
             const ic = new AculabCloudIncomingCall(this, invitation);
@@ -182,12 +182,12 @@ export class AculabCloudClient {
             try {
               this.console_log('AculabCloudClient calling onIncoming');
               if (
-                invitation.remoteIdentity.uri.host ==
+                invitation.remoteIdentity.uri.host ===
                 `sip-${this._cloud}.aculab.com`
               ) {
                 caller_type = 'service';
               } else if (
-                invitation.remoteIdentity.uri.host ==
+                invitation.remoteIdentity.uri.host ===
                 `${this._webRtcAccessKey}.webrtc-${this._cloud}.aculabcloud.net`
               ) {
                 caller_type = 'client';
@@ -408,9 +408,9 @@ export class AculabCloudClient {
 
   _checkStop() {
     if (
-      this._calls.size == 0 &&
-      this._token == null &&
-      this._registered_token == null
+      this._calls.size === 0 &&
+      this._token === null &&
+      this._registered_token === null
     ) {
       // no longer need websocket connection
       void this._ua.stop();
@@ -474,7 +474,7 @@ export class AculabCloudClient {
     }
     // service names are more restrictive than plain SIP usernames
     const testServiceName = clientId.replace(/([A-Za-z0-9-_.+])/g, '');
-    if (testServiceName != '' || clientId === '') {
+    if (testServiceName !== '' || clientId === '') {
       throw 'Invalid clientId';
     }
     if (this._calls.size >= this.maxConcurrent) {
@@ -527,10 +527,10 @@ export class AculabCloudClient {
     if (!this._registerer) {
       this._registerer = new TokenRegisterer(this._ua);
       this._registerer.stateChange.addListener(update => {
-        if (update.state == RegistererState.Terminated) {
+        if (update.state === RegistererState.Terminated) {
           return;
         }
-        const ready = update.state == RegistererState.Registered;
+        const ready = update.state === RegistererState.Registered;
         if (this.onIncomingState) {
           const retry =
             update.retry ||

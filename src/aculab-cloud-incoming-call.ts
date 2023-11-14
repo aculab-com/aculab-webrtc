@@ -73,8 +73,8 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
     this.answer_pending = false;
     if (this._session) {
       if (
-        this._session.state == SessionState.Initial ||
-        this._session.state == SessionState.Establishing
+        this._session.state === SessionState.Initial ||
+        this._session.state === SessionState.Establishing
       ) {
         void (this._session as Invitation).reject({statusCode: int_cause});
       } else {
@@ -93,8 +93,8 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
       this._disconnect_called = true;
       this.client.console_log(`call in state ${this._session.state}`);
       if (
-        this._session.state == SessionState.Initial ||
-        this._session.state == SessionState.Establishing
+        this._session.state === SessionState.Initial ||
+        this._session.state === SessionState.Establishing
       ) {
         this.reject();
       } else {

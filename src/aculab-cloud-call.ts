@@ -14,6 +14,11 @@ import {
 } from './types';
 import {CallInviter} from './call-inviter';
 
+/**
+ * make address:port string from cand object
+ * @param cand parameters object
+ * @returns string in format address:port
+ */
 function _extractAddrPort(cand: CandParam) {
   let addr = 'a.b.c.d';
   let port = 'N';
@@ -58,9 +63,6 @@ export class AculabCloudCall {
   onConnected?: (callObj?: CallObj) => void;
   onDisconnect?: (callObj: DisconnectedCallObj) => void;
 
-  /**
-   * @param {AculabCloudClient} client
-   */
   constructor(
     client: AculabCloudClient,
     reinvite_possible: boolean,
@@ -96,14 +98,24 @@ export class AculabCloudCall {
     // this.onRemoteVideoUnmute = () => {};
   }
 
+  /**
+   * get Call uuid
+   */
   get callUuid() {
     return this._callUuid;
   }
 
+  /**
+   * legacy code: get call id
+   * @returns call id
+   */
   callId() {
     return this._callId;
   }
 
+  /**
+   * get Call ID
+   */
   get theCallId() {
     return this._callId;
   }
@@ -126,7 +138,7 @@ export class AculabCloudCall {
   }
 
   //Functions to call the callbacks with logging around it
-  _onLocalVideoMute(obj: MuteObj) {
+  private _onLocalVideoMute(obj: MuteObj) {
     if (this.onLocalVideoMute != null) {
       this.client.console_log('AculabCloudCall calling onLocalVideoMute');
       try {
@@ -140,7 +152,7 @@ export class AculabCloudCall {
     }
   }
 
-  _onLocalVideoUnmute(obj: MuteObj) {
+  private _onLocalVideoUnmute(obj: MuteObj) {
     if (this.onLocalVideoUnmute != null) {
       this.client.console_log('AculabCloudCall calling onLocalVideoUnmute');
       try {
@@ -154,7 +166,7 @@ export class AculabCloudCall {
     }
   }
 
-  _onRemoteVideoMute(obj: MuteObj) {
+  private _onRemoteVideoMute(obj: MuteObj) {
     if (this.onRemoteVideoMute != null) {
       this.client.console_log('AculabCloudCall calling onRemoteVideoMute');
       try {
@@ -168,7 +180,7 @@ export class AculabCloudCall {
     }
   }
 
-  _onRemoteVideoUnmute(obj: MuteObj) {
+  private _onRemoteVideoUnmute(obj: MuteObj) {
     if (this.onRemoteVideoUnmute != null) {
       this.client.console_log('AculabCloudCall calling onRemoteVideoUnmute');
       try {
@@ -182,19 +194,24 @@ export class AculabCloudCall {
     }
   }
 
+  /**
+   * get human readable message from Sip code.
+   * @param code SipCode
+   * @returns human readable message
+   */
   _get_reason_from_sip_code(code: string) {
     if (/^10[0-9]/.test(code)) {
       return ''; // a provisional result!
     }
-    if (code == '487') {
+    if (code === '487') {
       return 'NOANSWER';
-    } else if (code == '486' || code == '600' || code == '603') {
+    } else if (code === '486' || code === '600' || code === '603') {
       return 'BUSY';
     } else if (
-      code == '404' ||
-      code == '410' ||
-      code == '480' ||
-      code == '604'
+      code === '404' ||
+      code === '410' ||
+      code === '480' ||
+      code === '604'
     ) {
       return 'UNOBTAINABLE';
     } else if (/^3[0-9]%2$/.test(code)) {
@@ -213,7 +230,7 @@ export class AculabCloudCall {
     this._session.delegate = {
       onBye: bye => {
         // extract reason from BYE message
-        if (this._termination_reason == '') {
+        if (this._termination_reason === '') {
           const reason_hdr = bye.request.getHeader('Reason');
           this.client.console_log(`dialog end BYE Reason ${reason_hdr}`);
           if (reason_hdr) {
@@ -237,15 +254,19 @@ export class AculabCloudCall {
       },
     };
     this._session.stateChange.addListener(state => {
-      if (state == SessionState.Established) {
+      if (state === SessionState.Established) {
         this._onaccepted();
       }
-      if (state == SessionState.Terminated) {
+      if (state === SessionState.Terminated) {
         this._onterminated();
       }
     });
   }
 
+  /**
+   * Send DTMF signal
+   * @param dtmf DTMF character
+   */
   sendDtmf(dtmf: string) {
     this.client.console_log('AculabCloudCall sendDtmf(' + dtmf + ')');
     if (dtmf.match(/^[^0-9A-Da-d#*]+$/) != null) {
@@ -266,11 +287,18 @@ export class AculabCloudCall {
     }
   }
 
+  /**
+   * Mute local/remote audio/video.
+   * @param mic mute local microphone
+   * @param output_audio mute audio output
+   * @param camera mute local camera
+   * @param output_video mute video output
+   */
   mute(
     mic: boolean,
     output_audio: boolean,
-    camera: boolean,
-    output_video: boolean,
+    camera?: boolean,
+    output_video?: boolean,
   ) {
     this.client.console_log(
       'AculabCloudCall mute(mic=' +
@@ -292,7 +320,7 @@ export class AculabCloudCall {
 
     if (this._remote_streams) {
       this._remote_streams.forEach(stream => {
-        this.muteRemoteStream(stream, output_audio, output_video);
+        this.muteRemoteStream(stream, output_audio, output_video!);
       });
     }
 
@@ -301,11 +329,16 @@ export class AculabCloudCall {
         this._session
           .sessionDescriptionHandler as MediaEventSessionDescriptionHandler
       ).acuLocalMediaStreams.forEach((stream: MediaStream) => {
-        this.muteLocalStream(stream, mic, camera);
+        this.muteLocalStream(stream, mic, camera!);
       });
     }
   }
 
+  /**
+   * Check mute state of components in a media stream.
+   * @param stream media stream to check for muted components
+   * @returns object of muted components
+   */
   isMuted(stream: MediaStream): IsMutedResponse {
     const ret = {
       mic: true,
@@ -316,11 +349,11 @@ export class AculabCloudCall {
 
     // check output
     if (stream) {
-      stream.getTracks().forEach((t: MediaStreamTrack) => {
-        if (t.kind == 'audio') {
-          ret['output_audio'] = !t.enabled;
-        } else if (t.kind == 'video') {
-          ret['output_video'] = !t.enabled;
+      stream.getTracks().forEach((track: MediaStreamTrack) => {
+        if (track.kind === 'audio') {
+          ret['output_audio'] = !track.enabled;
+        } else if (track.kind === 'video') {
+          ret['output_video'] = !track.enabled;
         }
       });
     }
@@ -332,9 +365,9 @@ export class AculabCloudCall {
       const pc = sdh.peerConnection;
       pc.getSenders().forEach(function (sender) {
         if (sender.track) {
-          if (sender.track.kind == 'audio') {
+          if (sender.track.kind === 'audio') {
             ret['mic'] = !sender.track.enabled;
-          } else if (sender.track.kind == 'video') {
+          } else if (sender.track.kind === 'video') {
             ret['camera'] = !sender.track.enabled;
           }
         }
@@ -343,6 +376,14 @@ export class AculabCloudCall {
     return ret;
   }
 
+  /**
+   * Mute audio/video in a stream.
+   * @param stream media stream
+   * @param mic mute local microphone
+   * @param output_audio mute audio output
+   * @param camera mute local camera
+   * @param output_video mute video output
+   */
   muteStream(
     stream: MediaStream,
     mic: boolean,
@@ -374,6 +415,12 @@ export class AculabCloudCall {
     }
   }
 
+  /**
+   * Mute audio/video on local media stream.
+   * @param stream local media stream
+   * @param mic mute local microphone
+   * @param camera mute local camera
+   */
   muteLocalStream(stream: MediaStream, mic: boolean, camera: boolean) {
     this.client.console_log(
       'AculabCloudCall muteLocalStream(mic=' + mic + ',  camera=' + camera,
@@ -409,10 +456,10 @@ export class AculabCloudCall {
                 sender.track.id,
               );
               if (sender.track && internal_track) {
-                if (sender.track.kind == 'audio') {
+                if (sender.track.kind === 'audio') {
                   sender.track.enabled = !mic;
                   internal_track.enabled = !mic;
-                } else if (sender.track.kind == 'video') {
+                } else if (sender.track.kind === 'video') {
                   sender.track.enabled = !camera;
                   internal_track.enabled = !camera;
                   if (sender.track.enabled) {
@@ -437,6 +484,12 @@ export class AculabCloudCall {
     }
   }
 
+  /**
+   * Mute audio/video on local media stream.
+   * @param stream remote media stream
+   * @param output_audio mute audio output
+   * @param output_video mute video output
+   */
   muteRemoteStream(
     stream: MediaStream,
     output_audio: boolean,
@@ -452,7 +505,7 @@ export class AculabCloudCall {
       this._remote_streams.forEach(rStream => {
         if (rStream.id === stream.id) {
           rStream.getTracks().forEach(t => {
-            if (t.kind == 'audio') {
+            if (t.kind === 'audio') {
               t.enabled = !output_audio;
             } else if (t.kind == 'video') {
               t.enabled = !output_video;
@@ -468,6 +521,11 @@ export class AculabCloudCall {
     // nothing to do in aculab-cloud-call class
   }
 
+  /**
+   * Call terminated logic:\
+   * set _remote_streams to null, stop local tracks,
+   * remove this call from client and call onDisconnected.
+   */
   _onterminated() {
     this._session = null;
     const cause = this._termination_reason || 'NORMAL';
@@ -495,11 +553,11 @@ export class AculabCloudCall {
     }
   }
 
-  _check_notify_remove_media() {
+  private _check_notify_remove_media() {
     for (let i = this._notified_remote_streams.length - 1; i > 0; i--) {
       let found = false;
       this._remote_streams?.forEach(stream => {
-        if (this._notified_remote_streams[i].id == stream.id) {
+        if (this._notified_remote_streams[i].id === stream.id) {
           found = true;
         }
       });
@@ -867,7 +925,7 @@ export class AculabCloudCall {
     }
     if (
       options.localStreams === undefined ||
-      options.localStreams.length == 0
+      options.localStreams.length === 0
     ) {
       throw 'At least one MediaStream needed in options.localStreams';
     }

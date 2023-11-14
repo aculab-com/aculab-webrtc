@@ -35,7 +35,7 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
 
   _set_termination_reason_from_response(response: sipCore.IncomingResponse) {
     // get termination reason from response
-    if (this._termination_reason == '' && response.message.statusCode) {
+    if (this._termination_reason === '' && response.message.statusCode) {
       this._termination_reason = this._get_reason_from_sip_code(
         response.message.statusCode.toString(),
       );
@@ -74,7 +74,7 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
   }
 
   _progress(response: sipCore.IncomingResponse) {
-    if (response.message && response.message.statusCode == 180) {
+    if (response.message && response.message.statusCode === 180) {
       if (this.onRinging) {
         this.client.console_log('AculabCloudOutgoingCall calling onRinging');
         try {
@@ -101,10 +101,10 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
     }
     if (this._session && !this._disconnect_called) {
       this._disconnect_called = true;
-      if (this._session.state == SessionState.Established) {
+      if (this._session.state === SessionState.Established) {
         void this._session.bye();
-      } else if (this._session.state == SessionState.Establishing) {
-        if (this._termination_reason == '') {
+      } else if (this._session.state === SessionState.Establishing) {
+        if (this._termination_reason === '') {
           this._termination_reason = 'NOANSWER';
           this.client.console_log(
             `setting termination reason - disconnect - ${this._termination_reason}`,

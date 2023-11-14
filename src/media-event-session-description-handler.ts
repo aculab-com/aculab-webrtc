@@ -43,9 +43,9 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
   getUserStreamId(stream: MediaStream) {
     let userStream = '';
     this.userToInternalLocalStreamIds.forEach((value, key) => {
-      if (key == stream.id) {
+      if (key === stream.id) {
         userStream = key;
-      } else if (value == stream.id) {
+      } else if (value === stream.id) {
         userStream = key;
       }
     });
@@ -55,9 +55,9 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
   getInternalStreamId(stream: MediaStream) {
     let internalStream = '';
     this.userToInternalLocalStreamIds.forEach((value, key) => {
-      if (key == stream.id) {
+      if (key === stream.id) {
         internalStream = value;
-      } else if (value == stream.id) {
+      } else if (value === stream.id) {
         internalStream = value;
       }
     });
@@ -75,7 +75,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     }
 
     this._acuRemoteMediaStreams.forEach(st => {
-      if (st.id == internalStreamId) {
+      if (st.id === internalStreamId) {
         if (!st.getTrackById(track.id)) {
           st.addTrack(track);
         }
@@ -88,7 +88,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
       if (this._acuRemoteMediaStreams[i].getTrackById(track.id)) {
         this._acuRemoteMediaStreams[i].removeTrack(track);
       }
-      if (this._acuRemoteMediaStreams[i].getTracks().length == 0) {
+      if (this._acuRemoteMediaStreams[i].getTracks().length === 0) {
         this._acuRemoteMediaStreams.splice(i, 1);
       }
     }
@@ -150,7 +150,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
         'SessionDescriptionHandler.setLocalMediaStream: Checking stream ' +
           stream.id,
       );
-      if (stream.id == stm.id) {
+      if (stream.id === stm.id) {
         this.logger.debug(
           'SessionDescriptionHandler.setLocalMediaStream: Stream already exists ' +
             stream.id,
@@ -303,7 +303,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     this._peerConnection?.getSenders().forEach(sender => {
       if (sender.track) {
         stream.getTracks().forEach(track => {
-          if (sender.track && sender.track.id == track.id) {
+          if (sender.track && sender.track.id === track.id) {
             sender.track.stop();
             this._peerConnection?.removeTrack(sender);
           }
@@ -318,7 +318,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
   addStreamToInternalList(stream: MediaStream, do_clone: boolean) {
     let internalStreamId = null;
     this.userToInternalLocalStreamIds.forEach((value, key) => {
-      if (key == stream.id) {
+      if (key === stream.id) {
         internalStreamId = value;
       }
     });
@@ -362,7 +362,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
             if (!addedStreams.includes(stream.id)) {
               let userStreamId = null;
               this.userToInternalLocalStreamIds.forEach((value, key) => {
-                if (value == stream.id) {
+                if (value === stream.id) {
                   userStreamId = key;
                 }
               });
@@ -375,7 +375,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
           options.reinvite = false;
         }
       } else {
-        if (this._acuGUMStream == null) {
+        if (this._acuGUMStream === null) {
           this._acuGUMStream = await navigator.mediaDevices.getUserMedia(
             options.constraints,
           );
@@ -470,12 +470,12 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
       kind: TransceiverKind,
     ) => {
       if (transceiver.setCodecPreferences && options.codecs) {
-        if (kind == 'video') {
+        if (kind === 'video') {
           this.logger.debug(
             'SessionDescriptionHandler.updateDirection - setting video codecs',
           );
           transceiver.setCodecPreferences(options.codecs.video);
-        } else if (kind == 'audio') {
+        } else if (kind === 'audio') {
           this.logger.debug(
             'SessionDescriptionHandler.updateDirection - setting audio codecs',
           );
@@ -485,9 +485,9 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
       if (transceiver.sender) {
         let bitrate: number | undefined;
 
-        if (kind == 'video' && options.maxBitrateVideo) {
+        if (kind === 'video' && options.maxBitrateVideo) {
           bitrate = options.maxBitrateVideo;
-        } else if (kind == 'audio' && options.maxBitrateAudio) {
+        } else if (kind === 'audio' && options.maxBitrateAudio) {
           bitrate = options.maxBitrateAudio;
         }
 
@@ -541,13 +541,13 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
               let offerDirection: RTCRtpTransceiverDirection = 'inactive';
               const kind = getTransceiverKind(transceiver) as TransceiverKind;
 
-              if (kind == 'video') {
+              if (kind === 'video') {
                 if (options.constraints?.video && options.receiveVideo) {
                   offerDirection = 'sendrecv';
                 } else if (options.constraints?.video) {
                   offerDirection = 'sendonly';
                 }
-              } else if (kind == 'audio') {
+              } else if (kind === 'audio') {
                 if (options.constraints?.audio && options.receiveAudio) {
                   offerDirection = 'sendrecv';
                 } else if (options.constraints?.audio) {
@@ -588,7 +588,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
               let answerDirection: RTCRtpTransceiverDirection = 'inactive';
               const kind = getTransceiverKind(transceiver) as TransceiverKind;
               if (transceiver.mid !== null) {
-                if (kind == 'video' && offeredDirections.video) {
+                if (kind === 'video' && offeredDirections.video) {
                   if (
                     options.constraints?.video &&
                     offeredDirections.video.includes('recv')
@@ -602,7 +602,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
                     }
                   }
                 }
-                if (kind == 'audio' && offeredDirections.audio) {
+                if (kind === 'audio' && offeredDirections.audio) {
                   if (
                     options.constraints?.audio &&
                     offeredDirections.audio.includes('recv')
@@ -705,13 +705,13 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     let in_aud_m = false;
     for (const line of lines) {
       let dir: RTCRtpTransceiverDirection | undefined;
-      if (line == 'a=sendrecv') {
+      if (line === 'a=sendrecv') {
         dir = 'sendrecv';
-      } else if (line == 'a=sendonly') {
+      } else if (line === 'a=sendonly') {
         dir = 'sendonly';
-      } else if (line == 'a=recvonly') {
+      } else if (line === 'a=recvonly') {
         dir = 'recvonly';
-      } else if (line == 'a=inactive') {
+      } else if (line === 'a=inactive') {
         dir = 'inactive';
       }
       if (dir) {
