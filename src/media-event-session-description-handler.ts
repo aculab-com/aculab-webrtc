@@ -39,6 +39,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     this.userToInternalLocalStreamIds = new Map();
     this.remoteMediaStreamsToInternal = new Map();
   }
+
   getUserStreamId(stream: MediaStream) {
     let userStream = '';
     this.userToInternalLocalStreamIds.forEach((value, key) => {
@@ -50,6 +51,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     });
     return userStream;
   }
+
   getInternalStreamId(stream: MediaStream) {
     let internalStream = '';
     this.userToInternalLocalStreamIds.forEach((value, key) => {
@@ -61,6 +63,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     });
     return internalStream;
   }
+
   addRemoteMediaStream(stream: MediaStream, track: MediaStreamTrack) {
     let internalStreamId = this.remoteMediaStreamsToInternal.get(stream.id);
 
@@ -79,6 +82,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
       }
     });
   }
+
   removeRemoteMediaTrack(track: MediaStreamTrack) {
     for (let i = this._acuRemoteMediaStreams.length - 1; i > 0; i--) {
       if (this._acuRemoteMediaStreams[i].getTrackById(track.id)) {
@@ -129,6 +133,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
       ); // TODO: investigate this while testing !!
     }
   }
+
   setLocalMediaStream(stream: MediaStream) {
     this.logger.debug('SessionDescriptionHandler.setLocalMediaStream');
     if (!this._peerConnection) {
@@ -690,6 +695,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     }
     return opts;
   }
+
   static get_audio_video_directions(sdp: string) {
     const lines = sdp.split('\r\n');
     let sess_dir: RTCRtpTransceiverDirection | undefined;

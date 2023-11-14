@@ -3,5 +3,5 @@
 export {
   AculabCloudClient,
   AculabCloudClient as default,
-} from './aculab-cloud-client.js';
-export {AculabCloudCaller} from './aculab-cloud-caller.js';
+} from './aculab-cloud-client';
+export {AculabCloudCaller} from './aculab-cloud-caller';

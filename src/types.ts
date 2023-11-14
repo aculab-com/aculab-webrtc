@@ -82,3 +82,10 @@ export interface CandParam {
   ipAddress?: string;
   portNumber?: string;
 }
+
+export interface IsMutedResponse {
+  mic: boolean;
+  output_audio: boolean;
+  camera: boolean;
+  output_video: boolean;
+}

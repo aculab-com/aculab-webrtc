@@ -43,14 +43,13 @@ export class AculabCloudClient {
     | undefined;
   _registered_token: string;
   _option_request: sipCore.OutgoingRequest | null;
-  // makeOutgoing: (serviceName: string) => AculabCloudOutgoingServiceCall;
 
   constructor(
     cloudId: string,
     webRtcAccessKey: string,
     clientId: string,
     logLevel: number,
-    legacy_interface: boolean
+    legacy_interface: boolean,
   ) {
     this.loglevel = logLevel;
     this._legacy_interface = legacy_interface;
@@ -68,7 +67,6 @@ export class AculabCloudClient {
         clientId +
         "'",
     );
-    //this.console_log("AculabCloudClient using adapter for '" + adapter.browserDetails.browser + "'");
     if (!/^[0-9]+-[0-9]+-[0-9]+$/.test(cloudId)) {
       throw 'Invalid cloudId';
     }
@@ -124,7 +122,6 @@ export class AculabCloudClient {
           this,
         ) as unknown as Web.SessionDescriptionHandlerFactory,
       sessionDescriptionHandlerFactoryOptions: {},
-      // autoStart: false,
     });
     this._ua.delegate = {
       onConnect: () => {
@@ -246,9 +243,6 @@ export class AculabCloudClient {
     this.maxConcurrent = 1;
     this.iceServers = null;
     this._reconnecting = false;
-
-    // add legacy function name alias
-    // this.makeOutgoing = this.callService;
   }
 
   // add legacy function name alias
@@ -280,6 +274,7 @@ export class AculabCloudClient {
         });
     }, 1000);
   }
+
   sessionDescriptionHandlerFactory(
     session: Session,
     options: Web.SessionDescriptionHandlerConfiguration,
@@ -320,6 +315,7 @@ export class AculabCloudClient {
       sessionDescriptionHandlerConfiguration,
     );
   }
+
   _isReady() {
     if (
       this._transport_connected &&
@@ -329,6 +325,7 @@ export class AculabCloudClient {
     }
     return false;
   }
+
   _requestIceServers() {
     if (!this._ua_started || !this._transport_connected) {
       return;
@@ -396,16 +393,19 @@ export class AculabCloudClient {
       },
     });
   }
+
   console_log(msg: string) {
     if (this.loglevel > 1) {
       console.log(msg);
     }
   }
+
   console_error(msg: string) {
     if (this.loglevel > 0) {
       console.error(msg);
     }
   }
+
   _checkStop() {
     if (
       this._calls.size == 0 &&
@@ -420,6 +420,7 @@ export class AculabCloudClient {
       this._transport_connected = false;
     }
   }
+
   _removeCall(
     call:
       | AculabCloudIncomingCall
@@ -452,7 +453,11 @@ export class AculabCloudClient {
       void this._ua.start();
       this._ua_started = true;
     }
-    const outcall = new AculabCloudOutgoingServiceCall(this, serviceName, this._legacy_interface);
+    const outcall = new AculabCloudOutgoingServiceCall(
+      this,
+      serviceName,
+      this._legacy_interface,
+    );
     this._calls.add(outcall);
     return outcall;
   }
@@ -495,7 +500,7 @@ export class AculabCloudClient {
       this,
       clientId,
       token,
-      options
+      options,
     );
     this._calls.add(outcall);
     return outcall;

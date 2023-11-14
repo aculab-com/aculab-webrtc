@@ -16,6 +16,7 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
     this.session = session;
     this.answer_pending = false;
   }
+
   answer(options: CallOptions) {
     this._sdh_options =
       MediaEventSessionDescriptionHandler.fixup_options(options);
@@ -27,11 +28,13 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
       // should we queue a timeout that results on _onterminate getting called
     }
   }
+
   _onclientready() {
     if (this.answer_pending) {
       this._doanswer();
     }
   }
+
   _doanswer() {
     this.client.console_log('AculabCloudIncomingCall: answering');
     if (this._session) {
@@ -43,12 +46,14 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
     }
     this.answer_pending = false;
   }
+
   ringing() {
     this.client.console_log('AculabCloudIncomingCall: ringing');
     if (this._session) {
       void (this._session as Invitation).progress();
     }
   }
+
   reject(cause?: string) {
     this.client.console_log('AculabCloudIncomingCall: reject(' + cause + ')');
     let int_cause = 486;
@@ -81,6 +86,7 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
       }
     }
   }
+
   disconnect() {
     this.client.console_log('AculabCloudIncomingCall disconnect called');
     if (this._session && !this._disconnect_called) {

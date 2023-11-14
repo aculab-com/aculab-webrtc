@@ -8,6 +8,7 @@ import {
   CallOptions,
   CandParam,
   DisconnectedCallObj,
+  IsMutedResponse,
   MediaCallObj,
   MuteObj,
 } from './types';
@@ -60,8 +61,11 @@ export class AculabCloudCall {
   /**
    * @param {AculabCloudClient} client
    */
-  constructor(client: AculabCloudClient, reinvite_possible: boolean,
-	      legacy_interface: boolean) {
+  constructor(
+    client: AculabCloudClient,
+    reinvite_possible: boolean,
+    legacy_interface: boolean,
+  ) {
     this.client = client;
     this._callId = '';
     this._session = null;
@@ -302,10 +306,7 @@ export class AculabCloudCall {
     }
   }
 
-  isMuted(stream: MediaStream) {
-    /**
-     * @return {Object} - {"mic": true/false, "output_audio": true/false, "camera": true/false, "output_video": true/false}
-     * */
+  isMuted(stream: MediaStream): IsMutedResponse {
     const ret = {
       mic: true,
       output_audio: true,
@@ -464,7 +465,7 @@ export class AculabCloudCall {
   }
 
   _onclientready() {
-    // nothing to do in base class
+    // nothing to do in aculab-cloud-call class
   }
 
   _onterminated() {
@@ -493,6 +494,7 @@ export class AculabCloudCall {
       }
     }
   }
+
   _check_notify_remove_media() {
     for (let i = this._notified_remote_streams.length - 1; i > 0; i--) {
       let found = false;
@@ -519,11 +521,13 @@ export class AculabCloudCall {
       }
     }
   }
+
   _check_notify_media() {
     this._remote_streams?.forEach(stream => {
       this._check_notify_stream(stream);
     });
   }
+
   _check_notify_stream(stream: MediaStream) {
     let already_notified = false;
     this._notified_remote_streams.forEach(ns => {
@@ -573,6 +577,7 @@ export class AculabCloudCall {
       }
     }
   }
+
   _check_notify_connected() {
     if (this._connected && !this._notified_connected && this._ice_connected) {
       this._notified_connected = true;
@@ -593,10 +598,12 @@ export class AculabCloudCall {
       }
     }
   }
+
   _onaccepted() {
     this._connected = true;
     this._check_notify_connected();
   }
+
   _set_ice_state(connected: boolean) {
     this.client.console_log(
       'AculabCloudCall set_ice_state(connected=' + connected + ')',
@@ -605,6 +612,7 @@ export class AculabCloudCall {
     this._check_notify_media();
     this._check_notify_connected();
   }
+
   _add_media_handlers(sdh: MediaEventSessionDescriptionHandler) {
     this.client.console_log('AculabCloudCall adding media event handlers');
 
@@ -692,6 +700,7 @@ export class AculabCloudCall {
       },
     };
   }
+
   getConnectionInfo() {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const that = this;
@@ -773,6 +782,7 @@ export class AculabCloudCall {
       }
     });
   }
+
   addStream(stream: MediaStream) {
     if (!this._allowed_reinvite) {
       throw 'addStream not available';

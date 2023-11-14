@@ -7,11 +7,11 @@ import {
   URI,
   UserAgent,
   equivalentURI,
+  RequestPendingError,
+  RegistererState,
+  EmitterImpl,
   Core as sipCore,
 } from 'sip.js';
-import {EmitterImpl} from 'sip.js';
-import {RequestPendingError} from 'sip.js';
-import {RegistererState} from 'sip.js';
 import {Cause, StateEventEmitter} from './types';
 
 const DEFAULT_EXPIRE_TIME = 600;
@@ -159,6 +159,7 @@ export class TokenRegisterer {
       registrar: new URI('sip', 'anonymous', 'anonymous.invalid'),
     };
   }
+
   // http://stackoverflow.com/users/109538/broofa
   static newUUID() {
     const UUID = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -168,6 +169,7 @@ export class TokenRegisterer {
     });
     return UUID;
   }
+
   /**
    * Strip properties with undefined values from options.
    * This is a work around while waiting for missing vs undefined to be addressed (or not)...
@@ -183,10 +185,12 @@ export class TokenRegisterer {
       return obj;
     }, {});
   }
+
   /** The registered contacts. */
   get contacts() {
     return this._contacts.slice();
   }
+
   /**
    * The number of seconds to wait before retrying to register.
    * @defaultValue `undefined`
@@ -223,14 +227,17 @@ export class TokenRegisterer {
   get retryAfter() {
     return this._retryAfter;
   }
+
   /** The registration state. */
   get state() {
     return this._state;
   }
+
   /** Emits when the registerer state changes. */
   get stateChange() {
     return this._stateEventEmitter;
   }
+
   /** Destructor. */
   dispose() {
     if (this.disposed) {
@@ -275,6 +282,7 @@ export class TokenRegisterer {
       }
     });
   }
+
   setToken(token: string) {
     this.user_token = token;
     this.change_pending = true;
@@ -282,6 +290,7 @@ export class TokenRegisterer {
       this.processChange();
     }
   }
+
   processChange() {
     if (this.change_pending) {
       this.change_pending = false;
@@ -297,6 +306,7 @@ export class TokenRegisterer {
       }
     }
   }
+
   /**
    * Sends the REGISTER request.
    * @remarks
@@ -680,6 +690,7 @@ export class TokenRegisterer {
     );
     return Promise.resolve(outgoingRegisterRequest);
   }
+
   /**
    * Clear registration timers.
    */
@@ -693,6 +704,7 @@ export class TokenRegisterer {
       this.registrationExpiredTimer = undefined;
     }
   }
+
   /**
    * Generate Contact Header
    */
@@ -710,6 +722,7 @@ export class TokenRegisterer {
     contact += ';expires=' + expires;
     return contact;
   }
+
   /**
    * Helper function, called when registered.
    */
@@ -731,6 +744,7 @@ export class TokenRegisterer {
     }, expires * 1000);
     this.stateTransition(RegistererState.Registered, 'NORMAL');
   }
+
   /**
    * Helper function, called when unregistered.
    */
@@ -738,6 +752,7 @@ export class TokenRegisterer {
     this.clearTimers();
     this.stateTransition(RegistererState.Unregistered, reason);
   }
+
   /**
    * Helper function, called when terminated.
    */
@@ -747,6 +762,7 @@ export class TokenRegisterer {
       this.stateTransition(RegistererState.Terminated);
     }
   }
+
   /**
    * Transition registration state.
    */
@@ -811,14 +827,17 @@ export class TokenRegisterer {
       void this.dispose();
     }
   }
+
   /** True if the registerer is currently waiting for final response to a REGISTER request. */
   get waiting() {
     return this._waiting;
   }
+
   /** Emits when the registerer waiting state changes. */
   get waitingChange() {
     return this._waitingEventEmitter;
   }
+
   /**
    * Toggle waiting.
    */
@@ -841,6 +860,7 @@ export class TokenRegisterer {
         });
     }
   }
+
   /** Hopefully helpful as the standard behavior has been found to be unexpected. */
   waitingWarning() {
     let message =
@@ -855,6 +875,7 @@ export class TokenRegisterer {
       ' sending a new REGISTER request or alternatively dispose of the current Registerer and create a new Registerer.';
     this.logger.warn(message);
   }
+
   /** Hopefully helpful as the standard behavior has been found to be unexpected. */
   stateError() {
     const reason =

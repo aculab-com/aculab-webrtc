@@ -1,9 +1,9 @@
-import {CallInviter} from './call-inviter.js';
-import {AculabCloudCall} from './aculab-cloud-call.js';
-import {MediaEventSessionDescriptionHandler} from './media-event-session-description-handler.js';
+import {CallInviter} from './call-inviter';
+import {AculabCloudCall} from './aculab-cloud-call';
+import {MediaEventSessionDescriptionHandler} from './media-event-session-description-handler';
 import {SessionState, URI, Core as sipCore} from 'sip.js';
-import {AculabCloudClient} from './aculab-cloud-client.js';
-import {CallOptions} from './types.js';
+import {AculabCloudClient} from './aculab-cloud-client';
+import {CallOptions} from './types';
 
 export class AculabCloudOutgoingCall extends AculabCloudCall {
   _uri: URI;
@@ -16,7 +16,7 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
     inviter_options: object,
     options: CallOptions | undefined,
     reinvite_possible: boolean,
-    legacy_interface: boolean
+    legacy_interface: boolean,
   ) {
     super(client, reinvite_possible, legacy_interface);
     this._uri = uri;
@@ -32,6 +32,7 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
       // should we queue a timeout that results on _onterminate getting called
     }
   }
+
   _set_termination_reason_from_response(response: sipCore.IncomingResponse) {
     // get termination reason from response
     if (this._termination_reason == '' && response.message.statusCode) {
@@ -43,11 +44,13 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
       );
     }
   }
+
   _onclientready() {
     if (this.invite_pending) {
       this._doinvite();
     }
   }
+
   _doinvite() {
     this.client.console_log(
       'AculabCloudOutgoingCall: invite to "' + this._uri.toString() + '"',
@@ -69,6 +72,7 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
     void this._session?.invite(opts);
     this.invite_pending = false;
   }
+
   _progress(response: sipCore.IncomingResponse) {
     if (response.message && response.message.statusCode == 180) {
       if (this.onRinging) {
@@ -84,6 +88,7 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
       }
     }
   }
+
   disconnect() {
     this.client.console_log('AculabCloudOutgoingCall disconnect called');
     if (this.invite_pending) {
