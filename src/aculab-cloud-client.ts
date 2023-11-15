@@ -245,11 +245,18 @@ export class AculabCloudClient {
     this._reconnecting = false;
   }
 
-  // add legacy function name alias
+  /**
+   * add legacy function name alias
+   * @param serviceName service id to call
+   * @returns aculab cloud outgoing service call
+   */
   makeOutgoing = (serviceName: string) => {
     return this.callService(serviceName);
   };
 
+  /**
+   * Reconnect
+   */
   reconnect() {
     if (!this._ua_started) {
       return;
@@ -275,6 +282,12 @@ export class AculabCloudClient {
     }, 1000);
   }
 
+  /**
+   * Session description handler factory
+   * @param session sip season
+   * @param options configuration options
+   * @returns Media Event Session Description Handler
+   */
   sessionDescriptionHandlerFactory(
     session: Session,
     options: Web.SessionDescriptionHandlerConfiguration,
@@ -316,6 +329,10 @@ export class AculabCloudClient {
     );
   }
 
+  /**
+   * Returns true if client is ready to be used.
+   * @returns client is ready true/false
+   */
   _isReady() {
     if (
       this._transport_connected &&
@@ -326,6 +343,9 @@ export class AculabCloudClient {
     return false;
   }
 
+  /**
+   * Request Ice Servers
+   */
   _requestIceServers() {
     if (!this._ua_started || !this._transport_connected) {
       return;
@@ -394,19 +414,30 @@ export class AculabCloudClient {
     });
   }
 
+  /**
+   * Console log
+   * @param msg message
+   */
   console_log(msg: string) {
     if (this.loglevel > 1) {
       console.log(msg);
     }
   }
 
+  /**
+   * Console error
+   * @param msg message
+   */
   console_error(msg: string) {
     if (this.loglevel > 0) {
       console.error(msg);
     }
   }
 
-  _checkStop() {
+  /**
+   * Stop checking
+   */
+  private _checkStop() {
     if (
       this._calls.size === 0 &&
       this._token === null &&
@@ -421,6 +452,11 @@ export class AculabCloudClient {
     }
   }
 
+  /**
+   * Remove call from calls
+   * @param call call to be removed
+   * @returns was call removed? true/false
+   */
   _removeCall(
     call:
       | AculabCloudIncomingCall
@@ -435,6 +471,11 @@ export class AculabCloudClient {
     return false; // already gone
   }
 
+  /**
+   * Create a service call
+   * @param serviceName service id to be called
+   * @returns Aculab Cloud Outgoing Service Call
+   */
   callService(serviceName: string) {
     // some users are including the sip: in the service name, strip it
     if (serviceName.startsWith('sip%3A') || serviceName.startsWith('sip%3a')) {
@@ -462,6 +503,13 @@ export class AculabCloudClient {
     return outcall;
   }
 
+  /**
+   * Create a client call
+   * @param clientId client id to be called
+   * @param token webrtc token
+   * @param options call options
+   * @returns Aculab Cloud Outgoing Client Call
+   */
   callClient(clientId: string, token: string, options: CallOptions) {
     if (typeof clientId !== 'string') {
       throw 'clientId is not a string';
@@ -506,6 +554,11 @@ export class AculabCloudClient {
     return outcall;
   }
 
+  /**
+   * Enable incoming call and refresh client with new webrtc token.\
+   * If you want to refresh client with new webrtc token use this function.
+   * @param token webrtc token
+   */
   enableIncoming(token: string) {
     // check token looks plausible
     const token_bits = token.split('.');
@@ -565,6 +618,9 @@ export class AculabCloudClient {
     }
   }
 
+  /**
+   * Disable incoming calls
+   */
   disableIncoming() {
     this._token = '';
     if (this._registerer) {
@@ -574,10 +630,17 @@ export class AculabCloudClient {
     }
   }
 
+  /**
+   * Close connection
+   */
   closeConnection() {
     void this._ua.transport.disconnect();
   }
 
+  /**
+   * Check is WebRTC client supported.
+   * @returns true if WebRTC client is supported.
+   */
   static isSupported() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       return false;
@@ -591,7 +654,12 @@ export class AculabCloudClient {
     return true;
   }
 
-  static getCodecList(mediaType: string) {
+  /**
+   * get supported codecs
+   * @param mediaType codecs type
+   * @returns codecs list
+   */
+  static getCodecList(mediaType: 'audio' | 'video') {
     if (
       window.RTCRtpTransceiver &&
       'setCodecPreferences' in window.RTCRtpTransceiver.prototype

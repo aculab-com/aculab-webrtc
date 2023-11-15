@@ -23,12 +23,19 @@ export class CallInviter extends Inviter {
     this.call = call;
   }
 
+  /**
+   * get Media Event Session Description Handler
+   */
   public get sessionDescriptionHandler():
     | MediaEventSessionDescriptionHandler
     | undefined {
     return this._sessionDescriptionHandler;
   }
 
+  /**
+   * Set Media Event Session Description Handler
+   * @param sdh Media Event Session Description Handler
+   */
   public setSessionDescriptionHandler(
     sdh: MediaEventSessionDescriptionHandler,
   ) {
@@ -38,15 +45,23 @@ export class CallInviter extends Inviter {
     this._sessionDescriptionHandler = sdh;
   }
 
-  onRedirect(response: sipCore.IncomingResponse) {
-    this.call._set_termination_reason_from_response(response);
+  /**
+   * Handle final response to initial INVITE.
+   * @param inviteResponse - 3xx response.
+   */
+  onRedirect(inviteResponse: sipCore.IncomingResponse) {
+    this.call._set_termination_reason_from_response(inviteResponse);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    super['onRedirect'](response);
+    super['onRedirect'](inviteResponse);
   }
 
-  onReject(response: sipCore.IncomingResponse) {
-    this.call._set_termination_reason_from_response(response);
+  /**
+   * Handle final response to initial INVITE.
+   * @param inviteResponse - 4xx, 5xx, or 6xx response.
+   */
+  onReject(inviteResponse: sipCore.IncomingResponse) {
+    this.call._set_termination_reason_from_response(inviteResponse);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    super['onReject'](response);
+    super['onReject'](inviteResponse);
   }
 }

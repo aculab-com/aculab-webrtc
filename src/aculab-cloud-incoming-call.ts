@@ -17,6 +17,10 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
     this.answer_pending = false;
   }
 
+  /**
+   * Answer incoming call.
+   * @param options call options
+   */
   answer(options: CallOptions) {
     this._sdh_options =
       MediaEventSessionDescriptionHandler.fixup_options(options);
@@ -29,12 +33,18 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
     }
   }
 
+  /**
+   * Answer call is answer is pending
+   */
   _onclientready() {
     if (this.answer_pending) {
       this._doanswer();
     }
   }
 
+  /**
+   * Accept call invitation
+   */
   _doanswer() {
     this.client.console_log('AculabCloudIncomingCall: answering');
     if (this._session) {
@@ -47,6 +57,9 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
     this.answer_pending = false;
   }
 
+  /**
+   * Call is ringing.
+   */
   ringing() {
     this.client.console_log('AculabCloudIncomingCall: ringing');
     if (this._session) {
@@ -54,6 +67,10 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
     }
   }
 
+  /**
+   * Reject incoming call
+   * @param cause sip status code number as string between 400 and 700
+   */
   reject(cause?: string) {
     this.client.console_log('AculabCloudIncomingCall: reject(' + cause + ')');
     let int_cause = 486;
@@ -87,6 +104,9 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
     }
   }
 
+  /**
+   * Disconnect incoming call
+   */
   disconnect() {
     this.client.console_log('AculabCloudIncomingCall disconnect called');
     if (this._session && !this._disconnect_called) {

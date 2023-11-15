@@ -29,6 +29,10 @@ export class AculabCloudOutgoingClientCall extends AculabCloudOutgoingCall {
     );
   }
 
+  /**
+   * Add media handlers to media description session handler.
+   * @param sdh media description session handler
+   */
   _add_media_handlers(sdh: MediaEventSessionDescriptionHandler) {
     super._add_media_handlers(sdh);
     // add transceivers if we want to receive (not needed if we are sending, but doesn't hurt)

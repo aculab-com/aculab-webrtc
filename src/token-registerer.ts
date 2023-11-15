@@ -146,7 +146,11 @@ export class TokenRegisterer {
     // @ts-ignore TokenRegisterer is assigned to Registerer type but missing bits.
     this.userAgent._registerers[this.id] = this;
   }
-  /** Default registerer options. */
+
+  /**
+   * Default registerer options.
+   * @returns registerer default options
+   */
   static defaultOptions() {
     return {
       expires: DEFAULT_EXPIRE_TIME,
@@ -160,7 +164,11 @@ export class TokenRegisterer {
     };
   }
 
-  // http://stackoverflow.com/users/109538/broofa
+  /**
+   * Create new uuid.\
+   * http://stackoverflow.com/users/109538/broofa
+   * @returns uuid
+   */
   static newUUID() {
     const UUID = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
       const r = Math.floor(Math.random() * 16);
@@ -172,7 +180,7 @@ export class TokenRegisterer {
 
   /**
    * Strip properties with undefined values from options.
-   * This is a work around while waiting for missing vs undefined to be addressed (or not)...
+   * This is a work around while waiting for missing vs undefined to be addressed (or not)...\
    * https://github.com/Microsoft/TypeScript/issues/13195
    * @param options - Options to reduce
    */
@@ -186,7 +194,9 @@ export class TokenRegisterer {
     }, {});
   }
 
-  /** The registered contacts. */
+  /**
+   * get registered contacts.
+   */
   get contacts() {
     return this._contacts.slice();
   }
@@ -228,17 +238,24 @@ export class TokenRegisterer {
     return this._retryAfter;
   }
 
-  /** The registration state. */
+  /**
+   * The registration state.
+   */
   get state() {
     return this._state;
   }
 
-  /** Emits when the registerer state changes. */
+  /**
+   * Emits when the registerer state changes.
+   */
   get stateChange() {
     return this._stateEventEmitter;
   }
 
-  /** Destructor. */
+  /**
+   * Destructor.
+   * @returns Promise resolve
+   */
   dispose() {
     if (this.disposed) {
       return Promise.resolve();
@@ -283,6 +300,10 @@ export class TokenRegisterer {
     });
   }
 
+  /**
+   * Set WebRTC token.
+   * @param token webrtc token
+   */
   setToken(token: string) {
     this.user_token = token;
     this.change_pending = true;
@@ -291,6 +312,9 @@ export class TokenRegisterer {
     }
   }
 
+  /**
+   * Change handler
+   */
   processChange() {
     if (this.change_pending) {
       this.change_pending = false;
@@ -828,12 +852,16 @@ export class TokenRegisterer {
     }
   }
 
-  /** True if the registerer is currently waiting for final response to a REGISTER request. */
+  /**
+   * True if the registerer is currently waiting for final response to a REGISTER request.
+   */
   get waiting() {
     return this._waiting;
   }
 
-  /** Emits when the registerer waiting state changes. */
+  /**
+   * Emits when the registerer waiting state changes.
+   */
   get waitingChange() {
     return this._waitingEventEmitter;
   }
@@ -861,7 +889,9 @@ export class TokenRegisterer {
     }
   }
 
-  /** Hopefully helpful as the standard behavior has been found to be unexpected. */
+  /**
+   * Hopefully helpful as the standard behavior has been found to be unexpected.
+   */
   waitingWarning() {
     let message =
       'An attempt was made to send a REGISTER request while a prior one was still in progress.';
@@ -876,7 +906,9 @@ export class TokenRegisterer {
     this.logger.warn(message);
   }
 
-  /** Hopefully helpful as the standard behavior has been found to be unexpected. */
+  /**
+   * Hopefully helpful as the standard behavior has been found to be unexpected.
+   */
   stateError() {
     const reason =
       this.state === RegistererState.Terminated

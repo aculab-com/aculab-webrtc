@@ -40,6 +40,11 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     this.remoteMediaStreamsToInternal = new Map();
   }
 
+  /**
+   * get user stream ID
+   * @param stream media stream
+   * @returns user stream ID
+   */
   getUserStreamId(stream: MediaStream) {
     let userStream = '';
     this.userToInternalLocalStreamIds.forEach((value, key) => {
@@ -52,6 +57,11 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     return userStream;
   }
 
+  /**
+   * get internal stream id.
+   * @param stream media stream
+   * @returns internal stream
+   */
   getInternalStreamId(stream: MediaStream) {
     let internalStream = '';
     this.userToInternalLocalStreamIds.forEach((value, key) => {
@@ -64,6 +74,11 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     return internalStream;
   }
 
+  /**
+   * Add remote media to remote internal streams.
+   * @param stream media stream
+   * @param track media stream track
+   */
   addRemoteMediaStream(stream: MediaStream, track: MediaStreamTrack) {
     let internalStreamId = this.remoteMediaStreamsToInternal.get(stream.id);
 
@@ -83,6 +98,10 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     });
   }
 
+  /**
+   * Remove remote media to remote internal streams.
+   * @param track media stream track
+   */
   removeRemoteMediaTrack(track: MediaStreamTrack) {
     for (let i = this._acuRemoteMediaStreams.length - 1; i > 0; i--) {
       if (this._acuRemoteMediaStreams[i].getTrackById(track.id)) {
@@ -94,13 +113,18 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     }
   }
 
+  /**
+   * get remote media stream.
+   */
   get remoteMediaStreams() {
     return this._acuRemoteMediaStreams;
   }
 
+  /**
+   * Add tract to remote stream and to session description handler.
+   * @param track media stream track
+   */
   setRemoteTrack(track: MediaStreamTrack) {
-    // Don't want to actually use this function since we are using deprecated
-    // getLocalStreams....  NEED THIS EVENTUALLY ONE OF THE APIS REACT NATIVE NEEDS
     this.logger.debug('SessionDescriptionHandler.setRemoteTrack');
 
     const remoteStream = this._remoteMediaStream;
@@ -119,7 +143,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
       Web.SessionDescriptionHandler['dispatchAddTrackEvent'](
         remoteStream,
         track,
-      ); // TODO: investigate this while testing !!
+      );
     } else if (track.kind === 'video') {
       this.logger.debug(
         `SessionDescriptionHandler.setRemoteTrack - adding remote ${track.kind} track`,
@@ -130,10 +154,14 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
       Web.SessionDescriptionHandler['dispatchAddTrackEvent'](
         remoteStream,
         track,
-      ); // TODO: investigate this while testing !!
+      );
     }
   }
 
+  /**
+   * Set local media stream to session description handler
+   * @param stream media stream
+   */
   setLocalMediaStream(stream: MediaStream) {
     this.logger.debug('SessionDescriptionHandler.setLocalMediaStream');
     if (!this._peerConnection) {
@@ -188,8 +216,13 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     return Promise.resolve();
   }
 
+  /**
+   * if call constrains are not valid return default call constrains.
+   * @param constraints call constrains
+   * @returns call constrains
+   */
   checkAndDefaultConstraints(constraints: CallConstraints) {
-    const defaultConstraints: CallConstraints = {audio: true, video: true};
+    const defaultConstraints = {audio: true, video: true};
     constraints = constraints || defaultConstraints;
     // Empty object check
     if (
@@ -218,7 +251,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
 
   /**
    * Creates an offer or answer.
-   * @param options - Options bucket.
+   * @param options - session description handler options.
    * @param modifiers - Modifiers.
    */
   async getDescription(
@@ -280,6 +313,11 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
       });
   }
 
+  /**
+   * get local media stream by ID
+   * @param id id of a local media stream
+   * @returns local media stream or null
+   */
   getLocalMediaStreamById(id: string): MediaStream | null {
     let result = null;
     this.acuLocalMediaStreams.forEach(stream => {
@@ -290,6 +328,11 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     return result;
   }
 
+  /**
+   * Get the first local media stream from localMediaStreams array
+   * @param options call options
+   * @returns local media stream or null
+   */
   // @ts-expect-error overwriting - this method is incompatible with the original from SessionDescriptionHandler.
   async getLocalMediaStream(options: CallOptions) {
     const ms = await this.getLocalMediaStreams(options);
@@ -299,6 +342,10 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     return null;
   }
 
+  /**
+   * Remove local media stream from peerConnection.
+   * @param stream media stream
+   */
   removeLocalMediaStream(stream: MediaStream) {
     this._peerConnection?.getSenders().forEach(sender => {
       if (sender.track) {
@@ -315,6 +362,12 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     );
   }
 
+  /**
+   * Add media stream to internal local stream list.
+   * @param stream media stream
+   * @param do_clone shall we clone the stream in case it changes beneath us?
+   * @returns internal stream ID
+   */
   addStreamToInternalList(stream: MediaStream, do_clone: boolean) {
     let internalStreamId = null;
     this.userToInternalLocalStreamIds.forEach((value, key) => {
@@ -336,6 +389,11 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     return internalStreamId;
   }
 
+  /**
+   * get list of local media streams.
+   * @param options call options
+   * @returns local media streams
+   */
   async getLocalMediaStreams(options: CallOptions) {
     if (options.constraints === undefined) {
       options = this.options;
@@ -425,6 +483,9 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     }
   }
 
+  /**
+   * Close peer connection.
+   */
   close() {
     this.logger.log('closing PeerConnection');
     // have to check signalingState since this.close() gets called multiple times
@@ -450,6 +511,10 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     }
   }
 
+  /**
+   * Depending on the current signaling state and the session hold state, update transceiver direction.
+   * @param options call options
+   */
   updateDirection(options: CallOptions) {
     if (this._peerConnection === undefined) {
       return Promise.reject(new Error('Peer connection closed.'));
@@ -643,6 +708,11 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     return Promise.resolve();
   }
 
+  /**
+   * Makes sure your call options are as they should be.
+   * @param options call options
+   * @returns call options
+   */
   static fixup_options(options?: CallOptions) {
     const defaults: CallOptions = {
       constraints: {
@@ -696,6 +766,11 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     return opts;
   }
 
+  /**
+   * get audio and video directions.
+   * @param sdp session description protocol
+   * @returns audio/video directions object
+   */
   static get_audio_video_directions(sdp: string) {
     const lines = sdp.split('\r\n');
     let sess_dir: RTCRtpTransceiverDirection | undefined;
@@ -748,7 +823,11 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     return {video: vid_dir, audio: aud_dir};
   }
 
-  // Creates an RTCSessionDescriptionInit from an RTCSessionDescription
+  /**
+   * Creates an RTCSessionDescriptionInit from an RTCSessionDescription
+   * @param RTCSessionDescription  RTC session description
+   * @returns type/sdp object
+   */
   createRTCSessionDescriptionInit(
     RTCSessionDescription: RTCSessionDescription,
   ) {

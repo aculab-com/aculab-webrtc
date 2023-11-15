@@ -553,6 +553,10 @@ export class AculabCloudCall {
     }
   }
 
+  /**
+   * Removes remote media streams that were not notified
+   * and triggers onMediaRemove if it has been set.
+   */
   private _check_notify_remove_media() {
     for (let i = this._notified_remote_streams.length - 1; i > 0; i--) {
       let found = false;
@@ -580,13 +584,22 @@ export class AculabCloudCall {
     }
   }
 
-  _check_notify_media() {
+  /**
+   * Check all _remote_streams have been notified.
+   */
+  private _check_notify_media() {
     this._remote_streams?.forEach(stream => {
       this._check_notify_stream(stream);
     });
   }
 
-  _check_notify_stream(stream: MediaStream) {
+  /**
+   * Check if stream has been notified.\
+   * if not it add stream to _notified_remote_streams,
+   * sets on track onunmute and onmute and triggers onMedia.
+   * @param stream media stream
+   */
+  private _check_notify_stream(stream: MediaStream) {
     let already_notified = false;
     this._notified_remote_streams.forEach(ns => {
       if (ns.id == stream.id) {
@@ -636,7 +649,10 @@ export class AculabCloudCall {
     }
   }
 
-  _check_notify_connected() {
+  /**
+   * triggers onConnected.
+   */
+  private _check_notify_connected() {
     if (this._connected && !this._notified_connected && this._ice_connected) {
       this._notified_connected = true;
 
@@ -657,12 +673,19 @@ export class AculabCloudCall {
     }
   }
 
-  _onaccepted() {
+  /**
+   * handle connected
+   */
+  private _onaccepted() {
     this._connected = true;
     this._check_notify_connected();
   }
 
-  _set_ice_state(connected: boolean) {
+  /**
+   * Set ice connected and notify media + connected.
+   * @param connected is connected
+   */
+  private _set_ice_state(connected: boolean) {
     this.client.console_log(
       'AculabCloudCall set_ice_state(connected=' + connected + ')',
     );
@@ -671,6 +694,10 @@ export class AculabCloudCall {
     this._check_notify_connected();
   }
 
+  /**
+   * Add media handlers to media description session handler.
+   * @param sdh media description session handler
+   */
   _add_media_handlers(sdh: MediaEventSessionDescriptionHandler) {
     this.client.console_log('AculabCloudCall adding media event handlers');
 
@@ -759,7 +786,11 @@ export class AculabCloudCall {
     };
   }
 
-  getConnectionInfo() {
+  /**
+   * Get connection information.
+   * @returns address info or error message
+   */
+  getConnectionInfo(): Promise<string> {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const that = this;
     return new Promise(function (resolve) {
@@ -841,6 +872,10 @@ export class AculabCloudCall {
     });
   }
 
+  /**
+   * Add media stream
+   * @param stream media stream to be added
+   */
   addStream(stream: MediaStream) {
     if (!this._allowed_reinvite) {
       throw 'addStream not available';
@@ -886,6 +921,10 @@ export class AculabCloudCall {
     }
   }
 
+  /**
+   * Remove media stream
+   * @param stream media stream
+   */
   removeStream(stream: MediaStream) {
     if (!this._allowed_reinvite) {
       throw 'removeStream not available';
@@ -919,6 +958,10 @@ export class AculabCloudCall {
     }
   }
 
+  /**
+   * Session reinvite.
+   * @param options call options
+   */
   reinvite(options: CallOptions) {
     if (!this._allowed_reinvite) {
       throw 'Reinvite not available';

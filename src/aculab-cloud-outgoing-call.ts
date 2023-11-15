@@ -33,6 +33,10 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
     }
   }
 
+  /**
+   * Set termination reason from response
+   * @param response sip incoming response
+   */
   _set_termination_reason_from_response(response: sipCore.IncomingResponse) {
     // get termination reason from response
     if (this._termination_reason === '' && response.message.statusCode) {
@@ -45,12 +49,18 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
     }
   }
 
+  /**
+   * Answer call is answer is pending
+   */
   _onclientready() {
     if (this.invite_pending) {
       this._doinvite();
     }
   }
 
+  /**
+   * Create new invite session
+   */
   _doinvite() {
     this.client.console_log(
       'AculabCloudOutgoingCall: invite to "' + this._uri.toString() + '"',
@@ -73,6 +83,10 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
     this.invite_pending = false;
   }
 
+  /**
+   * ringing handler
+   * @param response sip incoming response
+   */
   _progress(response: sipCore.IncomingResponse) {
     if (response.message && response.message.statusCode === 180) {
       if (this.onRinging) {
@@ -89,6 +103,9 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
     }
   }
 
+  /**
+   * Disconnect outbound call
+   */
   disconnect() {
     this.client.console_log('AculabCloudOutgoingCall disconnect called');
     if (this.invite_pending) {
