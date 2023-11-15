@@ -66,7 +66,7 @@ export class AculabCloudCall {
   constructor(
     client: AculabCloudClient,
     reinvite_possible: boolean,
-    legacy_interface: boolean,
+    legacy_interface: boolean = false,
   ) {
     this.client = client;
     this._callId = '';

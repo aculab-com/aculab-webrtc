@@ -6,7 +6,7 @@ export class AculabCloudOutgoingServiceCall extends AculabCloudOutgoingCall {
   constructor(
     client: AculabCloudClient,
     serviceName: string,
-    legacy_interface: boolean,
+    legacy_interface: boolean = false,
   ) {
     const uri = new URI(
       'sip',

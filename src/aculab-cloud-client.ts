@@ -49,7 +49,7 @@ export class AculabCloudClient {
     webRtcAccessKey: string,
     clientId: string,
     logLevel: number,
-    legacy_interface: boolean,
+    legacy_interface: boolean = false,
   ) {
     this.loglevel = logLevel;
     this._legacy_interface = legacy_interface;
