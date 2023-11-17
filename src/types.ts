@@ -17,6 +17,7 @@ export interface MuteObj {
 
 export interface CallObj {
   call: AculabCloudCall | AculabCloudOutgoingCall | AculabCloudIncomingCall;
+  call_state?: string;
 }
 
 export interface DisconnectedCallObj extends CallObj {

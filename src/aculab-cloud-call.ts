@@ -50,17 +50,17 @@ export class AculabCloudCall {
   _notified_remote_streams: MediaStream[];
   _sdh_options?: CallOptions;
   _legacy_interface: boolean;
-  onRinging?: (callObj?: CallObj) => void;
-  onLocalVideoMute?: (obj?: MuteObj) => void;
-  onLocalVideoUnmute?: (obj?: MuteObj) => void;
-  onRemoteVideoMute?: (obj?: MuteObj) => void;
-  onRemoteVideoUnmute?: (obj?: MuteObj) => void;
+  onRinging?: (callObj: CallObj) => void;
+  onLocalVideoMute?: (obj: MuteObj) => void;
+  onLocalVideoUnmute?: (obj: MuteObj) => void;
+  onRemoteVideoMute?: (obj: MuteObj) => void;
+  onRemoteVideoUnmute?: (obj: MuteObj) => void;
   onConnecting?: (callObj: MediaCallObj) => void;
   onMedia?: (callObj: MediaCallObj) => void;
-  onMediaRemove?: (callObj?: MediaCallObj) => void;
-  onLocalMedia?: (callObj?: MediaCallObj) => void;
-  onLocalMediaRemove?: (callObj?: MediaCallObj) => void;
-  onConnected?: (callObj?: CallObj) => void;
+  onMediaRemove?: (callObj: MediaCallObj) => void;
+  onLocalMedia?: (callObj: MediaCallObj) => void;
+  onLocalMediaRemove?: (callObj: MediaCallObj) => void;
+  onConnected?: (callObj: CallObj) => void;
   onDisconnect?: (callObj: DisconnectedCallObj) => void;
 
   constructor(
@@ -121,19 +121,19 @@ export class AculabCloudCall {
   }
 
   // Setters for backwards compatibility
-  set onLocalVideoMuteCB(func: () => void) {
+  set onLocalVideoMuteCB(func: (obj: MuteObj) => void) {
     this.onLocalVideoMute = func;
   }
 
-  set onLocalVideoUnMuteCB(func: () => void) {
+  set onLocalVideoUnMuteCB(func: (obj: MuteObj) => void) {
     this.onLocalVideoUnmute = func;
   }
 
-  set onRemoteVideoMuteCB(func: () => void) {
+  set onRemoteVideoMuteCB(func: (obj: MuteObj) => void) {
     this.onRemoteVideoMute = func;
   }
 
-  set onRemoteVideoUnMuteCB(func: () => void) {
+  set onRemoteVideoUnMuteCB(func: (obj: MuteObj) => void) {
     this.onRemoteVideoUnmute = func;
   }
 
@@ -425,7 +425,7 @@ export class AculabCloudCall {
     this.client.console_log(
       'AculabCloudCall muteLocalStream(mic=' + mic + ',  camera=' + camera,
     );
-    let internal_stream_id = null;
+    let internal_stream_id = '';
     if (this._session && this._session.sessionDescriptionHandler) {
       internal_stream_id = (
         this._session

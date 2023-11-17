@@ -41,6 +41,13 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
   }
 
   /**
+   * Peer connection getter.
+   */
+  get peerConnection() {
+    return this._peerConnection;
+  }
+
+  /**
    * get user stream ID
    * @param stream media stream
    * @returns user stream ID
