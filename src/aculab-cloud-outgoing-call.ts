@@ -9,6 +9,7 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
   _uri: URI;
   invite_pending: boolean;
   _inviter_options: object;
+  declare _session: CallInviter;
 
   constructor(
     client: AculabCloudClient,
@@ -127,7 +128,7 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
             `setting termination reason - disconnect - ${this._termination_reason}`,
           );
         }
-        void (this._session as CallInviter).cancel();
+        void this._session.cancel();
       }
     }
   }

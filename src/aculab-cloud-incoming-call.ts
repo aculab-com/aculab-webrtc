@@ -6,11 +6,8 @@ import {CallOptions} from './types';
 
 export class AculabCloudIncomingCall extends AculabCloudCall {
   answer_pending: boolean;
+  declare _session: Invitation;
 
-  /**
-   * @param {AculabCloudClient} client
-   * @param {Invitation} session
-   */
   constructor(client: AculabCloudClient, session: Invitation) {
     super(client, true, false);
     this.session = session;
@@ -52,7 +49,7 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
       const opts = {
         sessionDescriptionHandlerOptions: this._sdh_options,
       };
-      void (this._session as Invitation).accept(opts);
+      void this._session.accept(opts);
     }
     this.answer_pending = false;
   }
@@ -63,7 +60,7 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
   ringing() {
     this.client.console_log('AculabCloudIncomingCall: ringing');
     if (this._session) {
-      void (this._session as Invitation).progress();
+      void this._session.progress();
     }
   }
 
@@ -93,7 +90,7 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
         this._session.state === SessionState.Initial ||
         this._session.state === SessionState.Establishing
       ) {
-        void (this._session as Invitation).reject({statusCode: int_cause});
+        void this._session.reject({statusCode: int_cause});
       } else {
         void this._session.bye({
           requestOptions: {

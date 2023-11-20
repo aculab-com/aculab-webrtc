@@ -40,12 +40,12 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     this.remoteMediaStreamsToInternal = new Map();
   }
 
-  /**
-   * Peer connection getter.
-   */
-  get peerConnection() {
-    return this._peerConnection;
-  }
+  // /**
+  //  * Peer connection getter.
+  //  */
+  // get peerConnection() {
+  //   return this._peerConnection;
+  // }
 
   /**
    * get user stream ID
