@@ -1,5 +1,5 @@
 {
-  "name": "aculab-webrtc",
+  "name": "@aculab-com/aculab-webrtc",
   "version": "4.0.0-beta",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -23,6 +23,11 @@
     "webpack": "^5.70.0",
     "webpack-cli": "^4.9.2"
   },
+  "repository": "https://github.com/aculab-com/aculab-webrtc",
+  "bugs": {
+    "url": "https://github.com/aculab-com/aculab-webrtc/issues"
+  },
+  "homepage": "https://github.com/aculab-com/aculab-webrtc#how-to-write-aculab-webrtc-apps",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public"
