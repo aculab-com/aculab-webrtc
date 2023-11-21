@@ -191,6 +191,14 @@ This throws a string exception if there is an invalid digit in the string. There
 
 Disconnects any existing call. This can be called at any time.
 
+AculabCloudCall data properties
+---------------------------------
+
+### callUuid *(get only)*
+
+A string representation of a locally assigned version 4 UUID. This is assigned when the call object is created and does not change.
+
+
 AculabCloudCall callback properties
 -----------------------------------
 

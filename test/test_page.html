@@ -186,6 +186,41 @@
         /* Checks the status of all tracks in a particular slots and changes the LEDs accordingly */
         var slot_obj = slots.get(slot);
         if (slot_obj.call) {  // there is an ongoing call
+            var muted_dict = slot_obj.call.isMuted();
+            switch_led_colour(slot, "mic", !muted_dict["mic"]);
+            switch_led_colour(slot, "outa", !muted_dict["output_audio"]);
+            switch_led_colour(slot, "cam", !muted_dict["camera"]);
+            switch_led_colour(slot, "outv", !muted_dict["output_video"]);
+        } else {  // no ongoing call
+            switch_led_colour(slot, "mic", false);
+            switch_led_colour(slot, "outa", false);
+            switch_led_colour(slot, "cam", false);
+            switch_led_colour(slot, "outv", false);
+        }
+    }
+
+    /* Check periodically if the call is muted and change the LED colour accordingly */
+    var ledsIntervalId = setInterval(function() {
+        for (var [slot, obj] of slots) {
+            switch_status_leds(slot);
+        }
+    }, 400);
+
+
+	function switch_led_colour(slot, type, state) {
+        /* Helper function to change the colour of a mic/cam/outa/outv LED light */
+        var led = document.getElementById(slot + "-" + type + "-led");
+        if (state) {
+          led.classList.add("green");
+        } else {
+          led.classList.remove("green");
+        }
+    }
+
+    function switch_status_leds(slot){
+        /* Checks the status of all tracks in a particular slots and changes the LEDs accordingly */
+        var slot_obj = slots.get(slot);
+        if (slot_obj.call) {  // there is an ongoing call
             var muted_dict = slot_obj.call.isMuted(slot_obj.remotestream);
             switch_led_colour(slot, "mic", !muted_dict["mic"]);
             switch_led_colour(slot, "outa", !muted_dict["output_audio"]);
