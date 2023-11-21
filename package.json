@@ -1,16 +1,25 @@
 {
-  "name": "@aculab-com/aculab-webrtc",
-  "version": "3.3.3",
-  "main": "src/index.js",
-  "type": "module",
+  "name": "aculab-webrtc",
+  "version": "4.0.0",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "module": "lib/index.js",
   "dependencies": {
     "sip.js": "^0.21.2",
+    "source-map-loader": "^4.0.1",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "eslint": "^7.20.0",
-    "eslint-plugin-react": "^7.22.0",
+    "@types/node": "^20.6.2",
+    "@types/uuid": "^9.0.3",
+    "@typescript-eslint/eslint-plugin": "^6.9.1",
+    "@typescript-eslint/parser": "^6.9.1",
+    "eslint": "^8.52.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.1",
     "marked": "^4.0.12",
+    "prettier": "^3.0.3",
+    "typescript": "^5.1.6",
     "webpack": "^5.70.0",
     "webpack-cli": "^4.9.2"
   },
@@ -28,13 +37,30 @@
     "copy-dist-files": "npm run copy-dist-file && npm run copy-dist-file-min",
     "build-interface-html": "marked -i interface.md -o interface.html",
     "build-web-tgz": "tar -czf dist/webrtc-client-web-package-$npm_package_version.tgz --group 0 --owner 0 --numeric-owner --transform=s,^,$npm_package_version/, dist/AculabCloudCaller.js demos/* test/* interface.html",
-    "build": "npm run build-package && npm run build-bundles && npm rum copy-dist-files && npm run build-interface-html && npm run build-web-tgz"
+    "build": "npm run ts-build && npm run build-package && npm run build-bundles && npm rum copy-dist-files && npm run build-interface-html && npm run build-web-tgz",
+    "ts-build": "tsc"
   },
   "files": [
     "/build",
     "/demos",
+    "/lib",
     "/src",
     "/test",
     "interface.md"
-  ]
+  ],
+  "keywords": [
+    "sip",
+    "webrtc",
+    "aculab"
+  ],
+  "prettier": {
+    "quoteProps": "consistent",
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "all",
+    "useTabs": false,
+    "arrowParens": "avoid",
+    "bracketSameLine": true,
+    "bracketSpacing": false
+  }
 }

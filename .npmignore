@@ -1,0 +1,1 @@
+# this emptry file overwrites gitignore when npm publishing, therefore lib folder is included.

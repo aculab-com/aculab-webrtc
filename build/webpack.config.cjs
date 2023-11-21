@@ -12,8 +12,8 @@ AculabCloudCaller version ${pkg.version}
 
 `;
 /* add sub module licenses to banner */
-const submods = ['sip.js'];
-submods.forEach((m) => {
+const subMods = ['sip.js'];
+subMods.forEach((m) => {
   var licence = fs.readFileSync(`./node_modules/${m}/LICENSE.md`, 'utf8').replaceAll(/^/gm, "  ");
   banner += `
 This software includes "${m}" with the licence:
@@ -27,7 +27,7 @@ module.exports = function (env) {
   var mainDir = __dirname + '/../';
 
   var entry = {};
-  entry['AculabCloudCaller' + (env.buildType === 'min' ? '.min' : '')] = mainDir + '/src/index.js';
+  entry['AculabCloudCaller' + (env.buildType === 'min' ? '.min' : '')] = mainDir + '/lib/index.js';
 
   return {
     mode: mode,
@@ -39,6 +39,8 @@ module.exports = function (env) {
       globalObject: 'this'
     },
     node: false,
+    // Enable sourcemaps for debugging webpack's output.
+    devtool: "source-map",
     resolve: {
       extensions: ['.js']
     },
@@ -59,14 +61,11 @@ module.exports = function (env) {
       })
     ],
     module: {
-        rules: [
-            {
-                test: /\.m?js/,
-                resolve: {
-                    fullySpecified: false
-                }
-            }
-        ]
-    }
+      rules: [
+        // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
+        {test: /\.js$/, loader: "source-map-loader"},
+        {test: /\.m?js/, resolve: {fullySpecified: false}}
+      ],
+    },
   };
 }

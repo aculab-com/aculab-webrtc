@@ -167,7 +167,15 @@ AculabCloudCall object functions
 
 ### string callId()
 
-Gets the callId used for the call. For outgoing calls this may return `undefined` until the onConnecting() callback is being called. For incoming calls it is always available. This value is exchanged with the remote party and will be the same at each end of the call.
+Gets the callId used for the call. For outgoing calls this may return `undefined` until the onConnecting() callback is being called. For incoming calls it is always available.
+
+### string theCallId()
+
+Object property. Gets the callId used for the call. For outgoing calls this may return `undefined` until the onConnecting() callback is being called. For incoming calls it is always available.
+
+### string callUuid()
+
+Object property. Gets the callUuid used for the call.
 
 ### void mute(mic, outputAudio, camera, outputVideo)
 
@@ -205,7 +213,7 @@ The parameter object will have the following properties:
 | property | value |
 | --- | --- |
 | `call` | The call object that is reporting the event. |
-| `cause` | One of the following strings:<dl><dt>'MIC_ERROR'</dt><dd>no microphone is available to the AculabCloudClient, usually because the user refused access or there is no microphone.</dd><dt>'BUSY'</dt><dd>the service called hangup() with the busy cause or the service could not be started (due to limited UAS capacity, for example)</dd><dt>'UNOBTAINABLE'</dt><dd>the specified incoming service name does not exist</dd><dt>'MOVED'</dt><dd>the service attempted to redirect the call</dd><dt>'REJECTED'</dt><dd>the call was rejected either by the incoming service or an intermediary</dd><dt>'NOANSWER'</dt><dd>the call did not connect</dd><dt>'FAILED'</dt><dd>the call was unsuccessful for some other reason</dd><dt>'ERROR'</dt><dd>an internal error occurred.</dd><dt>'NORMAL'</dt><dd>the call has disconnected in the normal way after having connected</dd></dl> |
+| `cause` | One of the following strings:<dl><dt>'DEVICE_ERROR'</dt><dd>A microphone or camera has been requested but cannot be detected by the AculabCloudClient, usually because the user refused access or there is no microphone or camera.</dd><dt>'BUSY'</dt><dd>the service called hangup() with the busy cause or the service could not be started (due to limited UAS capacity, for example)</dd><dt>'UNOBTAINABLE'</dt><dd>the specified incoming service name does not exist</dd><dt>'MOVED'</dt><dd>the service attempted to redirect the call</dd><dt>'REJECTED'</dt><dd>the call was rejected either by the incoming service or an intermediary</dd><dt>'NOANSWER'</dt><dd>the call did not connect</dd><dt>'FAILED'</dt><dd>the call was unsuccessful for some other reason</dd><dt>'ERROR'</dt><dd>an internal error occurred.</dd><dt>'NORMAL'</dt><dd>the call has disconnected in the normal way after having connected</dd></dl> |
 
 ### onMedia
 
