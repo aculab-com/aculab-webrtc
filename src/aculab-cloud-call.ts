@@ -777,10 +777,19 @@ export class AculabCloudCall {
         this._remote_streams = sdh.remoteMediaStreams;
 
         const icestate = sdh.peerConnection?.iceConnectionState;
+        this.client.console_log('oniceconnectionstatechange ', icestate);
         if (icestate == 'connected' || icestate == 'completed') {
           this._set_ice_state(true);
-        } else {
+        } else if (icestate == 'closed') {
           this._set_ice_state(false);
+        } else {
+          // Connection has disconnected or failed
+          this.client.console_log('oniceconnectionstatechange, restarting ICE');
+          sdh.peerConnection.restartIce();
+          sdh.peerConnection.createOffer({iceRestart: true})
+	  .then(function(offer)) {
+            return sdh.peerConnection.setLocalDescription(offer);
+          });
         }
       },
     };
