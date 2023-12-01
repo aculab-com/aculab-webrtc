@@ -1005,4 +1005,67 @@ export class AculabCloudCall {
   disconnect() {
     // dummy function to fix js issue when TS used.
   }
+
+  /**
+   * Get a given MediaStreamTracks statistics
+   * @param track
+   * @return RTCStatsReport or undefined
+   */
+  async getTrackStats(
+    track: MediaStreamTrack,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Promise<ReadonlyMap<string, any>> {
+    const sdh = this._session?.sessionDescriptionHandler;
+    if (!sdh || !('peerConnection' in sdh)) {
+      throw 'No Session Description Handler or Peer Connection';
+    }
+
+    const pc = sdh.peerConnection;
+    if (!pc) {
+      throw 'No peer connection available';
+    }
+
+    return await pc.getStats(track);
+  }
+
+  async getLocalVideoStreamStats() {
+    if (!this._session) {
+      throw 'There is not an active call';
+    }
+
+    const sdh = this._session.sessionDescriptionHandler;
+    if (!sdh || !('getLocalMediaStream' in sdh)) {
+      throw 'Invalid Session Description Handler';
+    }
+
+    const localStream = await sdh.getLocalMediaStream(sdh.options);
+    if (!localStream) {
+      throw 'No local MediaStream';
+    }
+
+    const videoTrack = localStream.getVideoTracks()?.[0];
+    if (!videoTrack) {
+      throw 'No video track in localStream';
+    }
+
+    return await this.getTrackStats(videoTrack);
+  }
+
+  async getRemoteVideoStreamStats() {
+    if (!this._session) {
+      throw 'There is not an active call';
+    }
+
+    const remoteStream = this._remote_streams?.[0];
+    if (!remoteStream) {
+      throw 'No remote MediaStream';
+    }
+
+    const videoTrack = remoteStream.getVideoTracks()?.[0];
+    if (!videoTrack) {
+      throw 'No video track in remoteStream';
+    }
+
+    return await this.getTrackStats(videoTrack);
+  }
 }
