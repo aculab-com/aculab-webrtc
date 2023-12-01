@@ -782,7 +782,7 @@ export class AculabCloudCall {
           this._set_ice_state(true);
         } else if (icestate == 'closed') {
           this._set_ice_state(false);
-        } else {
+        } else if (icestate == 'disconnected') {
           // Connection has disconnected or failed
           this.client.console_log('oniceconnectionstatechange, restarting ICE');
           sdh.peerConnection.restartIce();
