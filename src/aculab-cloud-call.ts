@@ -777,7 +777,7 @@ export class AculabCloudCall {
         this._remote_streams = sdh.remoteMediaStreams;
 
         const icestate = sdh.peerConnection?.iceConnectionState;
-        this.client.console_log('oniceconnectionstatechange ', icestate);
+        this.client.console_log(`oniceconnectionstatechange ${icestate}`);
         if (icestate == 'connected' || icestate == 'completed') {
           this._set_ice_state(true);
         } else if (icestate == 'closed') {
@@ -785,11 +785,11 @@ export class AculabCloudCall {
         } else if (icestate == 'disconnected') {
           // Connection has disconnected or failed
           this.client.console_log('oniceconnectionstatechange, restarting ICE');
-          sdh.peerConnection.restartIce();
-          sdh.peerConnection.createOffer({iceRestart: true})
-	  .then(function(offer)) {
-            return sdh.peerConnection.setLocalDescription(offer);
-          });
+          sdh.peerConnection?.restartIce();
+          sdh.peerConnection
+            ?.createOffer({iceRestart: true})
+            .then(offer => sdh.peerConnection?.setLocalDescription(offer))
+            .catch(err => this.client.console_log(`createoffer error: ${err}`));
         }
       },
     };
