@@ -1030,7 +1030,7 @@ export class AculabCloudCall {
 
   async getLocalVideoStreamStats() {
     if (!this._session) {
-      throw 'There is not an active call';
+      throw 'No call available';
     }
 
     const sdh = this._session.sessionDescriptionHandler;
@@ -1053,7 +1053,7 @@ export class AculabCloudCall {
 
   async getRemoteVideoStreamStats() {
     if (!this._session) {
-      throw 'There is not an active call';
+      throw 'No call available';
     }
 
     const remoteStream = this._remote_streams?.[0];
@@ -1067,5 +1067,46 @@ export class AculabCloudCall {
     }
 
     return await this.getTrackStats(videoTrack);
+  }
+
+  async getLocalAudioStreamStats() {
+    if (!this._session) {
+      throw 'No call available';
+    }
+
+    const sdh = this._session.sessionDescriptionHandler;
+    if (!sdh || !('getLocalMediaStream' in sdh)) {
+      throw 'Invalid Session Description Handler';
+    }
+
+    const localStream = await sdh.getLocalMediaStream(sdh.options);
+    if (!localStream) {
+      throw 'No local MediaStream';
+    }
+
+    const audioTracks = localStream.getAudioTracks()?.[0];
+    if (!audioTracks) {
+      throw 'No audio tracks in localStream';
+    }
+
+    return await this.getTrackStats(audioTracks);
+  }
+
+  async getRemoteAudioStreamStats() {
+    if (!this._session) {
+      throw 'No call available';
+    }
+
+    const remoteStream = this._remote_streams?.[0];
+    if (!remoteStream) {
+      throw 'No remote MediaStream';
+    }
+
+    const audioTracks = remoteStream.getAudioTracks()?.[0];
+    if (!audioTracks) {
+      throw 'No audio tracks in localStream';
+    }
+
+    return await this.getTrackStats(audioTracks);
   }
 }
