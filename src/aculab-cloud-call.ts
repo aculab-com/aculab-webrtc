@@ -13,6 +13,7 @@ import {
   MuteObj,
 } from './types';
 import {CallInviter} from './call-inviter';
+import {AculabCloudCallStatistics} from './aculab-cloud-call-statistics';
 
 /**
  * make address:port string from cand object
@@ -1007,14 +1008,10 @@ export class AculabCloudCall {
   }
 
   /**
-   * Get a given MediaStreamTracks statistics
-   * @param track
-   * @return RTCStatsReport or undefined
+   * Get call statistics and parse them into AculabCloudCallStatistics
+   * @return AculabCloudCallStatistics
    */
-  async getTrackStats(
-    track: MediaStreamTrack,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): Promise<ReadonlyMap<string, any>> {
+  async getStats(reportsToCollect?: string[]) {
     const sdh = this._session?.sessionDescriptionHandler;
     if (!sdh || !('peerConnection' in sdh)) {
       throw 'No Session Description Handler or Peer Connection';
@@ -1025,88 +1022,9 @@ export class AculabCloudCall {
       throw 'No peer connection available';
     }
 
-    return await pc.getStats(track);
-  }
-
-  async getLocalVideoStreamStats() {
-    if (!this._session) {
-      throw 'No call available';
-    }
-
-    const sdh = this._session.sessionDescriptionHandler;
-    if (!sdh || !('getLocalMediaStream' in sdh)) {
-      throw 'Invalid Session Description Handler';
-    }
-
-    const localStream = await sdh.getLocalMediaStream(sdh.options);
-    if (!localStream) {
-      throw 'No local MediaStream';
-    }
-
-    const videoTrack = localStream.getVideoTracks()?.[0];
-    if (!videoTrack) {
-      throw 'No video track in localStream';
-    }
-
-    return await this.getTrackStats(videoTrack);
-  }
-
-  async getRemoteVideoStreamStats() {
-    if (!this._session) {
-      throw 'No call available';
-    }
-
-    const remoteStream = this._remote_streams?.[0];
-    if (!remoteStream) {
-      throw 'No remote MediaStream';
-    }
-
-    const videoTrack = remoteStream.getVideoTracks()?.[0];
-    if (!videoTrack) {
-      throw 'No video track in remoteStream';
-    }
-
-    return await this.getTrackStats(videoTrack);
-  }
-
-  async getLocalAudioStreamStats() {
-    if (!this._session) {
-      throw 'No call available';
-    }
-
-    const sdh = this._session.sessionDescriptionHandler;
-    if (!sdh || !('getLocalMediaStream' in sdh)) {
-      throw 'Invalid Session Description Handler';
-    }
-
-    const localStream = await sdh.getLocalMediaStream(sdh.options);
-    if (!localStream) {
-      throw 'No local MediaStream';
-    }
-
-    const audioTracks = localStream.getAudioTracks()?.[0];
-    if (!audioTracks) {
-      throw 'No audio tracks in localStream';
-    }
-
-    return await this.getTrackStats(audioTracks);
-  }
-
-  async getRemoteAudioStreamStats() {
-    if (!this._session) {
-      throw 'No call available';
-    }
-
-    const remoteStream = this._remote_streams?.[0];
-    if (!remoteStream) {
-      throw 'No remote MediaStream';
-    }
-
-    const audioTracks = remoteStream.getAudioTracks()?.[0];
-    if (!audioTracks) {
-      throw 'No audio tracks in localStream';
-    }
-
-    return await this.getTrackStats(audioTracks);
+    return new AculabCloudCallStatistics({
+      reports: await pc.getStats(),
+      reportsToCollect: reportsToCollect,
+    });
   }
 }
