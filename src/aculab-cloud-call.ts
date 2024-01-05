@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
-import {Invitation, SessionState} from 'sip.js';
+import {SessionState} from 'sip.js';
 import {MediaEventSessionDescriptionHandler} from './media-event-session-description-handler';
 import {v4 as uuidV4} from 'uuid';
 import type {AculabCloudClient} from './aculab-cloud-client';
@@ -13,6 +13,7 @@ import {
   MuteObj,
 } from './types';
 import {CallInviter} from './call-inviter';
+import {CallInvitation} from './call-invitation';
 
 /**
  * make address:port string from cand object
@@ -45,7 +46,7 @@ export class AculabCloudCall {
   _termination_reason: string;
   _callUuid: string;
   _callId: string;
-  _session: CallInviter | Invitation | null;
+  _session: CallInviter | CallInvitation | null;
   _remote_streams: MediaStream[] | null;
   _notified_remote_streams: MediaStream[];
   _sdh_options?: CallOptions;
@@ -224,7 +225,7 @@ export class AculabCloudCall {
     return 'NORMAL';
   }
 
-  set session(invite: CallInviter | Invitation) {
+  set session(invite: CallInviter | CallInvitation) {
     this._session = invite;
     this._callId = invite.request.callId;
     this._session.delegate = {
@@ -325,12 +326,11 @@ export class AculabCloudCall {
     }
 
     if (this._session?.sessionDescriptionHandler) {
-      (
-        this._session
-          .sessionDescriptionHandler as MediaEventSessionDescriptionHandler
-      ).acuLocalMediaStreams.forEach((stream: MediaStream) => {
-        this.muteLocalStream(stream, mic, camera!);
-      });
+      this._session.sessionDescriptionHandler.acuLocalMediaStreams.forEach(
+        (stream: MediaStream) => {
+          this.muteLocalStream(stream, mic, camera!);
+        },
+      );
     }
   }
 
@@ -404,10 +404,7 @@ export class AculabCloudCall {
     );
     if (
       this._session?.sessionDescriptionHandler &&
-      (
-        this._session
-          .sessionDescriptionHandler as MediaEventSessionDescriptionHandler
-      ).getInternalStreamId(stream)
+      this._session.sessionDescriptionHandler.getInternalStreamId(stream)
     ) {
       this.muteLocalStream(stream, mic, camera);
     } else {
@@ -427,28 +424,20 @@ export class AculabCloudCall {
     );
     let internal_stream_id = '';
     if (this._session && this._session.sessionDescriptionHandler) {
-      internal_stream_id = (
-        this._session
-          .sessionDescriptionHandler as MediaEventSessionDescriptionHandler
-      ).getInternalStreamId(stream);
+      internal_stream_id =
+        this._session.sessionDescriptionHandler.getInternalStreamId(stream);
     }
     if (internal_stream_id) {
       if (
         this._session &&
         this._session.sessionDescriptionHandler &&
-        (
-          this._session
-            .sessionDescriptionHandler as MediaEventSessionDescriptionHandler
-        ).peerConnection
+        this._session.sessionDescriptionHandler.peerConnection
       ) {
-        const internal_stream = (
-          this._session
-            .sessionDescriptionHandler as MediaEventSessionDescriptionHandler
-        ).getLocalMediaStreamById(internal_stream_id);
-        const pc = (
-          this._session
-            .sessionDescriptionHandler as MediaEventSessionDescriptionHandler
-        ).peerConnection;
+        const internal_stream =
+          this._session.sessionDescriptionHandler.getLocalMediaStreamById(
+            internal_stream_id,
+          );
+        const pc = this._session.sessionDescriptionHandler.peerConnection;
         if (pc) {
           pc.getSenders().forEach(sender => {
             if (sender.track?.id && internal_stream) {
@@ -796,9 +785,9 @@ export class AculabCloudCall {
     return new Promise(function (resolve) {
       if (
         that._session?.sessionDescriptionHandler &&
-        (that._session as CallInviter).sessionDescriptionHandler?.peerConnection
+        that._session.sessionDescriptionHandler?.peerConnection
       ) {
-        (that._session as CallInviter).sessionDescriptionHandler?.peerConnection
+        that._session.sessionDescriptionHandler?.peerConnection
           ?.getStats()
           .then((stats: RTCStatsReport) => {
             let localAddr = 'Unknown';
@@ -886,11 +875,10 @@ export class AculabCloudCall {
     if (this._session && !this._disconnect_called) {
       try {
         const options = this._sdh_options;
-        const internal_stream_id = (
-          this._session as CallInviter
-        ).sessionDescriptionHandler?.userToInternalLocalStreamIds.get(
-          stream.id,
-        );
+        const internal_stream_id =
+          this._session.sessionDescriptionHandler?.userToInternalLocalStreamIds.get(
+            stream.id,
+          );
         let need_adding = false;
         if (!internal_stream_id) {
           let found = false;
@@ -935,9 +923,8 @@ export class AculabCloudCall {
     if (this._session && !this._disconnect_called) {
       try {
         const options = this._sdh_options;
-        const stream_id = (
-          this._session as CallInviter
-        ).sessionDescriptionHandler?.getUserStreamId(stream);
+        const stream_id =
+          this._session.sessionDescriptionHandler?.getUserStreamId(stream);
         if (stream_id && options) {
           options.localStreams = options?.localStreams?.filter(
             item => item.id !== stream_id,

@@ -17,6 +17,7 @@ import {TokenRegisterer} from './token-registerer';
 import {AculabCloudOutgoingServiceCall} from './aculab-cloud-outgoing-service-call';
 import {CallOptions, OnIncomingObj, OnIncomingStateObj} from './types';
 import {AculabCloudCall} from './aculab-cloud-call';
+import {CallInvitation} from './call-invitation';
 
 export class AculabCloudClient {
   loglevel: number;
@@ -171,7 +172,10 @@ export class AculabCloudClient {
           void invitation.reject({statusCode: 486}); // 486 = busy here
         } else {
           if (this.onIncoming) {
-            const ic = new AculabCloudIncomingCall(this, invitation);
+            const ic = new AculabCloudIncomingCall(
+              this,
+              invitation as unknown as CallInvitation,
+            );
             const media_dirs =
               MediaEventSessionDescriptionHandler.get_audio_video_directions(
                 invitation.body!,
