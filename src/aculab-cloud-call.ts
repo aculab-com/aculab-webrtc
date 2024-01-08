@@ -359,8 +359,7 @@ export class AculabCloudCall {
     }
 
     // check mic and camera
-    const sdh = this._session
-      ?.sessionDescriptionHandler as MediaEventSessionDescriptionHandler;
+    const sdh = this._session?.sessionDescriptionHandler;
     if (sdh && sdh.peerConnection) {
       const pc = sdh.peerConnection;
       pc.getSenders().forEach(function (sender) {
@@ -563,7 +562,6 @@ export class AculabCloudCall {
           });
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           this.client.console_error(
             'AculabCloudCall onMediaRemove caused exception: ' + err,
           );
@@ -780,16 +778,14 @@ export class AculabCloudCall {
    * @returns address info or error message
    */
   getConnectionInfo(): Promise<string> {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const that = this;
-    return new Promise(function (resolve) {
+    return new Promise(resolve => {
       if (
-        that._session?.sessionDescriptionHandler &&
-        that._session.sessionDescriptionHandler?.peerConnection
+        this._session?.sessionDescriptionHandler &&
+        this._session.sessionDescriptionHandler?.peerConnection
       ) {
-        that._session.sessionDescriptionHandler?.peerConnection
+        this._session.sessionDescriptionHandler?.peerConnection
           ?.getStats()
-          .then((stats: RTCStatsReport) => {
+          .then((stats: ReadonlyMap<string, {[key: string]: unknown}>) => {
             let localAddr = 'Unknown';
             let remoteAddr = 'Unknown';
             let localType = '?';
@@ -797,49 +793,48 @@ export class AculabCloudCall {
             if (stats) {
               let selectedPairId = '';
               stats.forEach(stat => {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 if (stat.type == 'transport') {
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                   selectedPairId = stat.selectedCandidatePairId as string;
                 }
               });
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
               let candidatePair = stats.get(selectedPairId);
               if (!candidatePair) {
                 stats.forEach(stat => {
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                   if (stat.type == 'candidate-pair' && stat.selected) {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     candidatePair = stat;
                   }
                 });
               }
               if (candidatePair) {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
                 const remote = stats.get(
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                   candidatePair.remoteCandidateId as string,
                 );
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-                remoteType = remote.candidateType;
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                remoteAddr = _extractAddrPort(remote);
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                if (typeof remote?.candidateType === 'string') {
+                  remoteType = remote.candidateType;
+                }
+
+                if (remote) {
+                  remoteAddr = _extractAddrPort(remote);
+                }
+
                 const local = stats.get(
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                   candidatePair.localCandidateId as string,
                 );
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                if (local.relayProtocol) {
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+                if (
+                  local?.relayProtocol &&
+                  typeof local.relayProtocol === 'string'
+                ) {
                   localType = local.relayProtocol;
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                } else if (local.protocol) {
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+                } else if (
+                  local?.protocol &&
+                  typeof local.protocol === 'string'
+                ) {
                   localType = local.protocol;
                 }
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                localAddr = _extractAddrPort(local);
+
+                if (local) {
+                  localAddr = _extractAddrPort(local);
+                }
               }
             }
             resolve(
@@ -893,7 +888,7 @@ export class AculabCloudCall {
         }
         if (need_adding) {
           options?.localStreams?.push(stream);
-          this.reinvite(options as CallOptions);
+          this.reinvite(options);
         } else {
           throw 'Stream already exists';
         }
@@ -949,13 +944,13 @@ export class AculabCloudCall {
    * Session reinvite.
    * @param options call options
    */
-  reinvite(options: CallOptions) {
+  reinvite(options?: CallOptions) {
     if (!this._allowed_reinvite) {
       throw 'Reinvite not available';
     }
     if (
-      options.localStreams === undefined ||
-      options.localStreams.length === 0
+      options?.localStreams === undefined ||
+      options?.localStreams.length === 0
     ) {
       throw 'At least one MediaStream needed in options.localStreams';
     }
