@@ -126,7 +126,15 @@ AculabCloudCallOptions object properties
 
 ### localStream
 
-A MediaStream object that is the local media to send to calls. If undefined, a media stream is obtained using getUserMedia() and the specified constraints.
+A MediaStream object that is the local media to send to calls. If localStream and localStreams are undefined, a media stream is obtained using getUserMedia() and the specified constraints.
+
+The stream will be cloned, and the cloned stream will be returned in the onLocalMedia callback.
+
+### localStreams
+
+An array of MediaStream objects that is the local media to send to calls. If localStream and localStreams are undefined, a media stream is obtained using getUserMedia() and the specified constraints.
+
+The streams will be cloned, and the cloned streams will be returned in the onLocalMedia callback.
 
 ### constraints
 
@@ -179,7 +187,41 @@ Object property. Gets the callUuid used for the call.
 
 ### void mute(mic, outputAudio, camera, outputVideo)
 
+Mute all media streams in a call.
+
 `mic`, `outputAudio`, `camera` and `outputVideo` are boolean. If `mic` is true, then the microphone (sent audio) is muted. If `outputAudio` is true the received audio is muted. If `camera` is true, then the video stream being sent has every frame filled entirely with black pixels. If `outputVideo` is true, then the video stream being received has every frame filled entirely with black pixels. If `camera` or `outputVideo` are undefined, then the value is replaced by `mic` and `outputAudio` respectively.
+
+### void muteLocalStream(stream, mic, camera)
+
+Mutes a specific local media stream in a call.  The stream should be a stream the was obtained from the onLocalMedia callback.
+
+`mic` and `camera` are boolean. If `mic` is true, then the microphone (sent audio) is muted. If `camera` is true, then the video stream being sent has every frame filled entirely with black pixels. If `camera` is undefined, then the value is replaced by `mic`.
+
+### void muteRemoteStream(stream, output_audio, output_video)
+
+Mutes a specific remote media stream in a call.
+
+`outputAudio` and `outputVideo` are boolean. If `outputAudio` is true the received audio is muted. If `outputVideo` is true, then the video stream being received has every frame filled entirely with black pixels. If `outputVideo` is undefined, then the value is replaced by `outputAudio`.
+
+### addStream(stream)
+
+`stream` is a MediaStream. Adds a local media stream to the call. Supported on Client calls only.
+
+This throws a string exception if:
+
+* this is a call to a service
+* the stream is already a local stream
+* the call is not connected
+
+### removeStream(stream)
+
+`stream` is a MediaStream. Removes a local media stream from the call. It should be a stream that was obtained from the onLocalMedia callback. Supported on Client calls only.
+
+This throws a string exception if:
+
+* this is a call to a service
+* the stream is not a local stream
+* there is currently only one stream active
 
 ### void sendDtmf(dtmf_str)
 
@@ -226,6 +268,39 @@ The parameter object will have the following properties:
 | `call` | The call object that is reporting the event. |
 | `stream` | A MediaStream object suitable connecting to an `<audio>` or a `<video>` HTMLMediaElement as the `srcObject`. |
 
+### onMediaRemove
+
+Called when a remote media stream has been removed from the call.
+
+The parameter object will have the following properties:
+
+| property | value |
+| --- | --- |
+| `call` | The call object that is reporting the event. |
+| `stream` | A MediaStream object that should be removed from an `<audio>` or a `<video>` HTMLMediaElement as the `srcObject`. |
+
+### onLocalMedia
+
+Called once the local media has been obtained and the browser will now start to prepare the sockets needed to transport the call media. The passed stream is the local media.
+
+The parameter object will have the following properties:
+
+| property | value |
+| --- | --- |
+| `call` | The call object that is reporting the event. |
+| `stream` | A MediaStream object suitable connecting to an `<audio>` or a `<video>` HTMLMediaElement as the `srcObject`. |
+
+### onLocalMediaRemove
+
+Called when a local media stream has been removed from the call.
+
+The parameter object will have the following properties:
+
+| property | value |
+| --- | --- |
+| `call` | The call object that is reporting the event. |
+| `stream` | A MediaStream object that should be removed from an `<audio>` or a `<video>` HTMLMediaElement as the `srcObject`. |
+
 ### onConnecting
 
 Called once the local media has been obtained and the browser will now start to prepare the sockets needed to transport the call media. The passed stream is the local media.
@@ -236,6 +311,8 @@ The parameter object will have the following properties:
 | --- | --- |
 | `call` | The call object that is reporting the event. |
 | `stream` | A MediaStream object suitable connecting to an `<audio>` or a `<video>` HTMLMediaElement as the `srcObject`. |
+
+This is deprecated in favour of onLocalMedia.
 
 ### onConnected
 
