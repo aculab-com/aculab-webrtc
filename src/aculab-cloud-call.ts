@@ -922,10 +922,14 @@ export class AculabCloudCall {
         const stream_id =
           this._session.sessionDescriptionHandler?.getUserStreamId(stream);
         if (stream_id && options) {
-          options.localStreams = options?.localStreams?.filter(
-            item => item.id !== stream_id,
-          );
-          this.reinvite(options);
+          if (options?.localStreams !== undefined && options.localStreams.length > 1) {
+            options.localStreams = options?.localStreams?.filter(
+              item => item.id !== stream_id,
+            );
+            this.reinvite(options);
+          } else {
+            throw 'Not enough streams to remove';
+          }
         } else {
           throw 'Stream does not exist';
         }
