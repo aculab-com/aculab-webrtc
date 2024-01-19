@@ -13,6 +13,7 @@ import {
   MuteObj,
 } from './types';
 import {CallInviter} from './call-inviter';
+import {AculabCloudCallStatistics} from './aculab-cloud-call-statistics';
 
 /**
  * make address:port string from cand object
@@ -1004,5 +1005,26 @@ export class AculabCloudCall {
 
   disconnect() {
     // dummy function to fix js issue when TS used.
+  }
+
+  /**
+   * Get call statistics and parse them into AculabCloudCallStatistics
+   * @return AculabCloudCallStatistics
+   */
+  async getStats(reportsToCollect?: string[]) {
+    const sdh = this._session?.sessionDescriptionHandler;
+    if (!sdh || !('peerConnection' in sdh)) {
+      throw 'No Session Description Handler or Peer Connection';
+    }
+
+    const pc = sdh.peerConnection;
+    if (!pc) {
+      throw 'No peer connection available';
+    }
+
+    return new AculabCloudCallStatistics({
+      reports: await pc.getStats(),
+      reportsToCollect: reportsToCollect,
+    });
   }
 }
