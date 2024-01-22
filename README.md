@@ -3,7 +3,7 @@
 This guide shows the basic steps needed to write WebRTC applications for Aculab Cloud. Refer to the API guide for detailed documentation on the APIs used.
 
 WebRTC Client instances can call, and be called from, [Aculab Cloud services]( https://www.aculab.com/cloud/guides/outbound-and-inbound-services/) and other WebRTC Client instances. They cannot call PSTN or SIP phones directly, although of course Aculab Cloud services can call those devices.
-Refer to interface.html for detailed documentation on the APIs used.
+Refer to [interface.md](https://github.com/aculab-com/aculab-webrtc/blob/main/interface.md) for detailed documentation on the APIs used.
 
 ## Integrating WebRTC
 
