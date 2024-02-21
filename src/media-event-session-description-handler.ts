@@ -103,7 +103,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
    * @param track media stream track
    */
   removeRemoteMediaTrack(track: MediaStreamTrack) {
-    for (let i = this._acuRemoteMediaStreams.length - 1; i > 0; i--) {
+    for (let i = this._acuRemoteMediaStreams.length - 1; i >= 0; i--) {
       if (this._acuRemoteMediaStreams[i].getTrackById(track.id)) {
         this._acuRemoteMediaStreams[i].removeTrack(track);
       }

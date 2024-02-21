@@ -547,7 +547,7 @@ export class AculabCloudCall {
    * and triggers onMediaRemove if it has been set.
    */
   private _check_notify_remove_media() {
-    for (let i = this._notified_remote_streams.length - 1; i > 0; i--) {
+    for (let i = this._notified_remote_streams.length - 1; i >= 0; i--) {
       let found = false;
       this._remote_streams?.forEach(stream => {
         if (this._notified_remote_streams[i].id === stream.id) {
