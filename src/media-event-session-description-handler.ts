@@ -377,7 +377,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     });
     if (!internalStreamId) {
       let newStream = stream;
-      if (do_clone) {
+      if (do_clone && stream.clone !== undefined) {
         // Clone the stream in case it changes beneath us
         newStream = stream.clone();
       }
