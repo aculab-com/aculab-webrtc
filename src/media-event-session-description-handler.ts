@@ -289,6 +289,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
         ? void 0
         : options.iceGatheringTimeout;
     return this.getLocalMediaStreams(options)
+      .then(() => this.updateDirection(options))
       .then(() => this.createDataChannel(options))
       .then(() => this.createLocalOfferOrAnswer(options))
       .then(sessionDescription =>
