@@ -600,7 +600,7 @@
 				video.load();
 				video.loop = 'loop';
 				await video.play();
-				const newStream = await captureStream();
+				const newStream = await captureStream(video);
 				slot_obj.call.addStream(newStream);
 			} else if (src == "Screen Share") {
 				const newStream = await captureScreen();
