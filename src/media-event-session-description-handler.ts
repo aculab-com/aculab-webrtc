@@ -612,12 +612,16 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
                   offerDirection = 'sendrecv';
                 } else if (options.constraints?.video) {
                   offerDirection = 'sendonly';
+                } else if (options.receiveVideo) {
+                  offerDirection = 'recvonly';
                 }
               } else if (kind === 'audio') {
                 if (options.constraints?.audio && options.receiveAudio) {
                   offerDirection = 'sendrecv';
                 } else if (options.constraints?.audio) {
                   offerDirection = 'sendonly';
+                } else if (options.receiveAudio) {
+                  offerDirection = 'recvonly';
                 }
               }
               if (transceiver.direction !== offerDirection) {
