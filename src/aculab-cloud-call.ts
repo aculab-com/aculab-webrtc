@@ -767,8 +767,16 @@ export class AculabCloudCall {
         const icestate = sdh.peerConnection?.iceConnectionState;
         if (icestate == 'connected' || icestate == 'completed') {
           this._set_ice_state(true);
-        } else {
+        } else if (icestate == 'closed') {
           this._set_ice_state(false);
+        } else if (icestate == 'disconnected') {
+          // Connection has disconnected or failed
+          this.client.console_log('oniceconnectionstatechange, restarting ICE');
+          sdh.peerConnection?.restartIce();
+          sdh.peerConnection
+            ?.createOffer({iceRestart: true})
+            .then(offer => sdh.peerConnection?.setLocalDescription(offer))
+            .catch(err => this.client.console_log(`createoffer error: ${err}`));
         }
       },
     };
