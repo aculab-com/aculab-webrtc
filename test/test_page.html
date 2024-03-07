@@ -472,8 +472,10 @@
 			maxBitrateAudio: get_bandwidth_setting(slot, 'audio'),
 			maxBitrateVideo: get_bandwidth_setting(slot, 'video'),
 		}
-		const mediaStream = await navigator.mediaDevices.getUserMedia(opts.constraints);
-		opts.localStreams = [mediaStream];
+		if (secondStreamSource(slot) != "None") {
+			const mediaStream = await navigator.mediaDevices.getUserMedia(opts.constraints);
+			opts.localStreams = [mediaStream];
+		}
 		if (slot_obj.call) {
 			if (slot_obj.inbound && !slot_obj.connected) {
 				console.log("accepting inbound");
