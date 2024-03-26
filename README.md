@@ -7,10 +7,10 @@ Refer to [interface.md](https://github.com/aculab-com/aculab-webrtc/blob/main/in
 
 ## Integrating WebRTC
 
-Include the JavaScript library by adding the [aculab-webrtc](https://www.npmjs.com/package/aculab-webrtc) npm package
+Include the JavaScript library by adding the [@aculab-com/aculab-webrtc](https://www.npmjs.com/package/@aculab-com/aculab-webrtc) npm package
 
 ```
-yarn add aculab-webrtc
+yarn add @aculab-com/aculab-webrtc
 ```
 
 
