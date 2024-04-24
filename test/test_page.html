@@ -135,8 +135,13 @@
 	function mediaremove(slot, obj)
 	{
 		var slot_obj = slots.get(slot);
-		if (obj.stream.id == slot_obj.remotesecondstream.id) {
-			var player = slot_obj.secondplayer;
+		var player = null;
+		if (slot_obj.remotesecondstream !== null && obj.stream.id == slot_obj.remotesecondstream.id) {
+			player = slot_obj.secondplayer;
+		} else if (slot_obj.remotestream !== null && obj.stream.id == slot_obj.remotestream.id) {
+			player = slot_obj.player;
+		}
+		if (player) {
 			player.pause();
 			player.loop = '';
 			player.src = '';
@@ -150,8 +155,14 @@
 	function localmediaremove(slot, obj)
 	{
 		var slot_obj = slots.get(slot);
-		if (obj.stream.id == slot_obj.localsecondstream.id) {
-			var player = slot_obj.localsecondplayer;
+		var player = null;
+		if (slot_obj.localsecondstream !== null && obj.stream.id == slot_obj.localsecondstream.id) {
+			player = slot_obj.localsecondplayer;
+		} else if (slot_obj.localstream !== null && obj.stream.id == slot_obj.localstream.id) {
+			player = slot_obj.localplayer;
+		}
+
+		if (player) {
 			player.pause();
 			player.loop = '';
 			player.src = '';
