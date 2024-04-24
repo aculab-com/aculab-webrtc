@@ -1,12 +1,14 @@
 import type {AculabCloudClient} from './aculab-cloud-client';
 import {AculabCloudOutgoingCall} from './aculab-cloud-outgoing-call';
 import {URI} from 'sip.js';
+import {CallOptions} from './types';
 
 export class AculabCloudOutgoingServiceCall extends AculabCloudOutgoingCall {
   constructor(
     client: AculabCloudClient,
     serviceName: string,
     legacy_interface: boolean = false,
+    callOptions: CallOptions | undefined = undefined
   ) {
     const uri = new URI(
       'sip',
@@ -19,7 +21,7 @@ export class AculabCloudOutgoingServiceCall extends AculabCloudOutgoingCall {
       {
         earlyMedia: true,
       },
-      undefined,
+      callOptions,
       false,
       legacy_interface,
     );
