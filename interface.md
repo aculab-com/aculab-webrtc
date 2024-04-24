@@ -28,9 +28,10 @@ Returns true if the browser supports the necessary functionality and false if no
 `mediaType` is either `"audio"` or `"video"`.  
 Returns an array of RTCRtpCodecCapability objects, if the browser supports the necessary functionality and an empty array if not. The list can be reordered to set a preferred codec and passed in an AculabCloudCallOptions object when placing or answering calls. (Note: removing items from the list is allowed but may cause inter-operability problems.)
 
-### AculabCloudOutgoingCall callService(serviceName)
+### AculabCloudOutgoingCall callService(serviceName, options)
 
 `serviceName` is the name of the Aculab Cloud incoming service that the call will be connected to.
+`options`, when specified, is an AculabCloudCallOptions object.
 
 This initiates a call to the specified Aculab Cloud incoming service. Call progress is reported by callbacks, these should be set on the object returned by this function.
 
@@ -48,7 +49,7 @@ _Deprecated_ This is an alias for `callService`, which should be used instead.
 
 `clientId` is the client identifier of the WebRTC client that the call will be connected to.  
 `token` is an authenication token. These can be obtained using an Aculab Cloud webservice.  
-`options`, when specified, is a AculabCloudCallOptions object.
+`options`, when specified, is an AculabCloudCallOptions object.
 
 This initiates a call to the specified Aculab Cloud WebRTC client. Call progress is reported by callbacks, these should be set on the object returned by this function.
 
@@ -317,7 +318,7 @@ AculabCloudIncomingCall object functions
 
 ### void answer(options)
 
-`options`, when specified, is a AculabCloudCallOptions object.
+`options`, when specified, is an AculabCloudCallOptions object.
 
 Answer the incoming call.
 

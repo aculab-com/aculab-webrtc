@@ -300,7 +300,7 @@ export class AculabCloudClient {
 	}
 	
 	
-	callService(serviceName) {
+	callService(serviceName, options) {
 		if (typeof serviceName !== 'string') {
 			throw 'serviceName is not a string';
 		}
@@ -321,7 +321,7 @@ export class AculabCloudClient {
 			this._ua.start();
 			this._ua_started = true;
 		}
-		var outcall = new AculabCloudOutgoingServiceCall(this, serviceName);
+		var outcall = new AculabCloudOutgoingServiceCall(this, serviceName, options);
 		this._calls.add(outcall);
 		return outcall;
 	}
