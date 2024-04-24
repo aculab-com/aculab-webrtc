@@ -501,8 +501,8 @@ export class AculabCloudClient {
     const outcall = new AculabCloudOutgoingServiceCall(
       this,
       serviceName,
-      this._legacy_interface,
-      options
+      options,
+      this._legacy_interface
     );
     this._calls.add(outcall);
     return outcall;
