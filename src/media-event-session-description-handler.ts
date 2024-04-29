@@ -652,6 +652,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
           // set the transceiver direction to the answer direction
           this._peerConnection.getTransceivers().forEach(transceiver => {
             if (
+              options.constraints !== undefined &&
               transceiver.direction /* guarding, but should always be true */ &&
               transceiver.direction !== 'stopped'
             ) {
@@ -724,8 +725,8 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
         audio: true,
         video: false,
       },
-      receiveAudio: false,
-      receiveVideo: false,
+      receiveAudio: undefined,
+      receiveVideo: undefined,
       codecs: {
         audio: [],
         video: [],
