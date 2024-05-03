@@ -42,6 +42,7 @@ export class AculabCloudCall {
   _connected: boolean;
   _notified_connected: boolean;
   _ice_connected: boolean;
+  _signaling_stable: boolean;
   _allowed_reinvite: boolean;
   _disconnect_called: boolean;
   _termination_reason: string;
@@ -79,6 +80,7 @@ export class AculabCloudCall {
     this._remote_streams = null;
     this._notified_remote_streams = [];
     this._ice_connected = false;
+    this._signaling_stable = false;
     this._termination_reason = '';
     this._sdh_options = undefined;
     this._callUuid = uuidV4();
@@ -682,6 +684,10 @@ export class AculabCloudCall {
     this._check_notify_connected();
   }
 
+  private _set_signaling_state(stable: boolean) {
+    this._signaling_stable = stable;
+  }
+
   /**
    * Add media handlers to media description session handler.
    * @param sdh media description session handler
@@ -761,10 +767,20 @@ export class AculabCloudCall {
           'Ice candidate error: ' + ev.errorText + ' code: ' + ev.errorCode,
         );
       },
+      onsignalingstatechange: () => {
+        const signalingstate = sdh.peerConnection?.signalingState;
+	this._set_signaling_state(signalingstate === 'stable');
+        this.client.console_log('AculabCloudCall onsignalingstatechange ' + signalingstate);
+      },
+      onicegatheringstatechange: () => {
+        const icestate = sdh.peerConnection?.iceGatheringState;
+        this.client.console_log('AculabCloudCall onicegatheringstatechange ' + icestate);
+      },
       oniceconnectionstatechange: () => {
         this._remote_streams = sdh.remoteMediaStreams;
 
         const icestate = sdh.peerConnection?.iceConnectionState;
+        this.client.console_log('AculabCloudCall oniceconnectionstatechange ' + icestate);
         if (icestate == 'connected' || icestate == 'completed') {
           this._set_ice_state(true);
         } else {
@@ -865,6 +881,9 @@ export class AculabCloudCall {
     if (!this._allowed_reinvite) {
       throw 'addStream not available';
     }
+    if (!this._signaling_stable) {
+      throw 'Re-invite in progress';
+    }
     this.client.console_log(
       'AculabCloudOutgoingCall addStream :' + this._session,
     );
@@ -913,6 +932,9 @@ export class AculabCloudCall {
     if (!this._allowed_reinvite) {
       throw 'removeStream not available';
     }
+    if (!this._signaling_stable) {
+      throw 'Re-invite in progress';
+    }
     this.client.console_log(
       'AculabCloudOutgoingCall removeStream :' + this._session,
     );
@@ -952,6 +974,9 @@ export class AculabCloudCall {
   reinvite(options?: CallOptions) {
     if (!this._allowed_reinvite) {
       throw 'Reinvite not available';
+    }
+    if (!this._signaling_stable) {
+      throw 'Re-invite in progress';
     }
     if (
       options?.localStreams === undefined ||
