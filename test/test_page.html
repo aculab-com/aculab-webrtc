@@ -181,7 +181,7 @@
 			slot_obj.call = null;
 		}
 		gotmedia(slot, null);
-		var playerlist = [slot_obj.localplayer, slot_obj.secondlocalplayer];
+		var playerlist = [slot_obj.localplayer, slot_obj.localsecondplayer];
 		playerlist.forEach(player => {
 			if (player != null) {
 				player.pause();
@@ -590,13 +590,18 @@
 		var slot_obj = slots.get(slot);
 		console.log("Removing second stream ", slot_obj.localsecondstream);
 		if (slot_obj.call && slot_obj.localsecondstream) {
-			slot_obj.call.removeStream(slot_obj.localsecondstream);
-			slot_obj.localsecondstream = null;
-			document.getElementById(slot + "-second_stream_button").innerHTML = "Add Stream";
+			try {
+				slot_obj.call.removeStream(slot_obj.localsecondstream);
+				slot_obj.localsecondstream = null;
+				document.getElementById(slot + "-second_stream_button").innerHTML = "Add Stream";
+			} catch(err) {
+				window.alert(err);
+			}
 		}
 	}
 	async function add_stream(slot) {
 		var slot_obj = slots.get(slot);
+		var stream_added = false;
 		console.log("Adding second stream");
 		if (slot_obj.localsecondstream !== null) {
 			throw "Second stream is already added";
@@ -614,12 +619,24 @@
 				video.loop = 'loop';
 				await video.play();
 				const newStream = await captureStream(video);
-				slot_obj.call.addStream(newStream);
+				try {
+					slot_obj.call.addStream(newStream);
+					stream_added = true;
+				} catch(err) {
+					window.alert(error);
+				}
 			} else if (src == "Screen Share") {
 				const newStream = await captureScreen();
-				slot_obj.call.addStream(newStream);
+				try {
+					slot_obj.call.addStream(newStream);
+					stream_added = true;
+				} catch(err) {
+					window.alert(error);
+				}
 			}
-			document.getElementById(slot + "-second_stream_button").innerHTML = "Remove Stream";
+			if (stream_added) {
+				document.getElementById(slot + "-second_stream_button").innerHTML = "Remove Stream";
+			}
 		}
 	}
 	function send_dtmf(slot, dtmf) {
