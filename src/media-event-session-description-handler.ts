@@ -103,7 +103,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
    * @param track media stream track
    */
   removeRemoteMediaTrack(track: MediaStreamTrack) {
-    for (let i = this._acuRemoteMediaStreams.length - 1; i > 0; i--) {
+    for (let i = this._acuRemoteMediaStreams.length - 1; i >= 0; i--) {
       if (this._acuRemoteMediaStreams[i].getTrackById(track.id)) {
         this._acuRemoteMediaStreams[i].removeTrack(track);
       }
@@ -289,6 +289,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
         ? void 0
         : options.iceGatheringTimeout;
     return this.getLocalMediaStreams(options)
+      .then(() => this.updateDirection(options))
       .then(() => this.createDataChannel(options))
       .then(() => this.createLocalOfferOrAnswer(options))
       .then(sessionDescription =>
@@ -377,7 +378,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
     });
     if (!internalStreamId) {
       let newStream = stream;
-      if (do_clone) {
+      if (do_clone && stream.clone !== undefined) {
         // Clone the stream in case it changes beneath us
         newStream = stream.clone();
       }
@@ -611,12 +612,16 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
                   offerDirection = 'sendrecv';
                 } else if (options.constraints?.video) {
                   offerDirection = 'sendonly';
+                } else if (options.receiveVideo) {
+                  offerDirection = 'recvonly';
                 }
               } else if (kind === 'audio') {
                 if (options.constraints?.audio && options.receiveAudio) {
                   offerDirection = 'sendrecv';
                 } else if (options.constraints?.audio) {
                   offerDirection = 'sendonly';
+                } else if (options.receiveAudio) {
+                  offerDirection = 'recvonly';
                 }
               }
               if (transceiver.direction !== offerDirection) {
@@ -647,6 +652,7 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
           // set the transceiver direction to the answer direction
           this._peerConnection.getTransceivers().forEach(transceiver => {
             if (
+              options.constraints !== undefined &&
               transceiver.direction /* guarding, but should always be true */ &&
               transceiver.direction !== 'stopped'
             ) {
@@ -719,8 +725,8 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
         audio: true,
         video: false,
       },
-      receiveAudio: false,
-      receiveVideo: false,
+      receiveAudio: undefined,
+      receiveVideo: undefined,
       codecs: {
         audio: [],
         video: [],

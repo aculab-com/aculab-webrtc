@@ -129,6 +129,12 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
           );
         }
         void this._session.cancel();
+      } else {
+        if (this._termination_reason == '') {
+          this._termination_reason = 'CANCELLED';
+          this.client.console_log(`setting termination reason - disconnect - ${this._termination_reason}`);
+        }
+        void this._session.cancel();
       }
     }
   }

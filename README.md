@@ -376,6 +376,7 @@ A number of common issues can cause problems with media in a WebRTC call.
 
 If the same username is registered from more than one browser instance then the most recently registered instance will receive incoming WebRTC calls. As WebRTC Client instances are automatically re-registered at various intervals, the most recently registered instance may change without warning. Therefore, in general it's best to register a given username with only one browser or application instance at a time.
 
+On Chrome-based browsers, a page can handle a maximum total of 500 incoming/outgoing calls.  Once this limit has been reached, the page must be refreshed.  This is due to chromium bug https://issues.chromium.org/issues/41378764.
  
 
  

@@ -7,13 +7,35 @@
 	<script type='application/javascript'>
 	var acc = null;
 	var inbound_enabled = false;
+	var auto_accept = false;
 	var slots = new Map([
-		['a', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'playing_ringing':false, 'gotremotestream':false, 'remotestream':null}],
-		['b', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'playing_ringing':false, 'gotremotestream':false, 'remotestream':null}],
-		['c', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'playing_ringing':false, 'gotremotestream':false, 'remotestream':null}],
-		['d', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'playing_ringing':false, 'gotremotestream':false, 'remotestream':null}],
+		['a', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'secondplayer':null, 'playing_ringing':false, 'gotremotestream':false, 'remotestream':null, 'gotsecondremotestream':false, 'remotesecondstream':null, 'gotlocalstream':false, 'localstream':null, 'localsecondstream':null}],
+		['b', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'secondplayer':null, 'playing_ringing':false, 'gotremotestream':false, 'remotestream':null, 'gotsecondremotestream':false, 'remotesecondstream':null, 'gotlocalstream':false, 'localstream':null, 'localsecondstream':null}],
+		['c', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'secondplayer':null, 'playing_ringing':false, 'gotremotestream':false, 'remotestream':null, 'gotsecondremotestream':false, 'remotesecondstream':null, 'gotlocalstream':false, 'localstream':null, 'localsecondstream':null}],
+		['d', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'secondplayer':null, 'playing_ringing':false, 'gotremotestream':false, 'remotestream':null, 'gotsecondremotestream':false, 'remotesecondstream':null, 'gotlocalstream':false, 'localstream':null, 'localsecondstream':null}],
 	]);
 	var statsTimer = null;
+	function initialise() {
+		const urlParams = new URLSearchParams(window.location.search);
+		if (urlParams.get('autoaccept') !== null) {
+			auto_accept = true;
+		}
+		console.log(urlParams.get('autoaccept'));
+		const thisUrl = window.location.href;
+		if (!thisUrl.startsWith("file://")) {
+			/* You can't capture the stream of a video from
+			 * files that are served from a local web page.
+			 * So only list it as an option if this page
+			 * is not served from a file:// URL */
+			slots.forEach((_, key) => {
+				var sel = document.getElementById(key + "-second-stream-source")
+				var opt = document.createElement('option');
+				opt.value = "File";
+				opt.innerHTML = "File";
+				sel.appendChild(opt);
+			});
+		}
+	}
 	function startStats() {
 		statsTimer = setInterval(()=>{
 			for (const [key, value] of slots.entries()) {
@@ -38,6 +60,25 @@
 			}
 		}
 	}
+	function reset_slot_obj(slot_obj) {
+		slot_obj.gotremotestream = null;
+		slot_obj.gotsecondremotestream = null;
+		slot_obj.remotesecondstream = null;
+		slot_obj.gotlocalstream = null;
+		slot_obj.localstream = null;
+		slot_obj.localsecondstream = null;
+	}
+	function show_second_stream(slot, visible) {
+		var titles = document.getElementById(slot + "-secondstreamtitle");
+		var players = document.getElementById(slot + "-secondstreamplayers");
+		var val = "collapse";
+		if (visible) {
+			val = "visible";
+		}
+
+		titles.style.visibility = val;
+		players.style.visibility = val;
+	}
 	function configDtmfButtons(slot, enabled) {
 		var dtmf_table = document.getElementById(slot + '-dtmf-buttons');
 		var buttons = dtmf_table.getElementsByTagName('button');
@@ -47,22 +88,27 @@
 	}
 	function gotmedia(slot, obj) {
 		var slot_obj = slots.get(slot);
-		var player = slot_obj.player;
-		player.pause();
-		player.loop = '';
-		player.src = '';
-		player.srcObject = null;
-		player.type = '';
-		player.load();
-		// reset the player size
-		player.style.width = "320px";
-		player.style.height = "240px";
-		player.parentElement.classList.remove("muted");
-		slot_obj.playing_ringing = false;
-		slot_obj.gotremotestream = false;
 		if (obj !== null) {
+			if (!slot_obj.gotremotestream) {
+				var player = slot_obj.player;
+				slot_obj.remotestream = obj.stream;
+			} else {
+				show_second_stream(slot, true);
+				var player = slot_obj.secondplayer;
+				slot_obj.remotesecondstream = obj.stream;
+			}
+			player.pause();
+			player.loop = '';
+			player.src = '';
+			player.srcObject = null;
+			player.type = '';
+			player.load();
+			// reset the player size
+			player.style.width = "320px";
+			player.style.height = "240px";
+			player.parentElement.classList.remove("muted");
+			slot_obj.playing_ringing = false;
 			slot_obj.gotremotestream = true;
-			slot_obj.remotestream = obj.stream;
 			player.srcObject = obj.stream;
 			player.load();
 			var p = player.play();
@@ -70,7 +116,61 @@
 				p.catch(error => {console.log(error)});
 			}
 		} else {
+			var playerlist = [slot_obj.player, slot_obj.secondplayer];
+			playerlist.forEach(player => {
+				player.pause();
+				player.loop = '';
+				player.src = '';
+				player.srcObject = null;
+				player.type = '';
+				player.load();
+				player.style.width = "320px";
+				player.style.height = "240px";
+			});
+			slot_obj.gotremotestream = false;
 			slot_obj.remotestream = null;
+			slot_obj.remotesecondstream = null;
+		}
+	}
+	function mediaremove(slot, obj)
+	{
+		var slot_obj = slots.get(slot);
+		var player = null;
+		if (slot_obj.remotesecondstream !== null && obj.stream.id == slot_obj.remotesecondstream.id) {
+			player = slot_obj.secondplayer;
+		} else if (slot_obj.remotestream !== null && obj.stream.id == slot_obj.remotestream.id) {
+			player = slot_obj.player;
+		}
+		if (player) {
+			player.pause();
+			player.loop = '';
+			player.src = '';
+			player.srcObject = null;
+			player.type = '';
+			player.load();
+			player.style.width = "320px";
+			player.style.height = "240px";
+		}
+	}
+	function localmediaremove(slot, obj)
+	{
+		var slot_obj = slots.get(slot);
+		var player = null;
+		if (slot_obj.localsecondstream !== null && obj.stream.id == slot_obj.localsecondstream.id) {
+			player = slot_obj.localsecondplayer;
+		} else if (slot_obj.localstream !== null && obj.stream.id == slot_obj.localstream.id) {
+			player = slot_obj.localplayer;
+		}
+
+		if (player) {
+			player.pause();
+			player.loop = '';
+			player.src = '';
+			player.srcObject = null;
+			player.type = '';
+			player.load();
+			player.style.width = "320px";
+			player.style.height = "240px";
 		}
 	}
 	function handle_disconnect(slot, cause) {
@@ -81,18 +181,26 @@
 			slot_obj.call = null;
 		}
 		gotmedia(slot, null);
-		var localplayer = slot_obj.localplayer;
-		localplayer.pause();
-		localplayer.loop = '';
-		localplayer.src = '';
-		localplayer.srcObject = null;
-		localplayer.type = '';
-		localplayer.load();
+		var playerlist = [slot_obj.localplayer, slot_obj.localsecondplayer];
+		playerlist.forEach(player => {
+			if (player != null) {
+				player.pause();
+				player.loop = '';
+				player.src = '';
+				player.srcObject = null;
+				player.type = '';
+				player.load();
+				player.style.width = "320px";
+				player.style.height = "240px";
+			}
+		});
 		document.getElementById(slot + "-state").value = "Idle - " + cause;
 		document.getElementById(slot + "-callid").value = "(previous) " + document.getElementById(slot + "-callid").value;
 		document.getElementById(slot + "-remote").value = "";
 		document.getElementById(slot + "-start_button").disabled = false;
 		document.getElementById(slot + "-stop_button").disabled = true;
+		document.getElementById(slot + "-second_stream_button").disabled = true;
+		document.getElementById(slot + "-second_stream_button").innerHTML = "Add Stream";
 		document.getElementById(slot + "-mute-mic").disabled = true;
 		document.getElementById(slot + "-mute-mic").checked = false;
 		document.getElementById(slot + "-mute-cam").disabled = true;
@@ -104,6 +212,8 @@
 		document.getElementById(slot + "-target-type").disabled = false;
 		document.getElementById(slot + "-target").disabled = false;
 		configDtmfButtons(slot, false);
+		reset_slot_obj(slot_obj);
+		show_second_stream(slot, false);
 	}
 	function call_disconnected(slot, obj) {
 		var slot_obj = slots.get(slot);
@@ -114,11 +224,25 @@
 		var slot_obj = slots.get(slot);
 		document.getElementById(slot + "-state").value = "Connecting";
 		document.getElementById(slot + "-callid").value = slot_obj.call.callId();
-		slot_obj.localplayer.srcObject = obj.stream;
-		slot_obj.localplayer.load();
-		var p = slot_obj.localplayer.play();
-		if (p !== undefined) {
-			p.catch(error => {});
+		var player = slot_obj.localplayer;
+		if (obj.stream) {
+			if (slot_obj.localstream === null) {
+				slot_obj.localstream = obj.stream;
+			} else if (slot_obj.localsecondstream === null) {
+				player = slot_obj.localsecondplayer;
+				slot_obj.localsecondstream = obj.stream;
+			} else {
+				console.log("Tying to add too may streams");
+			}
+		}
+
+		if (player) {
+			player.srcObject = obj.stream;
+			player.load();
+			var p = player.play();
+			if (p !== undefined) {
+				p.catch(error => {});
+			}
 		}
 	}
 	function ringing(slot) {
@@ -152,6 +276,9 @@
 		document.getElementById(slot + "-state").value = "Connected";
 		document.getElementById(slot + "-start_button").disabled = true;
 		document.getElementById(slot + "-stop_button").disabled = false;
+		if (secondStreamSource(slot) != "None") {
+			document.getElementById(slot + "-second_stream_button").disabled = false;
+		}
 		document.getElementById(slot + "-mute-mic").disabled = false;
 		document.getElementById(slot + "-mute-cam").disabled = false;
 		document.getElementById(slot + "-mute-outa").disabled = false;
@@ -335,12 +462,12 @@
 			const selectedCodec = codecs[selectedCodecIndex];
 			codecs.splice(selectedCodecIndex, 1);
 			codecs.unshift(selectedCodec);
-			console.log(codecs);
+			console.log("codecs", codecs);
 		}
 		return codecs;
 	}
 
-	function start_call(slot) {
+	async function start_call(slot) {
 		var slot_obj = slots.get(slot);
 		var opts = {
 			constraints: {
@@ -356,12 +483,19 @@
 			maxBitrateAudio: get_bandwidth_setting(slot, 'audio'),
 			maxBitrateVideo: get_bandwidth_setting(slot, 'video'),
 		}
+		if (secondStreamSource(slot) != "None") {
+			const mediaStream = await navigator.mediaDevices.getUserMedia(opts.constraints);
+			opts.localStreams = [mediaStream];
+		}
 		if (slot_obj.call) {
 			if (slot_obj.inbound && !slot_obj.connected) {
 				console.log("accepting inbound");
 				document.getElementById(slot + "-state").value = "Accepting call";
 				document.getElementById(slot + "-start_button").disabled = true;
 				document.getElementById(slot + "-stop_button").disabled = false;
+				if (secondStreamSource(slot) != "None") {
+					document.getElementById(slot + "-second_stream_button").disabled = false;
+				}
 				slot_obj.call.answer(opts);
 			} else {
 				console.log("not starting call - call in progress");
@@ -387,6 +521,8 @@
 			slot_obj.call.onDisconnect = call_disconnected.bind(null, slot);
 			slot_obj.call.onRinging = ringing.bind(null, slot);
 			slot_obj.call.onMedia = gotmedia.bind(null, slot);
+			slot_obj.call.onMediaRemove = mediaremove.bind(null, slot);
+			slot_obj.call.onLocalMediaRemove = localmediaremove.bind(null, slot);
 			slot_obj.call.onConnecting = connecting.bind(null, slot);
 			slot_obj.call.onConnected = connected.bind(null, slot);
 			slot_obj.call.onError = handle_error.bind(null, slot);
@@ -400,6 +536,9 @@
 			document.getElementById(slot + "-target").disabled = true;
 			document.getElementById(slot + "-start_button").disabled = true;
 			document.getElementById(slot + "-stop_button").disabled = false;
+			if (secondStreamSource(slot) != "None") {
+				document.getElementById(slot + "-second_stream_button").disabled = false;
+			}
 		}
 	}
 	function stop_call(slot) {
@@ -414,7 +553,91 @@
 			}
 		}
 		document.getElementById(slot + "-stop_button").disabled = true;
+		document.getElementById(slot + "-second_stream_button").disabled = true;
 		configDtmfButtons(slot, false);
+		if (!slot_obj.connected) {
+			document.getElementById(slot + "-start_button").disabled = false;
+		}
+	}
+	async function captureScreen() {
+		const displayMediaOptions = {
+			video: {
+				displaySurface: "window"
+			},
+			audio: false,
+		};
+		const screenCapture = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
+		return screenCapture;
+	}
+
+	function captureStream(player) {
+		if (player.captureStream) {
+			return player.captureStream(0);
+		} else if (player.mozCaptureStream) {
+			return player.mozCaptureStream(0);
+		}
+
+		return null;
+	}
+	async function add_remove_stream(slot) {
+		if (document.getElementById(slot + "-second_stream_button").innerHTML == "Remove Stream") {
+			remove_stream(slot);
+		} else {
+			add_stream(slot);
+		}
+	}
+	async function remove_stream(slot) {
+		var slot_obj = slots.get(slot);
+		console.log("Removing second stream ", slot_obj.localsecondstream);
+		if (slot_obj.call && slot_obj.localsecondstream) {
+			try {
+				slot_obj.call.removeStream(slot_obj.localsecondstream);
+				slot_obj.localsecondstream = null;
+				document.getElementById(slot + "-second_stream_button").innerHTML = "Add Stream";
+			} catch(err) {
+				window.alert(err);
+			}
+		}
+	}
+	async function add_stream(slot) {
+		var slot_obj = slots.get(slot);
+		var stream_added = false;
+		console.log("Adding second stream");
+		if (slot_obj.localsecondstream !== null) {
+			throw "Second stream is already added";
+		}
+		if (slot_obj.call) {
+			show_second_stream(slot, true);
+			const src = secondStreamSource(slot);
+			if (src == "None") {
+				throw "Second stream not enabled";
+			} else if (src == "File") {
+				var video = document.createElement("video");
+				video.src = "./media/lotus_dancing_in_the_wind_360.mp4";
+				video.type = "video/mp4";
+				video.load();
+				video.loop = 'loop';
+				await video.play();
+				const newStream = await captureStream(video);
+				try {
+					slot_obj.call.addStream(newStream);
+					stream_added = true;
+				} catch(err) {
+					window.alert(error);
+				}
+			} else if (src == "Screen Share") {
+				const newStream = await captureScreen();
+				try {
+					slot_obj.call.addStream(newStream);
+					stream_added = true;
+				} catch(err) {
+					window.alert(error);
+				}
+			}
+			if (stream_added) {
+				document.getElementById(slot + "-second_stream_button").innerHTML = "Remove Stream";
+			}
+		}
 	}
 	function send_dtmf(slot, dtmf) {
 		var slot_obj = slots.get(slot);
@@ -425,8 +648,8 @@
 	}
 	function handleVideoMuteUnmute(slot, loc, change, obj) {
 		console.log("slot " + slot + ": " + loc + " video " + change + " [call: " + obj.call + ", stream: " + obj.stream + ", track: " + obj.track);
-		if (loc == "remote") {
-			var slot_obj = slots.get(slot);
+		var slot_obj = slots.get(slot);
+		if (loc == "remote" && obj.stream.id == slot_obj.remotestream.id) {
 			if (change == "mute") {
 				slot_obj.player.parentElement.classList.add("muted");
 			}
@@ -451,6 +674,9 @@
 		}
 		document.getElementById(slot + "-start_button").disabled = false;
 		document.getElementById(slot + "-stop_button").disabled = false;
+		if (secondStreamSource(slot) != "None") {
+			document.getElementById(slot + "-second_stream_button").disabled = false;
+		}
 		document.getElementById(slot + "-state").value = "Incoming";
 		document.getElementById(slot + "-callid").value = obj.call.callId();
 		var from = obj.from + " [" + obj.type + "]";
@@ -469,6 +695,8 @@
 		slot_obj.call.onDisconnect = call_disconnected.bind(null, slot);
 		slot_obj.call.onRinging = ringing.bind(null, slot);
 		slot_obj.call.onMedia = gotmedia.bind(null, slot);
+		slot_obj.call.onMediaRemove = mediaremove.bind(null, slot);
+		slot_obj.call.onLocalMediaRemove = localmediaremove.bind(null, slot);
 		slot_obj.call.onConnecting = connecting.bind(null, slot);
 		slot_obj.call.onConnected = connected.bind(null, slot);
 		slot_obj.call.onError = handle_error.bind(null, slot);
@@ -493,6 +721,9 @@
 			console.log("browser can't play audio/wav, so no ringing will be heard");
 		}
 		slot_obj.call.ringing();
+		if (auto_accept) {
+			start_call(slot);
+		}
 	}
 	function incomingState(state) {
 		if (state.ready) {
@@ -585,6 +816,7 @@
 		document.getElementById("reg_button").disabled = false;
 		for (var [s, obj] of slots.entries()) {
 			obj.player = document.getElementById(s + '-player');
+			obj.secondplayer = document.getElementById(s + '-remotesecondplayer');
 			let v = obj.player;
 			v.addEventListener("resize", ev => {
 				let w = v.videoWidth;
@@ -597,8 +829,11 @@
 				}
 			}, false);
 			obj.player.load(); // do this early in response to user action to ensure we can play later
+			obj.secondplayer.load(); // do this early in response to user action to ensure we can play later
 			obj.localplayer = document.getElementById(s + '-localplayer');
 			obj.localplayer.load(); // do this early in response to user action to ensure we can play later
+			obj.localsecondplayer = document.getElementById(s + '-localsecondplayer');
+			obj.localsecondplayer.load(); // do this early in response to user action to ensure we can play later
 			document.getElementById(s + '-start_button').disabled = false;
 			set_codec_selector(s, 'audio');
 			set_codec_selector(s, 'video');
@@ -632,6 +867,7 @@
 		document.getElementById("unreg_button").disabled = true;
 		for (var s of slots.keys()) {
 			document.getElementById(s + '-stop_button').disabled = true;
+			document.getElementById(s + "-second_stream_button").disabled = true;
 			document.getElementById(s + '-start_button').disabled = true;
 		}
 	}
@@ -696,9 +932,12 @@
 	function forceDisconnect() {
 		acc.closeConnection();
 	}
+	function secondStreamSource(slot) {
+		return document.getElementById(slot + "-second-stream-source").value;
+	}
 	</script>
 </head>
-<body>
+<body onload="initialise()">
 	<style>
 	video {
 		width: 320px;
@@ -851,10 +1090,10 @@
 			<td style="padding:10px">
 				<table>
 					<tr><td>
-					Cloud Username: <input id="cloud-username" size=10 value="cloud.testing@aculab.com">
+					Cloud Username: <input id="cloud-username" size=40 value="cloud.testing@aculab.com">
 					<td></tr>
 					<tr><td>
-					API Access Key: <input id="cloud-password" size=10 value="" type="password">
+					API Access Key: <input id="cloud-password" size=40 value="" type="password">
 					</td></tr>
 					<tr><td>
 					TTL: <input id="ttl" size=10 value="3600" min="600" max="87600" type="number">
@@ -887,6 +1126,11 @@
 				<video id="a-player" poster="./media/video_placeholder.png"></video>
 				</td><td>
 				<video id="a-localplayer" muted poster="./media/video_placeholder.png"></video>
+				</td><td></tr>
+				<tr id="a-secondstreamtitle" style="visibility: collapse"><td>Remote second stream</td><td>Local second stream</td></tr><tr id="a-secondstreamplayers" style="visibility: collapse"><td>
+				<video id="a-remotesecondplayer" muted poster="./media/video_placeholder.png"></video>
+				</td><td>
+				<video id="a-localsecondplayer" muted poster="./media/video_placeholder.png"></video>
 				</td></tr></table>
 				<table><tr><td>
 					Call:
@@ -907,6 +1151,7 @@
 					</td></tr><tr><td>
 					<button id="a-start_button" type="button" onclick="start_call('a')" disabled=true>Start</button>
 					<button id="a-stop_button" type="button" onclick="stop_call('a')" disabled=true>Disconnect</button>
+					<button id="a-second_stream_button" type="button" onclick="add_remove_stream('a')" disabled=true>Add Stream</button>
 					&nbsp;Mute: 
 					&nbsp;Mic: 
 					<label class="switch">
@@ -978,6 +1223,13 @@
 							<option>hd1080-exact</option>
 							<option>hd1080-ideal</option>
 						</select>
+						<br>
+						Second stream:
+						<br>
+						Source:&nbsp;<select id="a-second-stream-source">
+							<option selected>None</option>
+							<option>Screen Share</option>
+						</select>
 					</div>
 					<div style="display: inline-block">
 						Receive:
@@ -1036,6 +1288,11 @@
 				<video id="b-player" poster="./media/video_placeholder.png"></video>
 				</td><td>
 				<video id="b-localplayer" muted poster="./media/video_placeholder.png"></video>
+				</td><td>
+				<tr id="b-secondstreamtitle" style="visibility: collapse"><td>Remote second stream</td><td>Local second stream</td></tr><tr id="b-secondstreamplayers" style="visibility: collapse"><td>
+				<video id="b-remotesecondplayer" muted poster="./media/video_placeholder.png"></video>
+				</td><td>
+				<video id="b-localsecondplayer" muted poster="./media/video_placeholder.png"></video>
 				</td></tr></table>
 				<table><tr><td>
 					Call:
@@ -1056,6 +1313,7 @@
 					</td></tr><tr><td>
 					<button id="b-start_button" type="button" onclick="start_call('b')" disabled=true>Start</button>
 					<button id="b-stop_button" type="button" onclick="stop_call('b')" disabled=true>Disconnect</button>
+					<button id="b-second_stream_button" type="button" onclick="add_remove_stream('b')" disabled=true>Add Stream</button>
 					&nbsp;Mute: 
 					&nbsp;Mic: 
 					<label class="switch">
@@ -1127,6 +1385,13 @@
 							<option>hd1080-exact</option>
 							<option>hd1080-ideal</option>
 						</select>
+						<br>
+						Second stream:
+						<br>
+						Source:&nbsp;<select id="b-second-stream-source">
+							<option selected>None</option>
+							<option>Screen Share</option>
+						</select>
 					</div>
 					<div style="display: inline-block">
 						Receive:
@@ -1187,6 +1452,11 @@
 				<video id="c-player" poster="./media/video_placeholder.png"></video>
 				</td><td>
 				<video id="c-localplayer" muted poster="./media/video_placeholder.png"></video>
+				</td><td>
+				<tr id="c-secondstreamtitle" style="visibility: collapse"><td>Remote second stream</td><td>Local second stream</td></tr><tr id="c-secondstreamplayers" style="visibility: collapse"><td>
+				<video id="c-remotesecondplayer" muted poster="./media/video_placeholder.png"></video>
+				</td><td>
+				<video id="c-localsecondplayer" muted poster="./media/video_placeholder.png"></video>
 				</td></tr></table>
 				<table><tr><td>
 					Call:
@@ -1207,6 +1477,7 @@
 					</td></tr><tr><td>
 					<button id="c-start_button" type="button" onclick="start_call('c')" disabled=true>Start</button>
 					<button id="c-stop_button" type="button" onclick="stop_call('c')" disabled=true>Disconnect</button>
+					<button id="c-second_stream_button" type="button" onclick="add_remove_stream('c')" disabled=true>Add Stream</button>
 					&nbsp;Mute: 
 					&nbsp;Mic: 
 					<label class="switch">
@@ -1278,6 +1549,14 @@
 							<option>hd1080-exact</option>
 							<option>hd1080-ideal</option>
 						</select>
+						<br>
+						Second stream:
+						<br>
+						Source:&nbsp;<select id="c-second-stream-source">
+							<option selected>None</option>
+							<option>File</option>
+							<option>Screen Share</option>
+						</select>
 					</div>
 					<div style="display: inline-block">
 						Receive:
@@ -1336,6 +1615,11 @@
 				<video id="d-player" poster="./media/video_placeholder.png"></video>
 				</td><td>
 				<video id="d-localplayer" muted poster="./media/video_placeholder.png"></video>
+				</td><td>
+				<tr id="d-secondstreamtitle" style="visibility: collapse"><td>Remote second stream</td><td>Local second stream</td></tr><tr id="d-secondstreamplayers" style="visibility: collapse"><td>
+				<video id="d-remotesecondplayer" muted poster="./media/video_placeholder.png"></video>
+				</td><td>
+				<video id="d-localsecondplayer" muted poster="./media/video_placeholder.png"></video>
 				</td></tr></table>
 				<table><tr><td>
 					Call:
@@ -1356,6 +1640,7 @@
 					</td></tr><tr><td>
 					<button id="d-start_button" type="button" onclick="start_call('d')" disabled=true>Start</button>
 					<button id="d-stop_button" type="button" onclick="stop_call('d')" disabled=true>Disconnect</button>
+					<button id="d-second_stream_button" type="button" onclick="add_remove_stream('d')" disabled=true>Add Stream</button>
 					&nbsp;Mute: 
 					&nbsp;Mic: 
 					<label class="switch">
@@ -1426,6 +1711,14 @@
 							<option>hd720-ideal</option>
 							<option>hd1080-exact</option>
 							<option>hd1080-ideal</option>
+						</select>
+						<br>
+						Second stream:
+						<br>
+						Source:&nbsp;<select id="d-second-stream-source">
+							<option selected>None</option>
+							<option>File</option>
+							<option>Screen Share</option>
 						</select>
 					</div>
 					<div style="display: inline-block">
