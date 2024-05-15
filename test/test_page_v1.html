@@ -1,0 +1,204 @@
+<html>
+<head>
+	<title>Aculab Cloud WebRTC demo - v1 compatability layer</title>
+	<link rel="icon" type="image/gif" href="/images/favicon.gif" />
+	<script type='application/javascript' src='../dist/AculabCloudCaller.js'></script>
+	<script type='application/javascript'>
+	var acc = null;
+	var playing_ringing = false;
+	var gotremotestream = false;
+	
+	function gotmedia(obj) {
+		var player = document.getElementById("player");
+		player.pause();
+		player.loop = '';
+		player.src = '';
+		if (acc !== null) {
+			acc.detachMediaStreamFromElement(player);
+		}
+		player.type = '';
+		playing_ringing = false;
+		gotremotestream = false;
+		if (acc !== null && obj !== null) {
+			gotremotestream = true;
+			acc.attachMediaStreamToElement(player, obj.stream);
+			player.play();
+		}
+	}
+	function handle_disconnect(cause) {
+		gotmedia(null);
+		if (acc !== null) {
+			acc.disconnect();
+			acc = null;
+			document.getElementById("state").value = "Idle - " + cause;
+			document.getElementById("appname").disabled = false;
+			document.getElementById("cloud").disabled = false;
+			document.getElementById("caller").disabled = false;
+			document.getElementById("start_button").disabled = false;
+			document.getElementById("stop_button").disabled = true;
+			document.getElementById("dtmf1").disabled = true;
+			document.getElementById("dtmf2").disabled = true;
+			document.getElementById("dtmf3").disabled = true;
+			document.getElementById("dtmf4").disabled = true;
+			document.getElementById("dtmf5").disabled = true;
+			document.getElementById("dtmf6").disabled = true;
+			document.getElementById("dtmf7").disabled = true;
+			document.getElementById("dtmf8").disabled = true;
+			document.getElementById("dtmf9").disabled = true;
+			document.getElementById("dtmf10").disabled = true;
+			document.getElementById("dtmf11").disabled = true;
+			document.getElementById("dtmf12").disabled = true;
+		}
+	}
+	function call_disconnected(obj) {
+		handle_disconnect(obj.cause);
+	}
+	function connecting() {
+		document.getElementById("state").value = "Connecting";
+	}
+	function ringing() {
+		document.getElementById("state").value = "Ringing";
+		if (!playing_ringing) {
+			var player = document.getElementById("player");
+			if (player.canPlayType('audio/wav')) {
+				if (!gotremotestream) {
+					player.pause();
+					player.loop = 'loop';
+					player.src = 'media/ringing.wav';
+					player.type="audio/wav";
+					player.load();
+					var p = player.play();
+					if (p !== undefined) {
+						p.catch(error => {});
+					}
+				}
+			} else {
+				console.log("Browser can't play audio/wav, so no ringing will be heard");
+			}
+			playing_ringing = true;
+		}			
+	}
+	function connected() {
+		document.getElementById("state").value = "Connected";
+		document.getElementById("dtmf1").disabled = false;
+		document.getElementById("dtmf2").disabled = false;
+		document.getElementById("dtmf3").disabled = false;
+		document.getElementById("dtmf4").disabled = false;
+		document.getElementById("dtmf5").disabled = false;
+		document.getElementById("dtmf6").disabled = false;
+		document.getElementById("dtmf7").disabled = false;
+		document.getElementById("dtmf8").disabled = false;
+		document.getElementById("dtmf9").disabled = false;
+		document.getElementById("dtmf10").disabled = false;
+		document.getElementById("dtmf11").disabled = false;
+		document.getElementById("dtmf12").disabled = false;
+	}
+	function handle_error(obj) {
+		handle_disconnected(obj.error);
+	}
+
+	function start_call() {
+		console.log("starting call");
+		document.getElementById("player").play();
+		app = document.getElementById("appname").value;
+		cloud = document.getElementById("cloud").value;
+		caller = document.getElementById("caller").value;
+		try {
+			acc = new AculabCloudCaller();
+		}
+		catch(err) {
+			acc = null;
+		}
+		if (acc) {
+			if (acc.isSupported()) {
+				//acc.iceServers = [ {url:'stun:stun.l.google.com:19302'} ];
+				//acc.iceServers = [ {url:'stun:173.194.78.127:19302'} ];
+//				acc.iceServers = [];
+				//acc.logLevel = 0;
+				acc.onDisconnect = call_disconnected;
+				acc.onRinging = ringing;
+				acc.onMedia = gotmedia;
+				acc.onConnecting = connecting;
+				acc.onConnected = connected;
+				acc.onError = handle_error;
+				acc.makeCall(cloud, encodeURIComponent(app), encodeURIComponent(caller));
+				document.getElementById("appname").disabled = true;
+				document.getElementById("cloud").disabled = true;
+				document.getElementById("caller").disabled = true;
+				document.getElementById("start_button").disabled = true;
+				document.getElementById("stop_button").disabled = false;
+			} else {
+				document.getElementById("state").value = "Idle - Calling cloud apps is not supported by this browser";
+			}
+		} else {
+			document.getElementById("state").value = "Idle - Error creating cloud caller, check JS is loaded";
+		}
+	}
+	function stop_call() {
+		console.log("stopping call");
+		acc.disconnect(caller);
+		document.getElementById("stop_button").disabled = true;
+		document.getElementById("dtmf1").disabled = true;
+		document.getElementById("dtmf2").disabled = true;
+		document.getElementById("dtmf3").disabled = true;
+		document.getElementById("dtmf4").disabled = true;
+		document.getElementById("dtmf5").disabled = true;
+		document.getElementById("dtmf6").disabled = true;
+		document.getElementById("dtmf7").disabled = true;
+		document.getElementById("dtmf8").disabled = true;
+		document.getElementById("dtmf9").disabled = true;
+		document.getElementById("dtmf10").disabled = true;
+		document.getElementById("dtmf11").disabled = true;
+		document.getElementById("dtmf12").disabled = true;
+	}
+	function send_dtmf(dtmf) {
+		console.log("send dtmf:" + dtmf);
+		acc.sendDtmf(dtmf);
+	}
+	</script>
+</head>
+<body>
+    <h2>Aculab Cloud WebRTC demo</h2>
+    <audio id="player"></audio>
+	Incoming service name:
+	<select id="cloud">
+		<option value="0-0-0">0-0-0</option>
+		<option value="0-2-0">0-2-0</option>
+		<option value="1-2-0">1-2-0</option>
+		<option value="2-2-0">2-2-0</option>
+		<option value="3-2-0">3-2-0</option>
+		<option value="4-0-0">4-0-0</option>
+		<option value="4-0-1">4-0-1</option>
+	</select>
+	<input id="appname" size=40 value="webrtcdemo">
+	<br>Caller ID:
+	<input id="caller" size=40 value="username">
+	<br>
+	<input id="state" size=60 value="Idle" disabled=true>
+	<br>
+	<button id="start_button" type="button" onclick="start_call()">Start</button>
+	<button id="stop_button" type="button" onclick="stop_call()" disabled=true>Disconnect</button>
+	<table>
+	<tr>
+	<td><button id="dtmf1" type="button" disabled=true onclick="send_dtmf('1')">1</button></td>
+	<td><button id="dtmf2" type="button" disabled=true onclick="send_dtmf('2')">2</button></td>
+	<td><button id="dtmf3" type="button" disabled=true onclick="send_dtmf('3')">3</button></td>
+	</tr>
+	<tr>
+	<td><button id="dtmf4" type="button" disabled=true onclick="send_dtmf('4')">4</button></td>
+	<td><button id="dtmf5" type="button" disabled=true onclick="send_dtmf('5')">5</button></td>
+	<td><button id="dtmf6" type="button" disabled=true onclick="send_dtmf('6')">6</button></td>
+	</tr>
+	<tr>
+	<td><button id="dtmf7" type="button" disabled=true onclick="send_dtmf('7')">7</button></td>
+	<td><button id="dtmf8" type="button" disabled=true onclick="send_dtmf('8')">8</button></td>
+	<td><button id="dtmf9" type="button" disabled=true onclick="send_dtmf('9')">9</button></td>
+	</tr>
+	<tr>
+	<td><button id="dtmf10" type="button" disabled=true onclick="send_dtmf('*')">*</button></td>
+	<td><button id="dtmf11" type="button" disabled=true onclick="send_dtmf('0')">0</button></td>
+	<td><button id="dtmf12" type="button" disabled=true onclick="send_dtmf('#')">#</button></td>
+	</tr>
+	</table>
+</body>
+</html>
