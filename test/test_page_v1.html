@@ -62,6 +62,7 @@
 			var player = document.getElementById("player");
 			if (player.canPlayType('audio/wav')) {
 				if (!gotremotestream) {
+					player.pause();
 					player.loop = 'loop';
 					player.src = 'media/ringing.wav';
 					player.type="audio/wav";
