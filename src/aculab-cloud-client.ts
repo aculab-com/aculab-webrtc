@@ -668,7 +668,7 @@ export class AculabCloudClient {
       window.RTCRtpTransceiver &&
       'setCodecPreferences' in window.RTCRtpTransceiver.prototype
     ) {
-      const codecs = RTCRtpSender.getCapabilities(mediaType)?.codecs;
+      const codecs = RTCRtpReceiver.getCapabilities(mediaType)?.codecs;
       return codecs;
     }
     return [];
