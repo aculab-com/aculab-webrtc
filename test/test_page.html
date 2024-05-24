@@ -503,8 +503,22 @@
 		if (AculabCloudClient.isSupported()) {
 			try {
 				acc = new AculabCloudClient(cloud, webRtcAccessKey, clientId, logLevel);
-				// uncomment the following line to disable relay candidates
-				//acc.iceServers = [];
+				let peerConnectionConfiguration = {};
+				iceTransportPolicy = document.getElementById("iceTransportPolicy").value;
+                                disableTurnServers = document.getElementById("disableTurnServers").value;
+                                iceCandidatePoolSize = parseInt(document.getElementById("iceCandidatePoolSize").value);
+                                if (iceTransportPolicy != "undefined") {
+                                        peerConnectionConfiguration.iceTransportPolicy = iceTransportPolicy;
+                                }
+                                if (disableTurnServers == "true") {
+                                        peerConnectionConfiguration.iceServers = [];
+                                }
+                                if (iceCandidatePoolSize != 0) {
+                                        peerConnectionConfiguration.iceCandidatePoolSize = iceCandidatePoolSize;
+                                }
+                                if (Object.keys(peerConnectionConfiguration).length > 0) {
+                                        acc.setPeerConnectionConfiguration(peerConnectionConfiguration);
+                                }
 			}
 			catch(err) {
 				acc = null;
@@ -795,6 +809,31 @@
 						<option>7</option>
 						<option selected="selected">8</option>
 					</select>
+					</td></tr><tr><td>Ice Transport Policy
+					<select id="iceTransportPolicy">
+						<option selected="selected">undefined</option>
+						<option>all</option>
+						<option>relay</option>
+					</select>
+                                        </td></tr><tr><td>Disable TURN servers:
+                                        <select id="disableTurnServers">
+                                                <option>true</option>
+                                                <option selected="selected">false</option>
+                                        </select>
+                                        </td></tr><tr><td>Ice Candidate Pool Size:
+                                        <select id="iceCandidatePoolSize">
+                                                <option selected="selected">0</option>
+                                                <option>1</option>
+                                                <option>2</option>
+                                                <option>3</option>
+                                                <option>4</option>
+                                                <option>5</option>
+                                                <option>6</option>
+                                                <option>7</option>
+                                                <option>8</option>
+                                                <option>9</option>
+                                                <option>10</option>
+                                        </select>
 					</td></tr><tr><td>
 						<button id="create_button" type="button" onclick="make_client()">Create</button>
 						<button id="del_button" type="button" onclick="dtor_client()" disabled=true>Destroy</button>
