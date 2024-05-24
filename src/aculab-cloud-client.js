@@ -170,6 +170,7 @@ export class AculabCloudClient {
 		this.maxConcurrent = 1;
 		this.iceServers = null;
 		this._reconnecting = false;
+		this._peerConnectionConfiguration = undefined;
 
 		// add legacy function name alias
 		this.makeOutgoing = this.callService;
@@ -200,16 +201,28 @@ export class AculabCloudClient {
 		const mediaStreamFactory = Web.defaultMediaStreamFactory();
 		// make sure we allow `0` to be passed in so timeout can be disabled
 		const iceGatheringTimeout = (options === null || options === void 0 ? void 0 : options.iceGatheringTimeout) !== undefined ? options === null || options === void 0 ? void 0 : options.iceGatheringTimeout : 5000;
-		// merge passed factory options into default session description configuration
+		// merge the custom options and the passed factory options into default session description configuration
 		let sessionDescriptionHandlerConfiguration = {
 			iceGatheringTimeout,
-			peerConnectionConfiguration: Object.assign(Object.assign({}, Web.defaultPeerConnectionConfiguration()), options === null || options === void 0 ? void 0 : options.peerConnectionConfiguration)
+			peerConnectionConfiguration: Object.assign(
+					Object.assign(
+						Object.assign({}, Web.defaultPeerConnectionConfiguration()),
+										options === null || options === void 0
+											? void 0
+											: options.peerConnectionConfiguration),
+					this._peerConnectionConfiguration === null || this._peerConnectionConfiguration === void 0
+						? void 0
+						: this._peerConnectionConfiguration),
 		};
 		// set the desired ice servers
-		if (this.iceServers != null) {
-			sessionDescriptionHandlerConfiguration.peerConnectionConfiguration.iceServers = this.iceServers;
-		} else {
-			sessionDescriptionHandlerConfiguration.peerConnectionConfiguration.iceServers = this._aculabIceServers;
+		if (!this._peerConnectionConfiguration || this._peerConnectionConfiguration.iceServers === undefined) {
+			if (this.iceServers != null) {
+				// This is a deprecated feature.  iceServers
+				// should be specified in setPeerConnectionConfiguration
+				sessionDescriptionHandlerConfiguration.peerConnectionConfiguration.iceServers = this.iceServers;
+			} else {
+				sessionDescriptionHandlerConfiguration.peerConnectionConfiguration.iceServers = this._aculabIceServers;
+			}
 		}
 		const logger = session.userAgent.getLogger("sip.SessionDescriptionHandler");
 		return new MediaEventSessionDescriptionHandler(logger, mediaStreamFactory, sessionDescriptionHandlerConfiguration);
@@ -417,6 +430,13 @@ export class AculabCloudClient {
 	}
 	closeConnection() {
 		this._ua.transport.disconnect();
+	}
+	setPeerConnectionConfiguration(configuration) {
+		const defaults = {
+			iceServers: undefined
+		};
+		let conf = {...defaults, ...configuration};
+		this._peerConnectionConfiguration = conf;
 	}
 	static isSupported() {
 		if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
