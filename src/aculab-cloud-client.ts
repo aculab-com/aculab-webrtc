@@ -480,7 +480,7 @@ export class AculabCloudClient {
    * @param serviceName service id to be called
    * @returns Aculab Cloud Outgoing Service Call
    */
-  callService(serviceName: string) {
+  callService(serviceName: string, options: CallOptions | undefined = undefined) {
     // some users are including the sip: in the service name, strip it
     if (serviceName.startsWith('sip%3A') || serviceName.startsWith('sip%3a')) {
       serviceName = serviceName.substring(6);
@@ -501,7 +501,8 @@ export class AculabCloudClient {
     const outcall = new AculabCloudOutgoingServiceCall(
       this,
       serviceName,
-      this._legacy_interface,
+      options,
+      this._legacy_interface
     );
     this._calls.add(outcall);
     return outcall;
