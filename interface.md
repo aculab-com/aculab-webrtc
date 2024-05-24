@@ -78,6 +78,8 @@ AculabCloudClient data properties
 
 Must be null or an array of RTCIceServer objects. This value can be changed at any time. Outgoing calls will use the value set when the call is made. Incoming calls will use the value set when the call is answered. If the value is null, an Aculab provided set of iceServers is used. Using an empty array will disable the Aculab provided iceServers.
 
+This is deprecated in favour of setting the iceServers in setPeerConnectionConfiguration().
+
 ### maxConcurrent
 
 This is the number of concurrent calls this client is allowed to handle. The default is 1. This value must be 1 or greater. The upper limit is browser dependent.
@@ -183,6 +185,19 @@ This throws a string exception if there is an invalid digit in the string. There
 ### void disconnect()
 
 Disconnects any existing call. This can be called at any time.
+
+### void setPeerConnectionConfiguration(configuration)
+
+This function allows the user to set various settings in the PeerConnectionConfiguration object.  It can be useful if an ISP or router is filtering RTP traffic preventing media from being connected. It can be called at any time. Outgoing calls will use the value set when the call is made. Incoming calls will use the value set when the call is answered.
+
+The parameter object can have the following properties which are all optional:
+
+| property | value |
+| --- | --- |
+| `iceServers` | an array of RTCIceServer objects. Incoming calls will use the value set when the call is answered. If the value is null, or the property is missing, an Aculab provided set of iceServers is used. Using an empty array will disable the Aculab provided iceServers. |
+| `iceTransportPolicy` | a string representing the ICE Transport Policy.  Must be one of "all" (all ICE candidates will be considered) or "relay" (only ICE candidates whose IP addresses are being relayed, such as those being passed through a TURN server, will be considered).  If this property is missing, then the default of "all" will be used. |
+
+In normal operation, iceTransportPolicy should not be set. It can be useful as a diagnostic option to help identify firewall or connectivity issues, but relying on this could result in higher latency.
 
 AculabCloudCall data properties
 ---------------------------------
