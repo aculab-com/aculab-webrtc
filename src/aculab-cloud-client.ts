@@ -640,7 +640,6 @@ export class AculabCloudClient {
   disableIncoming() {
     this._token = '';
     if (this._registerer) {
-      this._registerer.setToken('');
       void this._registerer.dispose();
       this._registerer = null;
     }
