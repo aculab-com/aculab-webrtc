@@ -454,8 +454,8 @@ export class AculabCloudClient {
   private _checkStop() {
     if (
       this._calls.size === 0 &&
-      this._token === null &&
-      this._registered_token === null
+      this._token === '' &&
+      this._registered_token === ''
     ) {
       // no longer need websocket connection
       void this._ua.stop();
@@ -621,7 +621,8 @@ export class AculabCloudClient {
             );
           }
         }
-        if (!ready && !this._token && this._registerer) {
+        if (!ready && this._token !== '' && this._registerer) {
+          this._token = '';
           void this._registerer.dispose();
           this._registerer = null;
           this._checkStop();
@@ -640,9 +641,10 @@ export class AculabCloudClient {
     this._token = '';
     if (this._registerer) {
       this._registerer.setToken('');
-    } else {
-      this._checkStop();
+      void this._registerer.dispose();
+      this._registerer = null;
     }
+    this._checkStop();
   }
 
   /**
