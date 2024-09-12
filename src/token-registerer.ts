@@ -279,10 +279,12 @@ export class TokenRegisterer {
             {once: true},
           );
           void this.unregister();
+          this.unregistered('DISCONNECTED');
           return;
         }
         // Otherwise just resolve
         this.terminated();
+        this.unregistered('DISCONNECTED');
         resolve();
       };
       // If we are waiting for an outstanding request, wait for it to finish and then try closing.

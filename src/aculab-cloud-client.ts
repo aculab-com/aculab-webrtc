@@ -145,10 +145,6 @@ export class AculabCloudClient {
           );
         }
         this._transport_connected = false;
-        // clear registration
-        if (this._registerer) {
-          this._registerer.setToken('');
-        }
         // disconnect all calls
         this._calls.forEach(call => {
           if (call._termination_reason === '') {
@@ -162,7 +158,12 @@ export class AculabCloudClient {
           this._option_request_refresh_timer = null;
         }
         // queue reconnect attempt
-        this.reconnect(); // TODO: should this only be "if (err)"
+        if (err) {
+          this.reconnect();
+        } else if (this._registerer) {
+          // clear registration
+          this._registerer.setToken('');
+	};
       },
       onInvite: invitation => {
         this.console_log('invite');
@@ -650,7 +651,8 @@ export class AculabCloudClient {
    * Close connection
    */
   closeConnection() {
-    void this._ua.transport.disconnect();
+    this.disableIncoming();
+    this._ua.transport.disconnect();
   }
 
   /**
