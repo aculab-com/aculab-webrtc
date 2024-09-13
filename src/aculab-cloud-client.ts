@@ -145,10 +145,6 @@ export class AculabCloudClient {
           );
         }
         this._transport_connected = false;
-        // clear registration
-        if (this._registerer) {
-          this._registerer.setToken('');
-        }
         // disconnect all calls
         this._calls.forEach(call => {
           if (call._termination_reason === '') {
@@ -162,7 +158,12 @@ export class AculabCloudClient {
           this._option_request_refresh_timer = null;
         }
         // queue reconnect attempt
-        this.reconnect(); // TODO: should this only be "if (err)"
+        if (err) {
+          this.reconnect();
+        } else if (this._registerer) {
+          // clear registration
+          this._registerer.setToken('');
+	};
       },
       onInvite: invitation => {
         this.console_log('invite');
@@ -454,8 +455,8 @@ export class AculabCloudClient {
   private _checkStop() {
     if (
       this._calls.size === 0 &&
-      this._token === null &&
-      this._registered_token === null
+      this._token === '' &&
+      this._registered_token === ''
     ) {
       // no longer need websocket connection
       void this._ua.stop();
@@ -621,7 +622,8 @@ export class AculabCloudClient {
             );
           }
         }
-        if (!ready && !this._token && this._registerer) {
+        if (!ready && this._token !== '' && this._registerer) {
+          this._token = '';
           void this._registerer.dispose();
           this._registerer = null;
           this._checkStop();
@@ -639,17 +641,18 @@ export class AculabCloudClient {
   disableIncoming() {
     this._token = '';
     if (this._registerer) {
-      this._registerer.setToken('');
-    } else {
-      this._checkStop();
+      void this._registerer.dispose();
+      this._registerer = null;
     }
+    this._checkStop();
   }
 
   /**
    * Close connection
    */
   closeConnection() {
-    void this._ua.transport.disconnect();
+    this.disableIncoming();
+    this._ua.transport.disconnect();
   }
 
   /**

@@ -757,9 +757,9 @@
 	}
 	function unregister() {
 		if (acc) {
-			acc.disableIncoming();
 			document.getElementById("unreg_button").disabled = true;
 			document.getElementById("reg_state").value = "Disabling Incoming";
+			acc.disableIncoming();
 			inbound_enabled = false;
 		} else {
 			document.getElementById("reg_state").value = "No cloud client";

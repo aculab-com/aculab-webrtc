@@ -279,10 +279,12 @@ export class TokenRegisterer {
             {once: true},
           );
           void this.unregister();
+          this.unregistered('DISCONNECTED');
           return;
         }
         // Otherwise just resolve
         this.terminated();
+        this.unregistered('DISCONNECTED');
         resolve();
       };
       // If we are waiting for an outstanding request, wait for it to finish and then try closing.
@@ -305,10 +307,12 @@ export class TokenRegisterer {
    * @param token webrtc token
    */
   setToken(token: string) {
-    this.user_token = token;
-    this.change_pending = true;
-    if (!this.waiting) {
-      this.processChange();
+    if (token !== this.user_token) {
+      this.user_token = token;
+      this.change_pending = true;
+      if (!this.waiting) {
+        this.processChange();
+      }
     }
   }
 
@@ -319,7 +323,7 @@ export class TokenRegisterer {
     if (this.change_pending) {
       this.change_pending = false;
       this.force_notify = true;
-      if (this.user_token) {
+      if (this.user_token !== '') {
         this.options.extraHeaders = [
           'Authorization: Bearer ' + this.user_token,
         ];
