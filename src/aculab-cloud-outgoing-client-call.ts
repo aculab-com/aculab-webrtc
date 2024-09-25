@@ -12,6 +12,13 @@ export class AculabCloudOutgoingClientCall extends AculabCloudOutgoingCall {
     options: CallOptions,
   ) {
     // TODO: add option to allow video
+    var hdrs = options.extraHeaders ?? [];
+    hdrs.forEach((s) => {
+      if (!s.startsWith("X-")) {
+        throw new Error("extraHeader must start with 'X-'");
+      }
+    });
+
     const uri = new URI(
       'sip',
       clientId,
@@ -21,7 +28,7 @@ export class AculabCloudOutgoingClientCall extends AculabCloudOutgoingCall {
       client,
       uri,
       {
-        extraHeaders: ['Authorization: Bearer ' + token],
+        extraHeaders: ['Authorization: Bearer ' + token].concat(hdrs),
       },
       options,
       true,

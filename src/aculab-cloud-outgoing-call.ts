@@ -9,6 +9,7 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
   _uri: URI;
   invite_pending: boolean;
   _inviter_options: object;
+  _accept_message: sipCore.IncomingResponseMessage | undefined;
   declare _session: CallInviter;
 
   constructor(
@@ -25,6 +26,7 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
     this._inviter_options = inviter_options;
     this._sdh_options =
       MediaEventSessionDescriptionHandler.fixup_options(options);
+    this._accept_message = undefined;
 
     if (this.client._isReady()) {
       this._doinvite();
@@ -77,6 +79,9 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
         onProgress: (response: sipCore.IncomingResponse) => {
           this._progress(response);
         },
+	onAccept: (response: sipCore.IncomingResponse) => {
+	  this._accept(response);
+	},
       },
       sessionDescriptionHandlerOptions: this._sdh_options,
     };
@@ -101,6 +106,16 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
           );
         }
       }
+    }
+  }
+
+  /**
+   * accept handler
+   * @param response sip incoming response
+   */
+  _accept(response: sipCore.IncomingResponse) {
+    if (response.message && response.message.statusCode === 200) {
+      this._accept_message = response.message;
     }
   }
 
@@ -137,5 +152,9 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
         void this._session.cancel();
       }
     }
+  }
+
+  getSipHeader(name: string) {
+    return this._accept_message!.getHeader(name);
   }
 }

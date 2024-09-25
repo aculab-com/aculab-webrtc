@@ -47,6 +47,7 @@ export interface CallOptions extends Web.SessionDescriptionHandlerOptions {
   reinvite?: boolean;
   iceRestart?: boolean;
   offerOptions?: RTCOfferOptions; // legacy options keep for backwards compatibility
+  extraHeaders?: string[];
 }
 
 export interface DtmfOptions {
