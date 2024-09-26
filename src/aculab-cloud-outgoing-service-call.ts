@@ -10,7 +10,7 @@ export class AculabCloudOutgoingServiceCall extends AculabCloudOutgoingCall {
     callOptions: CallOptions | undefined,
     legacy_interface: boolean = false
   ) {
-    var hdrs = callOptions!.extraHeaders ?? [];
+    var hdrs = callOptions?.extraHeaders ?? [];
     hdrs.forEach((s) => {
       if (!s.startsWith("X-")) {
         throw new Error("extraHeader must start with 'X-'");
