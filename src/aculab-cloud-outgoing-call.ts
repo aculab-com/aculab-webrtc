@@ -154,7 +154,7 @@ export class AculabCloudOutgoingCall extends AculabCloudCall {
     }
   }
 
-  getSipHeader(name: string) {
-    return this._accept_message!.getHeader(name);
+  getSipHeaders(name: string) {
+    return this._accept_message?.getHeaders(name);
   }
 }

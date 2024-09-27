@@ -12,10 +12,10 @@ export class AculabCloudOutgoingClientCall extends AculabCloudOutgoingCall {
     options: CallOptions,
   ) {
     // TODO: add option to allow video
-    var hdrs = options.extraHeaders ?? [];
+    var hdrs = options.extraSipHeaders ?? [];
     hdrs.forEach((s) => {
       if (!s.startsWith("X-")) {
-        throw new Error("extraHeader must start with 'X-'");
+        throw new Error("extraSipHeader must start with 'X-'");
       }
     });
 

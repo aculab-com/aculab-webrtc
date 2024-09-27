@@ -10,17 +10,17 @@ export class AculabCloudOutgoingServiceCall extends AculabCloudOutgoingCall {
     callOptions: CallOptions | undefined,
     legacy_interface: boolean = false
   ) {
-    var hdrs = callOptions?.extraHeaders ?? [];
+    var hdrs = callOptions?.extraSipHeaders ?? [];
     hdrs.forEach((s) => {
       if (!s.startsWith("X-")) {
-        throw new Error("extraHeader must start with 'X-'");
+        throw new Error("extraSipHeader must start with 'X-'");
       }
     });
 
     let inv_opts = {earlyMedia: true};
     let hdr_opts = {}
     if (hdrs.length > 0) {
-      hdr_opts = {extraHeadershdrs: hdrs};
+      hdr_opts = {extraHeaders: hdrs};
     }
     const invite_opts = {...inv_opts, ...hdr_opts};
     const uri = new URI(

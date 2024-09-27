@@ -24,11 +24,11 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
   answer(options: CallOptions) {
     this._sdh_options =
       MediaEventSessionDescriptionHandler.fixup_options(options);
-    this._extra_headers = options!.extraHeaders;
+    this._extra_headers = options.extraSipHeaders;
     if (this._extra_headers !== undefined) {
       this._extra_headers.forEach((s) => {
         if (!s.startsWith("X-")) {
-          throw new Error("extraHeader must start with 'X-'");
+          throw new Error("extraSipHeader must start with 'X-'");
         }
       });
     }
@@ -141,7 +141,7 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
     this.answer_pending = false;
   }
 
-  getSipHeader(name: string) {
-    return this._session.request.getHeader(name);
+  getSipHeaders(name: string) {
+    return this._session.request.getHeaders(name);
   }
 }
