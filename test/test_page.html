@@ -276,9 +276,9 @@
 			gotmedia(slot, null);
 		}
 		if (!slot_obj.inbound) {
-			var siphdr = slot_obj.call.getSipHeader("X-Aculab-WebRTC-Answer");
+			var siphdr = slot_obj.call.getSipHeaders("X-Aculab-WebRTC-Answer");
 			if (siphdr !== undefined) {
-				document.getElementById(slot + "-recv-header").value = siphdr;
+				document.getElementById(slot + "-recv-header").value = siphdr.join("|");
 			}
 		}
 		document.getElementById(slot + "-state").value = "Connected";
@@ -510,7 +510,7 @@
 					if (exthdr.indexOf(":") == -1) {
 						exthdr = "X-Aculab-WebRTC-Answer: " + exthdr;
 					}
-					opts.extraHeaders = [exthdr];
+					opts.extraSipHeaders = [exthdr];
 				}
 				slot_obj.call.answer(opts);
 			} else {
@@ -521,7 +521,7 @@
 				if (exthdr.indexOf(":") == -1) {
 					exthdr = "X-Aculab-WebRTC-Test: " + exthdr;
 				}
-				opts.extraHeaders = [exthdr];
+				opts.extraSipHeaders = [exthdr];
 			}
 			console.log("starting call");
 			document.getElementById(slot + "-state").value = "Starting call";
@@ -537,7 +537,14 @@
 					return;
 				}
 			} else {
-				slot_obj.call = acc.callService(encodeURIComponent(targ));
+				var service_opts = {};
+				if (exthdr !== "") {
+					if (exthdr.indexOf(":") == -1) {
+						exthdr = "X-Aculab-WebRTC-Test: " + exthdr;
+					}
+					service_opts.extraSipHeaders = [exthdr];
+				}
+				slot_obj.call = acc.callService(encodeURIComponent(targ), service_opts);
 			}
 			document.getElementById(slot + "-callid").value = '';
 			slot_obj.call.onDisconnect = call_disconnected.bind(null, slot);
@@ -701,9 +708,9 @@
 		}
 		document.getElementById(slot + "-state").value = "Incoming";
 		document.getElementById(slot + "-callid").value = obj.call.callId();
-		var siphdr = obj.call.getSipHeader("X-Aculab-WebRTC-Test");
+		var siphdr = obj.call.getSipHeaders("X-Aculab-WebRTC-Test");
 		if (siphdr !== undefined) {
-			document.getElementById(slot + "-recv-header").value = siphdr;
+			document.getElementById(slot + "-recv-header").value = siphdr.join("|");
 		}
 		var from = obj.from + " [" + obj.type + "]";
 		if (obj.offeringVideo) {
