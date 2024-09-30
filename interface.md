@@ -183,7 +183,7 @@ The maximum bitrate to use for video. Set to Infinte to have no limit, undefined
 
 ### extraSipHeaders
 
-An array of extra SIP Headers to set in the call. Each element in the array is a string in the form <header_name>:<value>. Each header_name must start with "X-". The extra SIP Headers will be sent when this field is set when calling callClient(), callService() and answer().
+An array of extra SIP Headers to set in the call. Each element in the array is a string in the form \<header_name\>:\<value\>. Each header_name must start with "X-". The extra SIP Headers will be sent when this field is set when calling callClient(), callService() and answer().
 
 AculabCloudCall
 ===============
@@ -255,7 +255,7 @@ Disconnects any existing call. This can be called at any time.
 
 ### getSipHeaders(name)
 
-Gets a SIP Header with header name `name` from the call. Incoming calls can call this function any time. Outgoing calls will only return valid data if the call is in the connected state.
+Gets SIP Headers with header name `name` from the call. Incoming calls can call this function any time. Outgoing calls will only return valid data if the call is in the connected state.
 
 Returns an array of strings containing the values associated with the header name.
 
