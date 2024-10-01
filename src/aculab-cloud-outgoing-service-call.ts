@@ -10,6 +10,19 @@ export class AculabCloudOutgoingServiceCall extends AculabCloudOutgoingCall {
     callOptions: CallOptions | undefined,
     legacy_interface: boolean = false
   ) {
+    var hdrs = callOptions?.extraSipHeaders ?? [];
+    hdrs.forEach((s) => {
+      if (!s.startsWith("X-")) {
+        throw new Error("extraSipHeader must start with 'X-'");
+      }
+    });
+
+    let inv_opts = {earlyMedia: true};
+    let hdr_opts = {}
+    if (hdrs.length > 0) {
+      hdr_opts = {extraHeaders: hdrs};
+    }
+    const invite_opts = {...inv_opts, ...hdr_opts};
     const uri = new URI(
       'sip',
       serviceName,
@@ -18,9 +31,7 @@ export class AculabCloudOutgoingServiceCall extends AculabCloudOutgoingCall {
     super(
       client,
       uri,
-      {
-        earlyMedia: true,
-      },
+      invite_opts,
       callOptions,
       false,
       legacy_interface,

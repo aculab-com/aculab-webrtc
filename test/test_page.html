@@ -211,6 +211,8 @@
 		document.getElementById(slot + "-mute-outv").checked = false;
 		document.getElementById(slot + "-target-type").disabled = false;
 		document.getElementById(slot + "-target").disabled = false;
+		document.getElementById(slot + "-header").disabled = false;
+		document.getElementById(slot + "-recv-header").value = "";
 		configDtmfButtons(slot, false);
 		reset_slot_obj(slot_obj);
 		show_second_stream(slot, false);
@@ -272,6 +274,12 @@
 		slot_obj.connected=true;
 		if (!slot_obj.gotremotestream) {
 			gotmedia(slot, null);
+		}
+		if (!slot_obj.inbound) {
+			var siphdr = slot_obj.call.getSipHeaders("X-Aculab-WebRTC-Answer");
+			if (siphdr !== undefined) {
+				document.getElementById(slot + "-recv-header").value = siphdr.join("|");
+			}
 		}
 		document.getElementById(slot + "-state").value = "Connected";
 		document.getElementById(slot + "-start_button").disabled = true;
@@ -469,6 +477,7 @@
 
 	async function start_call(slot) {
 		var slot_obj = slots.get(slot);
+		var exthdr = document.getElementById(slot + "-header").value;
 		var opts = {
 			constraints: {
 				audio: get_audio_constraints(slot),
@@ -493,14 +502,27 @@
 				document.getElementById(slot + "-state").value = "Accepting call";
 				document.getElementById(slot + "-start_button").disabled = true;
 				document.getElementById(slot + "-stop_button").disabled = false;
+				document.getElementById(slot + "-header").disabled = true;
 				if (secondStreamSource(slot) != "None") {
 					document.getElementById(slot + "-second_stream_button").disabled = false;
+				}
+				if (exthdr !== "") {
+					if (exthdr.indexOf(":") == -1) {
+						exthdr = "X-Aculab-WebRTC-Answer: " + exthdr;
+					}
+					opts.extraSipHeaders = [exthdr];
 				}
 				slot_obj.call.answer(opts);
 			} else {
 				console.log("not starting call - call in progress");
 			}
 		} else {
+			if (exthdr !== "") {
+				if (exthdr.indexOf(":") == -1) {
+					exthdr = "X-Aculab-WebRTC-Test: " + exthdr;
+				}
+				opts.extraSipHeaders = [exthdr];
+			}
 			console.log("starting call");
 			document.getElementById(slot + "-state").value = "Starting call";
 			type = document.getElementById(slot + "-target-type").value;
@@ -515,7 +537,14 @@
 					return;
 				}
 			} else {
-				slot_obj.call = acc.callService(encodeURIComponent(targ));
+				var service_opts = {};
+				if (exthdr !== "") {
+					if (exthdr.indexOf(":") == -1) {
+						exthdr = "X-Aculab-WebRTC-Test: " + exthdr;
+					}
+					service_opts.extraSipHeaders = [exthdr];
+				}
+				slot_obj.call = acc.callService(encodeURIComponent(targ), service_opts);
 			}
 			document.getElementById(slot + "-callid").value = '';
 			slot_obj.call.onDisconnect = call_disconnected.bind(null, slot);
@@ -679,6 +708,10 @@
 		}
 		document.getElementById(slot + "-state").value = "Incoming";
 		document.getElementById(slot + "-callid").value = obj.call.callId();
+		var siphdr = obj.call.getSipHeaders("X-Aculab-WebRTC-Test");
+		if (siphdr !== undefined) {
+			document.getElementById(slot + "-recv-header").value = siphdr.join("|");
+		}
 		var from = obj.from + " [" + obj.type + "]";
 		if (obj.offeringVideo) {
 			from += " (offering video)";
@@ -1179,6 +1212,10 @@
 					</select>
 					<input id="a-target" size=40 value="webrtcdemo">
 					</td></tr><tr><td>
+					Send SIP Header: <input id="a-header" size=60 value="">
+					</td></tr><tr><td>
+					Recv SIP Header: <input id="a-recv-header" size=60 value="" disabled=true>
+					</td></tr><tr><td>
 					Remote:
 					<input id="a-remote" size=40 value="" disabled=true>
 					</td></tr><tr><td>
@@ -1340,6 +1377,10 @@
 						<option selected="selected">client</option>
 					</select>
 					<input id="b-target" size=40 value="client">
+					</td></tr><tr><td>
+					Send SIP Header: <input id="b-header" size=60 value="">
+					</td></tr><tr><td>
+					Recv SIP Header: <input id="b-recv-header" size=60 value="" disabled=true>
 					</td></tr><tr><td>
 					Remote:
 					<input id="b-remote" size=40 value="" disabled=true>
@@ -1505,6 +1546,10 @@
 					</select>
 					<input id="c-target" size=40 value="client">
 					</td></tr><tr><td>
+					SendSIP Header: <input id="c-header" size=60 value="">
+					</td></tr><tr><td>
+					Recv SIP Header: <input id="c-recv-header" size=60 value="" disabled=true>
+					</td></tr><tr><td>
 					Remote:
 					<input id="c-remote" size=40 value="" disabled=true>
 					</td></tr><tr><td>
@@ -1667,6 +1712,10 @@
 						<option selected="selected">client</option>
 					</select>
 					<input id="d-target" size=40 value="client">
+					</td></tr><tr><td>
+					Send SIP Header: <input id="d-header" size=60 value="">
+					</td></tr><tr><td>
+					Recv SIP Header: <input id="d-recv-header" size=60 value="" disabled=true>
 					</td></tr><tr><td>
 					Remote:
 					<input id="d-remote" size=40 value="" disabled=true>

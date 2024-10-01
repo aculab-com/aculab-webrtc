@@ -7,12 +7,14 @@ import {CallInvitation} from './call-invitation';
 
 export class AculabCloudIncomingCall extends AculabCloudCall {
   answer_pending: boolean;
+  _extra_headers: string[] | undefined;
   declare _session: CallInvitation;
 
   constructor(client: AculabCloudClient, session: CallInvitation) {
     super(client, true, false);
     this.session = session;
     this.answer_pending = false;
+    this._extra_headers = undefined;
   }
 
   /**
@@ -22,6 +24,14 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
   answer(options: CallOptions) {
     this._sdh_options =
       MediaEventSessionDescriptionHandler.fixup_options(options);
+    this._extra_headers = options.extraSipHeaders;
+    if (this._extra_headers !== undefined) {
+      this._extra_headers.forEach((s) => {
+        if (!s.startsWith("X-")) {
+          throw new Error("extraSipHeader must start with 'X-'");
+        }
+      });
+    }
     this.client.console_log('AculabCloudIncomingCall: answer requested');
     if (this.client._isReady()) {
       this._doanswer();
@@ -47,9 +57,14 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
     this.client.console_log('AculabCloudIncomingCall: answering');
     if (this._session) {
       // FIXME: Allow video and audio for re invite
-      const opts = {
+      const sdh_opts = {
         sessionDescriptionHandlerOptions: this._sdh_options,
       };
+      let hdr_opts = {};
+      if (this._extra_headers !== undefined) {
+        hdr_opts = {extraHeaders: this._extra_headers};
+      }
+      const opts = {...sdh_opts, ...hdr_opts};
       void this._session.accept(opts);
     }
     this.answer_pending = false;
@@ -61,7 +76,11 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
   ringing() {
     this.client.console_log('AculabCloudIncomingCall: ringing');
     if (this._session) {
-      void this._session.progress();
+      let hdr_opts = {};
+      if (this._extra_headers !== undefined) {
+        hdr_opts = {extraHeaders: this._extra_headers};
+      }
+      void this._session.progress(hdr_opts);
     }
   }
 
@@ -120,5 +139,9 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
       }
     }
     this.answer_pending = false;
+  }
+
+  getSipHeaders(name: string) {
+    return this._session.request.getHeaders(name);
   }
 }
