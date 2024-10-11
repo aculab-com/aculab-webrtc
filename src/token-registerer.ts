@@ -307,7 +307,9 @@ export class TokenRegisterer {
    * @param token webrtc token
    */
   setToken(token: string) {
-    if (token !== this.user_token) {
+    // Always re-register a token - we might have migrated to a new server.
+    // Only deregister (token == '') once, though
+    if (token !== this.user_token || token !== '') {
       this.user_token = token;
       this.change_pending = true;
       if (!this.waiting) {
