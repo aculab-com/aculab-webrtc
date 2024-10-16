@@ -1,6 +1,6 @@
 {
   "name": "@aculab-com/aculab-webrtc",
-  "version": "4.0.4",
+  "version": "4.0.5",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "module": "lib/index.js",
