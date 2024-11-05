@@ -606,28 +606,30 @@ export class MediaEventSessionDescriptionHandler extends Web.SessionDescriptionH
             ) {
               let offerDirection: RTCRtpTransceiverDirection = 'inactive';
               const kind = getTransceiverKind(transceiver) as TransceiverKind;
+              if (transceiver.mid === null) {
 
-              if (kind === 'video') {
-                if (options.constraints?.video && options.receiveVideo) {
-                  offerDirection = 'sendrecv';
-                } else if (options.constraints?.video) {
-                  offerDirection = 'sendonly';
-                } else if (options.receiveVideo) {
-                  offerDirection = 'recvonly';
+                if (kind === 'video') {
+                  if (options.constraints?.video && options.receiveVideo) {
+                    offerDirection = 'sendrecv';
+                  } else if (options.constraints?.video) {
+                    offerDirection = 'sendonly';
+                  } else if (options.receiveVideo) {
+                    offerDirection = 'recvonly';
+                  }
+                } else if (kind === 'audio') {
+                  if (options.constraints?.audio && options.receiveAudio) {
+                    offerDirection = 'sendrecv';
+                  } else if (options.constraints?.audio) {
+                    offerDirection = 'sendonly';
+                  } else if (options.receiveAudio) {
+                    offerDirection = 'recvonly';
+                  }
                 }
-              } else if (kind === 'audio') {
-                if (options.constraints?.audio && options.receiveAudio) {
-                  offerDirection = 'sendrecv';
-                } else if (options.constraints?.audio) {
-                  offerDirection = 'sendonly';
-                } else if (options.receiveAudio) {
-                  offerDirection = 'recvonly';
+                if (transceiver.direction !== offerDirection) {
+                  transceiver.direction = offerDirection;
                 }
+                updateTransceiverCodecsAndBitrates(transceiver, kind);
               }
-              if (transceiver.direction !== offerDirection) {
-                transceiver.direction = offerDirection;
-              }
-              updateTransceiverCodecsAndBitrates(transceiver, kind);
             }
           });
         }
