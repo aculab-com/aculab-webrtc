@@ -24,7 +24,7 @@ export class AculabCloudIncomingCall extends AculabCloudCall {
   answer(options: CallOptions) {
     this._sdh_options =
       MediaEventSessionDescriptionHandler.fixup_options(options);
-    this._extra_headers = options.extraSipHeaders;
+    this._extra_headers = options?.extraSipHeaders;
     if (this._extra_headers !== undefined) {
       this._extra_headers.forEach((s) => {
         if (!s.startsWith("X-")) {
