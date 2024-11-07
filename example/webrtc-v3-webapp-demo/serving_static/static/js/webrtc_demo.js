@@ -240,7 +240,7 @@ function mute_call(slot) {
 			slot_obj.call.muteStream(slot_obj.local_call_mediastream, true, true, false, false);
 		} else if (sel == "video") {
 			slot_obj.call.muteStream(slot_obj.local_call_mediastream, false, false, true, true);
-		} else if (sel == "screenshare") {
+		} else if (sel == "screenshare" && slot_obj.local_screenshare_mediastream !== null) {
 			slot_obj.call.muteStream(slot_obj.local_screenshare_mediastream, false, false, true, true);
 		} else {
 			// Unmute all media on all streams
