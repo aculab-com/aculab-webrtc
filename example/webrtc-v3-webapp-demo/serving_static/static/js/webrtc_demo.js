@@ -271,8 +271,6 @@ async function start_call(slot, av, call_type) {
 		}
 	} else {
 		console.log("starting call");
-		console.log(AculabCloudClient.getCodecList("video"));
-		console.log(AculabCloudClient.getCodecList("audio"));
 		token = document.getElementById("token").value;
 		call_options = {};
 		slot_obj.have_video = false;
