@@ -78,7 +78,7 @@ def main():
     if not CLOUD_USERNAME:
         unset_vars.append("CLOUD_USERNAME")
     if not CLOUD_API_ACCESS_KEY:
-        unset_vars.append("CLOUD_ACCESS_KEY")
+        unset_vars.append("CLOUD_API_ACCESS_KEY")
     if not CLOUD_WEBRTC_ACCESS_KEY:
         unset_vars.append("CLOUD_WEBRTC_ACCESS_KEY")
     if not CLOUD_REGION:
