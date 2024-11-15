@@ -2,7 +2,21 @@ var acc = null; // The AculabCloudClient instance
 var inbound_enabled = false; // True if we have enabled inbound calls
 var customer_id = null; // The WebRTC key
 var slots = new Map([
-	['a', {'call': null, 'inbound':false, 'connected':false, 'audio_player':null, 'local_video_player':null, 'remote_video_player': null, 'playing_ringing':false, 'gotremotestream':false, 'have_video': false}],
+	['a', {'call': null,
+		'inbound':false,
+		'connected':false,
+		'audio_player':null,
+		'local_video_player':null,
+		'remote_video_player': null,
+		'local_screenshare_player':null,
+		'remote_screenshare_player':null,
+		'playing_ringing':false,
+		'gotremotestream':false,
+		'have_video': false,
+		'local_call_mediastream':null,
+		'local_screenshare_mediastream':null,
+		'remote_call_mediastream':null,
+		'remote_screenshare_mediastream':null}]
 ]);
 
 function configToCallInput(slot, enabled) {
@@ -21,6 +35,11 @@ function configAcceptButtons(slot, audio_enabled, voice_enabled) {
 	document.getElementById(slot + "-accept_video_button").disabled = !voice_enabled;
 }
 
+function configScreenshareButtons(slot, share, unshare) {
+	document.getElementById(slot + "-screenshare_button").disabled = !share;
+	document.getElementById(slot + "-unscreenshare_button").disabled = !unshare;
+}
+
 function configDtmfButtons(slot, enabled) {
 	var dtmf_table = document.getElementById(slot + '-dtmf-buttons');
 	var buttons = dtmf_table.getElementsByTagName('button');
@@ -29,32 +48,102 @@ function configDtmfButtons(slot, enabled) {
 	}
 }
 
-function gotmedia(slot, obj) {
+function removedmedia(slot, obj) {
 	var slot_obj = slots.get(slot);
-	for (player of [slot_obj.audio_player, slot_obj.remote_video_player]) {
+	if (obj.stream === slot_obj.remote_screenshare_mediastream) {
+		slot_obj.remote_screenshare_mediastream = null;
+		var player = slot_obj.remote_screenshare_player;
 		player.pause();
 		player.loop = '';
 		player.src = '';
 		player.srcObject = null;
 		player.type = '';
 		player.load();
+	}
+}
+
+function gotmedia(slot, obj) {
+	var slot_obj = slots.get(slot);
+	if (!slot_obj.gotremotestream || obj === null) {
+		for (player of [slot_obj.audio_player, slot_obj.remote_video_player, slot_obj.remote_screenshare_player]) {
+			player.pause();
+			player.loop = '';
+			player.src = '';
+			player.srcObject = null;
+			player.type = '';
+			player.load();
+		}
 		slot_obj.playing_ringing = false;
 		slot_obj.gotremotestream = false;
 	}
 	if (obj !== null) {
-		slot_obj.gotremotestream = true;
-		if (slot_obj.have_video) {
-			player = slot_obj.remote_video_player;
+		if (!slot_obj.remote_call_mediastream) {
+			slot_obj.remote_call_mediastream = obj.stream;
+			slot_obj.gotremotestream = true;
+			if (slot_obj.have_video) {
+				player = slot_obj.remote_video_player;
+			} else {
+				player = slot_obj.audio_player;
+			}
+			player.srcObject = obj.stream;
+			player.load();
+			var p = player.play();
+			if (p !== undefined) {
+				p.catch(error => {});
+			}
 		} else {
-			player = slot_obj.audio_player;
+			slot_obj.remote_screenshare_mediastream = obj.stream;
+			player = slot_obj.remote_screenshare_player;
+			player.srcObject = obj.stream;
+			player.load();
+			var p = player.play();
+			if (p !== undefined) {
+				p.catch(error => {});
+			}
 		}
-		player = slot_obj.remote_video_player;
-		player.srcObject = obj.stream;
+	}
+}
+
+function gotlocalmedia(slot, obj) {
+	var slot_obj = slots.get(slot);
+	if (!slot_obj.local_call_mediastream) {
+		slot_obj.local_call_mediastream = obj.stream;
+		document.getElementById(slot + "-state").value = "Connecting";
+		if (slot_obj.have_video == true) {
+			var player = slot_obj.local_video_player;
+			player.srcObject = obj.stream;
+			player.load();
+			document.getElementById(slot + "-state").value = "Connecting";
+			var p = player.play();
+			if (p !== undefined) {
+				p.catch(error => {});
+			}
+		}
+	} else {
+		slot_obj.local_screenshare_mediastream = obj.stream;
+		if (slot_obj.have_video == true) {
+			var player = slot_obj.local_screenshare_player;
+			player.srcObject = obj.stream;
+			player.load();
+			var p = player.play();
+			if (p !== undefined) {
+				p.catch(error => {});
+			}
+		}
+	}
+}
+
+function removedlocalmedia(slot, obj) {
+	var slot_obj = slots.get(slot);
+	if (obj.stream.id === slot_obj.local_screenshare_mediastream.id) {
+		slot_obj.local_screenshare_mediastream = null;
+		var player = slot_obj.local_screenshare_player;
+		player.pause();
+		player.loop = '';
+		player.src = '';
+		player.srcObject = null;
+		player.type = '';
 		player.load();
-		var p = player.play();
-		if (p !== undefined) {
-			p.catch(error => {});
-		}
 	}
 }
 
@@ -66,6 +155,10 @@ function handle_disconnect(slot, cause) {
 		slot_obj.call = null;
 	}
 	gotmedia(slot, null);
+	slot_obj.remote_call_mediastream = null;
+	slot_obj.local_screenshare_mediastream = null;
+	slot_obj.local_call_mediastream = null;
+	slot_obj.remote_screenshare_mediastream = null;
 	document.getElementById(slot + "-state").value = "Idle - " + cause;
 	document.getElementById(slot + "-remote").value = "";
 	configStartButtons(slot, true);
@@ -75,31 +168,18 @@ function handle_disconnect(slot, cause) {
 	configToCallInput(slot, true);
 	configAcceptButtons(slot, false, false);
 	configDtmfButtons(slot, false);
+	configScreenshareButtons(slot, false, false);
 }
 
 function call_disconnected(slot, obj) {
 	var slot_obj = slots.get(slot);
 	slot_obj.call = null;
 	handle_disconnect(slot, obj.cause);
-	var player = slot_obj.local_video_player;
-	player.src = '';
-	player.srcObject = null;
-	player.type = '';
-	player.load();
-}
-
-function connecting(slot, obj) {
-	var slot_obj = slots.get(slot);
-	document.getElementById(slot + "-state").value = "Connecting";
-	if (slot_obj.have_video == true) {
-		var player = slot_obj.local_video_player;
-		player.srcObject = obj.stream;
+	for (player of [slot_obj.local_video_player, slot_obj.local_screenshare_player]) {
+		player.src = '';
+		player.srcObject = null;
+		player.type = '';
 		player.load();
-		document.getElementById(slot + "-state").value = "Connecting";
-		var p = player.play();
-		if (p !== undefined) {
-			p.catch(error => {});
-		}
 	}
 }
 
@@ -134,6 +214,7 @@ function connected(slot) {
 	document.getElementById(slot + "-stop_button").disabled = false;
 	document.getElementById(slot + "-mute").disabled = false;
 	configDtmfButtons(slot, true);
+	configScreenshareButtons(slot, true, false);
 }
 
 function handle_error(slot, obj) {
@@ -145,26 +226,30 @@ function mute_call(slot) {
 	if (slot_obj.call) {
 		var sel = document.getElementById(slot + '-mute').value;
 		if (sel == 'all') {
+			// Mute all media on all streams
 			slot_obj.call.mute(true, true, true, true);
 		} else if (sel == "mic") {
-			slot_obj.call.mute(true, false, false, false);
+			slot_obj.call.muteStream(slot_obj.local_call_mediastream, true, false, false, false);
 		} else if (sel == "speaker") {
-			slot_obj.call.mute(false, true, false, false);
+			slot_obj.call.muteStream(slot_obj.local_call_mediastream, false, true, false, false);
 		} else if (sel == "camera") {
-			slot_obj.call.mute(false, false, true, false);
+			slot_obj.call.muteStream(slot_obj.local_call_mediastream, false, false, true, false);
 		} else if (sel == "video player") {
-			slot_obj.call.mute(false, false, false, true);
+			slot_obj.call.muteStream(slot_obj.local_call_mediastream, false, false, false, true);
 		} else if (sel == "audio") {
-			slot_obj.call.mute(true, true, false, false);
+			slot_obj.call.muteStream(slot_obj.local_call_mediastream, true, true, false, false);
 		} else if (sel == "video") {
-			slot_obj.call.mute(false, false, true, true);
+			slot_obj.call.muteStream(slot_obj.local_call_mediastream, false, false, true, true);
+		} else if (sel == "screenshare" && slot_obj.local_screenshare_mediastream !== null) {
+			slot_obj.call.muteStream(slot_obj.local_screenshare_mediastream, false, false, true, true);
 		} else {
+			// Unmute all media on all streams
 			slot_obj.call.mute(false, false, false, false);
 		}
 	}
 }
 
-function start_call(slot, av, call_type) {
+async function start_call(slot, av, call_type) {
 	var slot_obj = slots.get(slot);
 	if (slot_obj.call) {
 		if (slot_obj.inbound && !slot_obj.connected) {
@@ -178,14 +263,14 @@ function start_call(slot, av, call_type) {
 				slot_obj.have_video = false;
 			}
 			call_options.constraints = {audio: true, video: slot_obj.have_video};
+			const mediaStream = await captureUserMedia(call_options.constraints);
+			call_options.localStreams = [mediaStream];
 			slot_obj.call.answer(call_options);
 		} else {
 			console.log("not starting call - call in progress");
 		}
 	} else {
 		console.log("starting call");
-		console.log(AculabCloudClient.getCodecList("video"));
-		console.log(AculabCloudClient.getCodecList("audio"));
 		token = document.getElementById("token").value;
 		call_options = {};
 		slot_obj.have_video = false;
@@ -195,6 +280,9 @@ function start_call(slot, av, call_type) {
 				slot_obj.have_video = true;
 			}
 			call_options.constraints = {audio: true, video: slot_obj.have_video};
+			const mediaStream = await captureUserMedia(call_options.constraints);
+			call_options.localStreams = [mediaStream];
+
 			user_id = document.getElementById(slot + "-remote-user-id").value;
 			slot_obj.call = acc.callClient(encodeURIComponent(user_id), token, call_options);
 			remote_name = "Client: " + user_id;
@@ -206,9 +294,10 @@ function start_call(slot, av, call_type) {
 		slot_obj.call.onDisconnect = call_disconnected.bind(null, slot);
 		slot_obj.call.onRinging = ringing.bind(null, slot);
 		slot_obj.call.onMedia = gotmedia.bind(null, slot);
-		slot_obj.call.onConnecting = connecting.bind(null, slot);
+		slot_obj.call.onMediaRemove = removedmedia.bind(null, slot);
+		slot_obj.call.onLocalMedia = gotlocalmedia.bind(null, slot);
+		slot_obj.call.onLocalMediaRemove = removedlocalmedia.bind(null, slot);
 		slot_obj.call.onConnected = connected.bind(null, slot);
-		slot_obj.call.onError = handle_error.bind(null, slot);
 		slot_obj.inbound = false;
 		document.getElementById(slot + "-remote").value = remote_name;
 		configToCallInput(slot, false);
@@ -271,9 +360,10 @@ function new_call(obj) {
 	slot_obj.call.onDisconnect = call_disconnected.bind(null, slot);
 	slot_obj.call.onRinging = ringing.bind(null, slot);
 	slot_obj.call.onMedia = gotmedia.bind(null, slot);
-	slot_obj.call.onConnecting = connecting.bind(null, slot);
+	slot_obj.call.onMediaRemove = removedmedia.bind(null, slot);
+	slot_obj.call.onLocalMedia = gotlocalmedia.bind(null, slot);
+	slot_obj.call.onLocalMediaRemove = removedlocalmedia.bind(null, slot);
 	slot_obj.call.onConnected = connected.bind(null, slot);
-	slot_obj.call.onError = handle_error.bind(null, slot);
 
 	var player = slot_obj.audio_player;
 	if (player.canPlayType('audio/wav')) {
@@ -381,10 +471,43 @@ function make_client() {
 		obj.audio_player = document.getElementById(s + '-player');
 		obj.local_video_player = document.getElementById(s + '-local-video');
 		obj.remote_video_player = document.getElementById(s + '-remote-video');
+		obj.local_screenshare_player = document.getElementById(s + '-local-screenshare');
+		obj.remote_screenshare_player = document.getElementById(s + '-remote-screenshare');
 		obj.audio_player.load(); // do this early in response to user action to ensure we can play later
 		obj.local_video_player.load(); // do this early in response to user action to ensure we can play later
 		obj.remote_video_player.load(); // do this early in response to user action to ensure we can play later
 		configStartButtons(s, true);
+	}
+}
+
+async function captureUserMedia(constraints) {
+	const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+	return mediaStream;
+}
+
+async function captureScreen() {
+	const displayMediaOptions = {
+		video: {
+			displaySurface: "window"
+		},
+		audio: false,
+	};
+	const screenCapture = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
+	return screenCapture;
+}
+
+async function share_screen(slot) {
+	configScreenshareButtons(slot, false, true);
+	var slot_obj = slots.get(slot);
+	const newStream = await captureScreen();
+	slot_obj.call.addStream(newStream);
+}
+
+function unshare_screen(slot) {
+	var slot_obj = slots.get(slot);
+	if (slot_obj.local_screenshare_mediastream) {
+		configScreenshareButtons(slot, true, false);
+		slot_obj.call.removeStream(slot_obj.local_screenshare_mediastream);
 	}
 }
 

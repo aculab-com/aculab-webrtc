@@ -9,10 +9,10 @@
 	var inbound_enabled = false;
 	var auto_accept = false;
 	var slots = new Map([
-		['a', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'secondplayer':null, 'playing_ringing':false, 'gotremotestream':false, 'remotestream':null, 'gotsecondremotestream':false, 'remotesecondstream':null, 'gotlocalstream':false, 'localstream':null, 'localsecondstream':null}],
-		['b', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'secondplayer':null, 'playing_ringing':false, 'gotremotestream':false, 'remotestream':null, 'gotsecondremotestream':false, 'remotesecondstream':null, 'gotlocalstream':false, 'localstream':null, 'localsecondstream':null}],
-		['c', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'secondplayer':null, 'playing_ringing':false, 'gotremotestream':false, 'remotestream':null, 'gotsecondremotestream':false, 'remotesecondstream':null, 'gotlocalstream':false, 'localstream':null, 'localsecondstream':null}],
-		['d', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'secondplayer':null, 'playing_ringing':false, 'gotremotestream':false, 'remotestream':null, 'gotsecondremotestream':false, 'remotesecondstream':null, 'gotlocalstream':false, 'localstream':null, 'localsecondstream':null}],
+		['a', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'secondplayer':null, 'playing_ringing':false, 'gotremotestream':false, 'remotestream':null, 'gotsecondremotestream':false, 'remotesecondstream':null, 'gotlocalstream':false, 'localstream':null, 'localsecondstream':null, 'defaultopts': false}],
+		['b', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'secondplayer':null, 'playing_ringing':false, 'gotremotestream':false, 'remotestream':null, 'gotsecondremotestream':false, 'remotesecondstream':null, 'gotlocalstream':false, 'localstream':null, 'localsecondstream':null, 'defaultopts': false}],
+		['c', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'secondplayer':null, 'playing_ringing':false, 'gotremotestream':false, 'remotestream':null, 'gotsecondremotestream':false, 'remotesecondstream':null, 'gotlocalstream':false, 'localstream':null, 'localsecondstream':null, 'defaultopts': false}],
+		['d', {'call': null, 'inbound':false, 'connected':false, 'player':null, 'secondplayer':null, 'playing_ringing':false, 'gotremotestream':false, 'remotestream':null, 'gotsecondremotestream':false, 'remotesecondstream':null, 'gotlocalstream':false, 'localstream':null, 'localsecondstream':null, 'defaultopts': false}],
 	]);
 	var statsTimer = null;
 	function initialise() {
@@ -20,7 +20,6 @@
 		if (urlParams.get('autoaccept') !== null) {
 			auto_accept = true;
 		}
-		console.log(urlParams.get('autoaccept'));
 		const thisUrl = window.location.href;
 		if (!thisUrl.startsWith("file://")) {
 			/* You can't capture the stream of a video from
@@ -307,6 +306,21 @@
 		}
 	}
 
+	function toggle_default_opts(slot) {
+		var slot_obj = slots.get(slot);
+		var defopt = document.getElementById(slot + "-default-options").checked;
+		slot_obj.defaultopts = defopt;
+		document.getElementById(slot + "-audio-constraints").disabled = defopt;
+		document.getElementById(slot + "-video-constraints").disabled = defopt;
+		document.getElementById(slot + "-second-stream-source").disabled = defopt;
+		document.getElementById(slot + "-audio-receive").disabled = defopt;
+		document.getElementById(slot + "-video-receive").disabled = defopt;
+		document.getElementById(slot + "-audio-bandwidth").disabled = defopt;
+		document.getElementById(slot + "-video-bandwidth").disabled = defopt;
+		document.getElementById(slot + "-audio-codecs").disabled = defopt;
+		document.getElementById(slot + "-video-codecs").disabled = defopt;
+	}
+
 	function switch_led_colour(slot, type, state) {
         /* Helper function to change the colour of a mic/cam/outa/outv LED light */
         var led = document.getElementById(slot + "-" + type + "-led");
@@ -492,7 +506,7 @@
 			maxBitrateAudio: get_bandwidth_setting(slot, 'audio'),
 			maxBitrateVideo: get_bandwidth_setting(slot, 'video'),
 		}
-		if (secondStreamSource(slot) != "None") {
+		if (secondStreamSource(slot) != "None" && !slot_obj.defaultopts) {
 			const mediaStream = await navigator.mediaDevices.getUserMedia(opts.constraints);
 			opts.localStreams = [mediaStream];
 		}
@@ -503,7 +517,7 @@
 				document.getElementById(slot + "-start_button").disabled = true;
 				document.getElementById(slot + "-stop_button").disabled = false;
 				document.getElementById(slot + "-header").disabled = true;
-				if (secondStreamSource(slot) != "None") {
+				if (secondStreamSource(slot) != "None" && !slot_obj.defaultopts) {
 					document.getElementById(slot + "-second_stream_button").disabled = false;
 				}
 				if (exthdr !== "") {
@@ -512,7 +526,11 @@
 					}
 					opts.extraSipHeaders = [exthdr];
 				}
-				slot_obj.call.answer(opts);
+				if (slot_obj.defaultopts) {
+					slot_obj.call.answer();
+				} else {
+					slot_obj.call.answer(opts);
+				}
 			} else {
 				console.log("not starting call - call in progress");
 			}
@@ -530,7 +548,11 @@
 			if (type == 'client') {
 				token = document.getElementById("token").value;
 				try {
-					slot_obj.call = acc.callClient(encodeURIComponent(targ), token, opts);
+					if (slot_obj.defaultopts) {
+						slot_obj.call = acc.callClient(encodeURIComponent(targ), token, {});
+					} else {
+						slot_obj.call = acc.callClient(encodeURIComponent(targ), token, opts);
+					}
 				}
 				catch(err) {
 					alert("Error: " + err);
@@ -544,7 +566,11 @@
 					}
 					service_opts.extraSipHeaders = [exthdr];
 				}
-				slot_obj.call = acc.callService(encodeURIComponent(targ), service_opts);
+				if (slot_obj.defaultopts) {
+					slot_obj.call = acc.callService(encodeURIComponent(targ));
+				} else {
+					slot_obj.call = acc.callService(encodeURIComponent(targ), service_opts);
+				}
 			}
 			document.getElementById(slot + "-callid").value = '';
 			slot_obj.call.onDisconnect = call_disconnected.bind(null, slot);
@@ -1280,6 +1306,12 @@
 					<div style="display: inline-block">
 						Local media constraints:
 						<br>
+						Default opts:
+						<label class="switch">
+							<input type="checkbox" id="a-default-options" onchange="toggle_default_opts('a')">
+							<span class="slider round"></span>
+						</label>
+						<br>
 						Audio:&nbsp;<select id="a-audio-constraints">
 							<option selected>true</option>
 							<option>false</option>
@@ -1445,6 +1477,12 @@
 					</table>
 					<div style="display: inline-block">
 						Local media constraints:
+						<br>
+						Default opts:
+						<label class="switch">
+							<input type="checkbox" id="b-default-options" onchange="toggle_default_opts('b')">
+							<span class="slider round"></span>
+						</label>
 						<br>
 						Audio:&nbsp;<select id="b-audio-constraints">
 							<option selected>true</option>
@@ -1614,6 +1652,12 @@
 					<div style="display: inline-block">
 						Local media constraints:
 						<br>
+						Default opts:
+						<label class="switch">
+							<input type="checkbox" id="c-default-options" onchange="toggle_default_opts('c')">
+							<span class="slider round"></span>
+						</label>
+						<br>
 						Audio:&nbsp;<select id="c-audio-constraints">
 							<option selected>true</option>
 							<option>false</option>
@@ -1780,6 +1824,12 @@
 					</table>
 					<div style="display: inline-block">
 						Local media constraints:
+						<br>
+						Default opts:
+						<label class="switch">
+							<input type="checkbox" id="d-default-options" onchange="toggle_default_opts('d')">
+							<span class="slider round"></span>
+						</label>
 						<br>
 						Audio:&nbsp;<select id="d-audio-constraints">
 							<option selected>true</option>
