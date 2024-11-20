@@ -802,11 +802,13 @@ export class AculabCloudCall {
       ) {
         this._session.sessionDescriptionHandler?.peerConnection
           ?.getStats()
-          .then((stats: ReadonlyMap<string, {[key: string]: unknown}>) => {
+          .then((stats) => {
             let localAddr = 'Unknown';
             let remoteAddr = 'Unknown';
             let localType = '?';
             let remoteType = '?';
+	    let remoteCandidateId = '';
+	    let localCandidateId = '';
             if (stats) {
               let selectedPairId = '';
               stats.forEach(stat => {
@@ -814,44 +816,43 @@ export class AculabCloudCall {
                   selectedPairId = stat.selectedCandidatePairId as string;
                 }
               });
-              let candidatePair = stats.get(selectedPairId);
-              if (!candidatePair) {
+              stats.forEach(stat => {
+                if (stat.id == selectedPairId) {
+                  remoteCandidateId = stat.remoteCandidateId;
+                  localCandidateId = stat.localCandidateId;
+		}
+              });
+              if (remoteCandidateId === '') {
                 stats.forEach(stat => {
                   if (stat.type == 'candidate-pair' && stat.selected) {
-                    candidatePair = stat;
+                    remoteCandidateId = stat.remoteCandidateId;
+                    localCandidateId = stat.localCandidateId;
                   }
                 });
               }
-              if (candidatePair) {
-                const remote = stats.get(
-                  candidatePair.remoteCandidateId as string,
-                );
-                if (typeof remote?.candidateType === 'string') {
-                  remoteType = remote.candidateType;
-                }
+              if (remoteCandidateId) {
+                stats.forEach(stat => {
+                  if (stat.type == 'remote-candidate' && stat.id == remoteCandidateId) {
+                    if (typeof stat?.candidateType === 'string') {
+                      remoteType = stat.candidateType;
+                    }
+                    remoteAddr = _extractAddrPort(stat);
+		  } else if (stat.type == 'local-candidate' && stat.id == localCandidateId) {
+                    if (
+                      stat?.relayProtocol &&
+                      typeof stat.relayProtocol === 'string'
+                    ) {
+                      localType = stat.relayProtocol;
+                    } else if (
+                      stat?.protocol &&
+                      typeof stat.protocol === 'string'
+                    ) {
+                      localType = stat.protocol;
+                    }
 
-                if (remote) {
-                  remoteAddr = _extractAddrPort(remote);
-                }
-
-                const local = stats.get(
-                  candidatePair.localCandidateId as string,
-                );
-                if (
-                  local?.relayProtocol &&
-                  typeof local.relayProtocol === 'string'
-                ) {
-                  localType = local.relayProtocol;
-                } else if (
-                  local?.protocol &&
-                  typeof local.protocol === 'string'
-                ) {
-                  localType = local.protocol;
-                }
-
-                if (local) {
-                  localAddr = _extractAddrPort(local);
-                }
+                    localAddr = _extractAddrPort(stat);
+		  }
+                });
               }
             }
             resolve(
