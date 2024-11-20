@@ -17,6 +17,10 @@ export default [
                 tsconfig: "./configs/tsconfig.esm.json",
                 sourceMap: false,
             })
+        ],
+        external: [
+            "sip.js",
+            "uuid"
         ]
     }
 ]
