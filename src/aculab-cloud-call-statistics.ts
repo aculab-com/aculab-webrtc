@@ -1,5 +1,4 @@
 type Report = {[key: string]: unknown};
-type RTCStatsReport = ReadonlyMap<string, Report>;
 type RTCReportKind = 'audio' | 'video';
 
 export class AculabCloudCallStatistics {
