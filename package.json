@@ -1,6 +1,6 @@
 {
   "name": "@aculab-com/aculab-webrtc",
-  "version": "4.0.7",
+  "version": "4.0.8B1",
   "main": "lib/index.js",
   "module": "lib/index.mjs",
   "types": "lib/index.d.ts",
@@ -53,7 +53,7 @@
     "build-interface-html": "marked -i interface.md -o interface.html",
     "build-web-tgz": "tar -czf dist/webrtc-client-web-package-$npm_package_version.tgz --group 0 --owner 0 --numeric-owner --transform=s,^,$npm_package_version/, dist/AculabCloudCaller.js demos/* test/* interface.html",
     "build": "npm run ts-build && npm run build-package && npm run build-bundles && npm rum copy-dist-files && npm run build-interface-html && npm run build-web-tgz",
-    "ts-build": "npm run ts-build:cjs || npm run ts-build:esm",
+    "ts-build": "npm run ts-build:cjs; npm run ts-build:esm",
     "ts-build:esm": "rollup --config ./configs/rollup.config.js",
     "ts-build:cjs": "tsc -p ./configs/tsconfig.cjs.json"
   },
