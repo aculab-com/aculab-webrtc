@@ -458,8 +458,10 @@ export class AculabCloudClient {
       this._token === '' &&
       this._registered_token === ''
     ) {
-      // no longer need websocket connection
-      void this._ua.stop();
+      if (this._transport_connected) {
+        // no longer need websocket connection
+        void this._ua.stop();
+      }
       this._ua_started = false;
       // the ua will disconnect the transport, but we don't get the event
       // so just clear the flag
@@ -652,7 +654,10 @@ export class AculabCloudClient {
    */
   closeConnection() {
     this.disableIncoming();
-    this._ua.transport.disconnect();
+    if (this._transport_connected) {
+      this._ua.transport.disconnect();
+      this._transport_connected = false;
+    }
   }
 
   /**
