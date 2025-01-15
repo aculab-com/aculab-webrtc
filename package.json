@@ -52,9 +52,10 @@
     "copy-dist-file-min": "cp dist/AculabCloudCaller.min.js dist/AculabCloudCaller-$npm_package_version.min.js",
     "copy-dist-file-min-map": "cp dist/AculabCloudCaller.min.js.map dist/AculabCloudCaller-$npm_package_version.min.js.map",
     "copy-dist-files": "npm run copy-dist-file && npm run copy-dist-file-map && npm run copy-dist-file-min && npm run copy-dist-file-min-map",
+    "create-min-js-test": "sed 's/AculabCloudCaller.js/AculabCloudCaller.min.js/' test/test_page.html > test/test_page_min_js.html",
     "build-interface-html": "marked -i interface.md -o interface.html",
     "build-web-tgz": "tar -czf dist/webrtc-client-web-package-$npm_package_version.tgz --group 0 --owner 0 --numeric-owner --transform=s,^,$npm_package_version/, dist/AculabCloudCaller.js dist/AculabCloudCaller.min.js dist/AculabCloudCaller.js.map dist/AculabCloudCaller.min.js.map demos/* test/* interface.html",
-    "build": "npm run ts-build && npm run build-package && npm run build-bundles && npm rum copy-dist-files && npm run build-interface-html && npm run build-web-tgz",
+    "build": "npm run ts-build && npm run build-package && npm run build-bundles && npm rum copy-dist-files && npm run build-interface-html && npm run create-min-js-test && npm run build-web-tgz",
     "ts-build": "npm run ts-build:cjs; npm run ts-build:esm",
     "ts-build:esm": "rollup --config ./configs/rollup.config.js",
     "ts-build:cjs": "tsc -p ./configs/tsconfig.cjs.json"
